@@ -1,0 +1,11 @@
+#if !defined(ERR)
+    #define ERR(C)
+#endif
+ERR(invalid_ram)
+ERR(invalid_code)
+ERR(leave_code_segment)
+ERR(unknown_opcode)
+ERR(break)
+ERR(stack_underflow)
+ERR(stack_overflow)
+#undef ERR

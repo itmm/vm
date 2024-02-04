@@ -1,0 +1,8 @@
+#if !defined(OP)
+    #define OP(O)
+#endif
+OP(nop)
+OP(break)
+OP(push_ch)
+OP(write_char)
+#undef OP
