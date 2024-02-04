@@ -19,7 +19,7 @@ int main() {
 			vm::op_add_int, vm::op_int_to_ch, vm::op_write_ch,
 		vm::op_ch_to_int, vm::op_push_ch, '0', vm::op_ch_to_int,
 			vm::op_add_int, vm::op_int_to_ch, vm::op_write_ch,
-		vm::op_break
+		vm::op_push_ch, '\n', vm::op_write_ch, vm::op_break
 	};
 	try {
 		vm::init(ram, ram + sizeof(ram), code, code + sizeof(code));

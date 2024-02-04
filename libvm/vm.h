@@ -7,7 +7,7 @@ namespace vm {
 	public:
 		enum Code {
 			#define ERR(C) err_##C,
-			#include "err.def"
+			#include "../err.def"
 		};
 
 		explicit Error(Code code): code { code } { }
@@ -17,7 +17,7 @@ namespace vm {
 
 	enum OpCode {
 		#define OP(O) op_##O,
-		#include "op.def"
+		#include "../op.def"
 	};
 
 	void init(
@@ -26,4 +26,6 @@ namespace vm {
 	);
 
 	void step();
+
+	const signed char* stack_begin();
 }

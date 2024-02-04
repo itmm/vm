@@ -52,7 +52,7 @@ namespace {
 		can_pull(4);
 		int value { 0 };
 		for (int i { 4 }; i; --i) {
-			value = (value << 8) + *stack_begin_++;
+			value = (value << 8) + (*stack_begin_++ & 0xff);
 		}
 		return value;
 	}
@@ -131,3 +131,6 @@ void vm::step() {
 		default: err(Error::err_unknown_opcode);
 	}
 }
+
+const signed char* vm::stack_begin() { return stack_begin_; }
+

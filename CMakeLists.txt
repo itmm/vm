@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.27)
-project(vm)
+project(libvm)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(vm main.cpp vm.cpp)
+add_subdirectory(libvm)
+add_subdirectory(tests)
+
+add_executable(vm main.cpp)
+target_link_libraries(vm libvm)
