@@ -21,8 +21,8 @@ namespace vm {
 	};
 
 	void init(
-		char* ram_begin, char* ram_end,
-		const char* code_begin, const char* code_end
+		signed char* ram_begin, signed char* ram_end,
+		const signed char* code_begin, const signed char* code_end
 	);
 
 	void step();

@@ -1,8 +1,28 @@
+#include "config.h"
 #if !defined(OP)
     #define OP(O)
 #endif
-OP(nop)
-OP(break)
-OP(push_ch)
-OP(write_char)
+#if CONFIG_HAS_OP_NOP
+    OP(nop)
+#endif
+#if CONFIG_HAS_OP_BREAK
+    OP(break)
+#endif
+#if CONFIG_HAS_CH
+    OP(push_ch)
+    #if CONFIG_HAS_OP_WRITE_CH
+        OP(write_ch)
+    #endif
+#endif
+#if CONFIG_HAS_INT
+    OP(add_int)
+#endif
+#if CONFIG_HAS_CH && CONFIG_HAS_INT
+    #if CONFIG_HAS_OP_CH_TO_INT
+        OP(ch_to_int)
+    #endif
+    #if CONFIG_HAS_OP_INT_TO_CH
+        OP(int_to_ch)
+    #endif
+#endif
 #undef OP

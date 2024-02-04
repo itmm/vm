@@ -8,4 +8,8 @@ ERR(unknown_opcode)
 ERR(break)
 ERR(stack_underflow)
 ERR(stack_overflow)
+ERR(add_int_overflow)
+ERR(add_int_underflow)
+ERR(int_to_ch_overflow)
+ERR(int_to_ch_underflow)
 #undef ERR

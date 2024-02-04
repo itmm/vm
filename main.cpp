@@ -8,11 +8,18 @@ char* err_msgs[] = {
 };
 
 int main() {
-	char ram[4096];
-	char code[] {
-		vm::op_push_ch, 'v', vm::op_write_char,
-		vm::op_push_ch, 'm', vm::op_write_char,
-		vm::op_nop, vm::op_break
+	signed char ram[4096];
+	signed char code[] {
+		vm::op_push_ch, 8, vm::op_ch_to_int,
+		vm::op_ch_to_int, vm::op_push_ch, '0', vm::op_ch_to_int,
+			vm::op_add_int, vm::op_int_to_ch, vm::op_write_ch,
+		vm::op_ch_to_int, vm::op_push_ch, '0', vm::op_ch_to_int,
+			vm::op_add_int, vm::op_int_to_ch, vm::op_write_ch,
+		vm::op_ch_to_int, vm::op_push_ch, '0', vm::op_ch_to_int,
+			vm::op_add_int, vm::op_int_to_ch, vm::op_write_ch,
+		vm::op_ch_to_int, vm::op_push_ch, '0', vm::op_ch_to_int,
+			vm::op_add_int, vm::op_int_to_ch, vm::op_write_ch,
+		vm::op_break
 	};
 	try {
 		vm::init(ram, ram + sizeof(ram), code, code + sizeof(code));
