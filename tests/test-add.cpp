@@ -34,6 +34,16 @@ TEST(add_tests, big_ok_a) {
 	EXPECT_STACK(code, expected);
 }
 
+TEST(add_tests, big_overflow_a) {
+	signed char code[] {
+		vm::op_push_ch, -1, vm::op_push_ch, -1,
+		vm::op_push_ch, -1, vm::op_push_ch, 127,
+		vm::op_push_ch, 1, vm::op_ch_to_int,
+		vm::op_add_int, vm::op_break
+	};
+	EXPECT_ERROR(code, vm::Error::err_add_int_overflow);
+}
+
 TEST(add_tests, big_ok_b) {
 	signed char code[] {
 		vm::op_push_ch, 0, vm::op_ch_to_int,
@@ -43,4 +53,14 @@ TEST(add_tests, big_ok_b) {
 	};
 	signed char expected[] { 127, -1, -1, -1 };
 	EXPECT_STACK(code, expected);
+}
+
+TEST(add_tests, big_overflow_b) {
+	signed char code[] {
+		vm::op_push_ch, 1, vm::op_ch_to_int,
+		vm::op_push_ch, -1, vm::op_push_ch, -1,
+		vm::op_push_ch, -1, vm::op_push_ch, 127,
+		vm::op_add_int, vm::op_break
+	};
+	EXPECT_ERROR(code, vm::Error::err_add_int_overflow);
 }
