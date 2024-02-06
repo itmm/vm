@@ -5,10 +5,6 @@
 
 using namespace vm;
 
-[[noreturn]] void err(Error::Code code) {
-	throw Error { code };
-}
-
 namespace {
 	[[maybe_unused]] signed char* ram_begin_;
 	signed char* ram_end_;
@@ -18,6 +14,10 @@ namespace {
 	const signed char* pc_;
 	signed char* stack_begin_;
 	signed char* heap_end_;
+
+	[[noreturn]] void err(Error::Code code) {
+		throw Error { code };
+	}
 
 	void check_range(
 		const signed char* begin, const signed char* end, Error::Code code

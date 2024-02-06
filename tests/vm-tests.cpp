@@ -8,8 +8,8 @@ void expect_stack(
 	const signed char* expected_begin, int expected_size
 ) {
 	signed char ram[ram_size];
-	vm::init(ram, ram + sizeof(ram), code_begin, code_begin + code_size);
 	try {
+		vm::init(ram, ram + sizeof(ram), code_begin, code_begin + code_size);
 		for (;;) { vm::step(); }
 	} catch(const vm::Error& err) { EXPECT_EQ(err.code, expected_error); }
 	if (expected_begin) {
