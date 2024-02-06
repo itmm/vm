@@ -7,4 +7,4 @@ add_executable(Tests
 	vm-tests.cpp
 )
 
-target_link_libraries(Tests PRIVATE GTest::gtest GTest::gtest_main libvm)
+target_link_libraries(Tests PRIVATE GTest::gtest GTest::gtest_main libvm liberrmsgs)

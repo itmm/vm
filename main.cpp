@@ -1,11 +1,7 @@
 #include "asm.h"
+#include "errmsgs.h"
 
 #include <iostream>
-
-char* err_msgs[] = {
-	#define ERR(C) #C,
-	#include "err.def"
-};
 
 int main() {
 	signed char ram[4096];

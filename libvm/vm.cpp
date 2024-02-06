@@ -5,6 +5,10 @@
 
 using namespace vm;
 
+constexpr int int_size { 4 };
+constexpr int bits_per_byte { 8 };
+constexpr int byte_mask { 0xff };
+
 namespace {
 	[[maybe_unused]] signed char* ram_begin_;
 	signed char* ram_end_;
@@ -22,7 +26,7 @@ namespace {
 	void check_range(
 		const signed char* begin, const signed char* end, Error::Code code
 	) {
-		if (!begin || end <= begin) { err(code); }
+		if (!begin || end < begin) { err(code); }
 	}
 
 	void has_code(int count = 1) {
@@ -42,25 +46,25 @@ namespace {
 	}
 
 	void push_int(int value) {
-		can_push(4);
-		for (int i { 4 }; i; --i) {
+		can_push(int_size);
+		for (int i { int_size }; i; --i) {
 			*--stack_begin_ = static_cast<signed char>(value);
-			value >>= 8;
+			value >>= bits_per_byte;
 		}
 	}
 
 	int copy_int_from_mem(const signed char* mem) {
 		int value { 0 };
-		for (int i { 4 }; i; --i) {
-			value = (value << 8) + (*mem++ & 0xff);
+		for (int i { int_size }; i; --i) {
+			value = (value << bits_per_byte) + (*mem++ & byte_mask);
 		}
 		return value;
 	}
 
 	int pull_int() {
-		can_pull(4);
+		can_pull(int_size);
 		int value { copy_int_from_mem(stack_begin_) };
-		stack_begin_ += 4;
+		stack_begin_ += int_size;
 		return value;
 	}
 }
@@ -115,8 +119,8 @@ void vm::step() {
 			}
 			#if CONFIG_HAS_OP_PUSH_INT
 			case op_push_int: {
-				has_code(4);
-				int value { copy_int_from_mem(pc_) }; pc_ += 4;
+				has_code(int_size);
+				int value { copy_int_from_mem(pc_) }; pc_ += int_size;
 				push_int(value);
 				break;
 			}

@@ -1,4 +1,5 @@
 #include "vm-tests.h"
+#include "errmsgs.h"
 
 #include "gtest/gtest.h"
 
@@ -11,7 +12,12 @@ void expect_stack(
 	try {
 		vm::init(ram, ram + sizeof(ram), code_begin, code_begin + code_size);
 		for (;;) { vm::step(); }
-	} catch(const vm::Error& err) { EXPECT_EQ(err.code, expected_error); }
+	} catch(const vm::Error& err) {
+		if (err.code != expected_error) {
+			std::cerr << "unexpected error: " << err_msgs[err.code] << "\n";
+		}
+		EXPECT_EQ(err.code, expected_error);
+	}
 	if (expected_begin) {
 		EXPECT_EQ(vm::stack_begin() + expected_size, ram + sizeof(ram));
 		for (int i { 0 }; i < expected_size; ++i) {
