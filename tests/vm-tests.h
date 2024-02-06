@@ -4,20 +4,17 @@
 
 void expect_stack(
 	const signed char* code_begin, int code_size,
+	vm::Error::Code expected_error, int ram_size,
 	const signed char* expected_begin, int expected_size
 );
 
-#define EXPECT_STACK(CODE, EXPECTED) expect_stack(\
-	CODE, sizeof(CODE), EXPECTED, sizeof(EXPECTED)\
+#define EXPECT_STACK(CODE, EXPECTED) expect_stack( \
+	CODE, sizeof(CODE), vm::Error::err_leave_code_segment, \
+	1024, EXPECTED, sizeof(EXPECTED) \
 )
 
-void expect_error(
-	const signed char* code_begin, int code_size,
-	vm::Error::Code expected_error
-);
-
-#define EXPECT_ERROR(CODE, EXPECTED) expect_error(\
-	CODE, sizeof(CODE), EXPECTED\
+#define EXPECT_ERROR(CODE, EXPECTED) expect_stack( \
+	CODE, sizeof(CODE), EXPECTED, 1024, nullptr, 0 \
 )
 
 #define ID_(X) static_cast<signed char>(X)
