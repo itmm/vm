@@ -22,13 +22,8 @@ void expect_stack(
 #define PUSH_SMALL_INT(X) PUSH_CH(X), vm::op_ch_to_int
 
 #define FOREACH_INT_(X, F) \
-	F((X) & 0xff), F(((X) >> 8) & 0xff), \
-	F(((X) >> 16) & 0xff), F(((X) >> 24)& 0xff)
-
-#define FOREACH_INT_REV_(X, F) \
 	F(((X) >> 24) & 0xff), F(((X) >> 16)& 0xff), \
 	F(((X) >> 8) & 0xff), F((X) & 0xff)
 
-#define PUSH_INT(X) FOREACH_INT_(X, PUSH_CH)
-
-#define RAW_INT(X) FOREACH_INT_REV_(X, ID_)
+#define RAW_INT(X) FOREACH_INT_(X, ID_)
+#define PUSH_INT(X) vm::op_push_int, RAW_INT(X)

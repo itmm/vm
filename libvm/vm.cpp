@@ -25,8 +25,8 @@ namespace {
 		if (!begin || end <= begin) { err(code); }
 	}
 
-	void has_code() {
-		if (pc_ >= code_end_) { err(Error::err_leave_code_segment); }
+	void has_code(int count = 1) {
+		if (pc_ + count > code_end_) { err(Error::err_leave_code_segment); }
 	}
 
 	void can_push(int count = 1) {
@@ -49,12 +49,18 @@ namespace {
 		}
 	}
 
-	int pull_int() {
-		can_pull(4);
+	int copy_int_from_mem(const signed char* mem) {
 		int value { 0 };
 		for (int i { 4 }; i; --i) {
-			value = (value << 8) + (*stack_begin_++ & 0xff);
+			value = (value << 8) + (*mem++ & 0xff);
 		}
+		return value;
+	}
+
+	int pull_int() {
+		can_pull(4);
+		int value { copy_int_from_mem(stack_begin_) };
+		stack_begin_ += 4;
 		return value;
 	}
 }
@@ -107,6 +113,14 @@ void vm::step() {
 				push_int(a + b);
 				break;
 			}
+			#if CONFIG_HAS_OP_PUSH_INT
+			case op_push_int: {
+				has_code(4);
+				int value { copy_int_from_mem(pc_) }; pc_ += 4;
+				push_int(value);
+				break;
+			}
+			#endif
 		#endif
 		#if CONFIG_HAS_CH && CONFIG_HAS_INT
 			#if CONFIG_HAS_OP_CH_TO_INT
