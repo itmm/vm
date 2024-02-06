@@ -1,3 +1,3 @@
 #pragma once
 
-extern char* err_msgs[];
+extern const char* err_msgs[];

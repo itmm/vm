@@ -16,6 +16,7 @@
 #endif
 #if CONFIG_HAS_INT
     OP(add_int)
+	OP(sub_int)
 	#if CONFIG_HAS_OP_PUSH_INT
 		OP(push_int)
 	#endif

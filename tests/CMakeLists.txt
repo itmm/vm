@@ -3,6 +3,7 @@ find_package(GTest REQUIRED)
 add_executable(Tests
 	test-add.cpp
 	test-ch-to-int.cpp
+	test-sub.cpp
 	test-push-pull.cpp
 	vm-tests.cpp
 )

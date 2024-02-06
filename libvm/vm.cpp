@@ -107,14 +107,25 @@ void vm::step() {
 		#endif
 		#if CONFIG_HAS_INT
 			case op_add_int: {
-				int a { pull_int() };
 				int b { pull_int() };
+				int a { pull_int() };
 				if (a > 0 && b > 0 && std::numeric_limits<int>::max() - a < b) {
 					err(Error::err_add_int_overflow);
 				} else if (a < 0 && b < 0 && std::numeric_limits<int>::min() - a > b) {
 					err(Error::err_add_int_underflow);
 				}
 				push_int(a + b);
+				break;
+			}
+			case op_sub_int: {
+				int b { pull_int() };
+				int a { pull_int() };
+				if (a > 0 && b < 0 && a > std::numeric_limits<int>::max() + b) {
+					err(Error::err_sub_int_overflow);
+				} else if (a < 0 && b > 0 && a < std::numeric_limits<int>::min() + b) {
+					err(Error::err_sub_int_underflow);
+				}
+				push_int(a - b);
 				break;
 			}
 			#if CONFIG_HAS_OP_PUSH_INT
