@@ -1,66 +1,49 @@
 #include "gtest/gtest.h"
 
 #include "vm-tests.h"
-#include "vm.h"
 
 TEST(add_tests, simple) {
 	signed char code[] {
-		vm::op_push_ch, 10, vm::op_ch_to_int,
-		vm::op_push_ch, 20, vm::op_ch_to_int,
-		vm::op_add_int, vm::op_break
+		PUSH_SMALL_INT(10), PUSH_SMALL_INT(20), vm::op_add_int, vm::op_break
 	};
-	signed char expected[] { 0, 0, 0, 30 };
+	signed char expected[] { RAW_INT(30) };
 	EXPECT_STACK(code, expected);
 }
 
 TEST(add_tests, negative) {
 	signed char code[] {
-		vm::op_push_ch, -10, vm::op_ch_to_int,
-		vm::op_push_ch, 0, vm::op_ch_to_int,
-		vm::op_add_int, vm::op_break
+		PUSH_SMALL_INT(-10), PUSH_SMALL_INT(0), vm::op_add_int, vm::op_break
 	};
-	signed char expected[] { -1, -1, -1, -10 };
+	signed char expected[] { RAW_INT(-10) };
 	EXPECT_STACK(code, expected);
 }
 
 TEST(add_tests, big_ok_a) {
 	signed char code[] {
-		vm::op_push_ch, -1, vm::op_push_ch, -1,
-		vm::op_push_ch, -1, vm::op_push_ch, 127,
-		vm::op_push_ch, 0, vm::op_ch_to_int,
-		vm::op_add_int, vm::op_break
+		PUSH_INT(0x7ffffffd), PUSH_SMALL_INT(2), vm::op_add_int, vm::op_break
 	};
-	signed char expected[] { 127, -1, -1, -1 };
+	signed char expected[] { RAW_INT(0x7fffffff) };
 	EXPECT_STACK(code, expected);
 }
 
 TEST(add_tests, big_overflow_a) {
 	signed char code[] {
-		vm::op_push_ch, -1, vm::op_push_ch, -1,
-		vm::op_push_ch, -1, vm::op_push_ch, 127,
-		vm::op_push_ch, 1, vm::op_ch_to_int,
-		vm::op_add_int, vm::op_break
+		PUSH_INT(0x7ffffffd), PUSH_SMALL_INT(3), vm::op_add_int
 	};
 	EXPECT_ERROR(code, vm::Error::err_add_int_overflow);
 }
 
 TEST(add_tests, big_ok_b) {
 	signed char code[] {
-		vm::op_push_ch, 0, vm::op_ch_to_int,
-		vm::op_push_ch, -1, vm::op_push_ch, -1,
-		vm::op_push_ch, -1, vm::op_push_ch, 127,
-		vm::op_add_int, vm::op_break
+		PUSH_SMALL_INT(2), PUSH_INT(0x7ffffffd), vm::op_add_int, vm::op_break
 	};
-	signed char expected[] { 127, -1, -1, -1 };
+	signed char expected[] { RAW_INT(0x7fffffff) };
 	EXPECT_STACK(code, expected);
 }
 
 TEST(add_tests, big_overflow_b) {
 	signed char code[] {
-		vm::op_push_ch, 1, vm::op_ch_to_int,
-		vm::op_push_ch, -1, vm::op_push_ch, -1,
-		vm::op_push_ch, -1, vm::op_push_ch, 127,
-		vm::op_add_int, vm::op_break
+		PUSH_SMALL_INT(3), PUSH_INT(0x7ffffffd), vm::op_add_int
 	};
 	EXPECT_ERROR(code, vm::Error::err_add_int_overflow);
 }
