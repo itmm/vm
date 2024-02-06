@@ -1,6 +1,7 @@
 #include "vm.h"
 
 #include <iostream>
+#include <limits>
 
 using namespace vm;
 
@@ -9,9 +10,9 @@ using namespace vm;
 }
 
 namespace {
-	signed char* ram_begin_;
+	[[maybe_unused]] signed char* ram_begin_;
 	signed char* ram_end_;
-	const signed char* code_begin_;
+	[[maybe_unused]] const signed char* code_begin_;
 	const signed char* code_end_;
 
 	const signed char* pc_;
