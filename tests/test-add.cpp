@@ -47,3 +47,11 @@ TEST(add_tests, big_overflow_b) {
 	};
 	EXPECT_ERROR(code, vm::Error::err_add_int_overflow);
 }
+
+TEST(add_tests, two_bigs) {
+	signed char code[] {
+		PUSH_INT(0x7fffffff), PUSH_INT(0x80000000), vm::op_add_int
+	};
+	signed char expected[] { RAW_INT(-1) };
+	EXPECT_STACK(code, expected);
+}
