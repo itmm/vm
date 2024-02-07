@@ -26,7 +26,14 @@ TEST(mult_int_tests, big_ok_a) {
 	EXPECT_STACK(code, expected);
 	}
 
-	TEST(mult_int_tests, big_overflow_a) {
+TEST(mult_int_tests, overflow) {
+	signed char code[] {
+		PUSH_INT(0x80000000), PUSH_SMALL_INT(-1), vm::op_mult_int
+	};
+	EXPECT_ERROR(code, vm::Error::err_mult_int_overflow);
+}
+
+TEST(mult_int_tests, big_overflow_a) {
 		signed char code[] {
 		PUSH_INT(0x7fffffff), PUSH_SMALL_INT(2), vm::op_mult_int
 	};

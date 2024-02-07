@@ -8,3 +8,4 @@
 #define CONFIG_HAS_OP_INT_TO_CH 1
 #define CONFIG_HAS_CH 1
 #define CONFIG_HAS_INT 1
+#define CONFIG_OBERON_MATH 1

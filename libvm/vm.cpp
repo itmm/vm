@@ -131,11 +131,31 @@ void vm::step() {
 			case op_mult_int: {
 				int b { pull_int() };
 				int a { pull_int() };
+				if (a == 0x80000000 && b == -1) {
+					err(Error::err_mult_int_overflow);
+				}
 				int value { a * b };
 				if (b != 0 && value/b != a) {
 					err(Error::err_mult_int_overflow);
 				}
 				push_int(value);
+				break;
+			}
+			case op_div_int: {
+				int b { pull_int() };
+				int a { pull_int() };
+				if (b == 0) { err(Error::err_div_int_divide_by_0); }
+				if (a == 0x80000000 && b == -1) {
+					err(Error::err_div_int_overflow);
+				}
+				#if CONFIG_OBERON_MATH
+					int value { a / b };
+					int rem { a % b };
+					if (rem < 0) { value += b > 0 ? -1 : 1; }
+					push_int(value);
+				#else
+					push_int(a / b);
+				#endif
 				break;
 			}
 			#if CONFIG_HAS_OP_PUSH_INT

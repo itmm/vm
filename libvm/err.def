@@ -13,6 +13,8 @@ ERR(add_int_underflow)
 ERR(sub_int_overflow)
 ERR(sub_int_underflow)
 ERR(mult_int_overflow)
+ERR(div_int_divide_by_0)
+ERR(div_int_overflow)
 ERR(int_to_ch_overflow)
 ERR(int_to_ch_underflow)
 #undef ERR
