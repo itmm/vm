@@ -19,6 +19,7 @@
 	OP(sub_int)
 	OP(mult_int)
 	OP(div_int)
+	OP(mod_int)
 	#if CONFIG_HAS_OP_PUSH_INT
 		OP(push_int)
 	#endif

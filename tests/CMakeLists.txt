@@ -4,6 +4,7 @@ add_executable(Tests
 	test-add-int.cpp
 	test-ch-to-int.cpp
 	test-div-int.cpp
+	test-mod-int.cpp
 	test-mult-int.cpp
 	test-sub-int.cpp
 	test-push-pull.cpp

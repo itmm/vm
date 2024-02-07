@@ -158,13 +158,28 @@ void vm::step() {
 				#endif
 				break;
 			}
-			#if CONFIG_HAS_OP_PUSH_INT
-			case op_push_int: {
-				has_code(int_size);
-				int value { copy_int_from_mem(pc_) }; pc_ += int_size;
-				push_int(value);
+			case op_mod_int: {
+				int b { pull_int() };
+				int a { pull_int() };
+				if (b == 0) { err(Error::err_mod_int_divide_by_0); }
+				#if CONFIG_OBERON_MATH
+					int value { a % b };
+					if (value < 0) {
+						if (b > 0) { value += b; } else { value -= b; }
+					}
+					push_int(value);
+				#else
+					push_int(a % b);
+				#endif
 				break;
 			}
+			#if CONFIG_HAS_OP_PUSH_INT
+				case op_push_int: {
+					has_code(int_size);
+					int value { copy_int_from_mem(pc_) }; pc_ += int_size;
+					push_int(value);
+					break;
+				}
 			#endif
 		#endif
 		#if CONFIG_HAS_CH && CONFIG_HAS_INT

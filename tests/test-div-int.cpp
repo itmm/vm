@@ -46,6 +46,14 @@ TEST(div_int_tests, big_ok_a) {
 	EXPECT_STACK(code, expected);
 	}
 
+TEST(div_int_tests, big_neg_a) {
+	signed char code[] {
+		PUSH_INT(0x80000000), PUSH_SMALL_INT(1), vm::op_div_int
+	};
+	signed char expected[] { RAW_INT(0x80000000) };
+	EXPECT_STACK(code, expected);
+}
+
 TEST(div_int_tests, overflow) {
 	signed char code[] {
 		PUSH_INT(0x80000000), PUSH_SMALL_INT(-1), vm::op_div_int
