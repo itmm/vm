@@ -128,6 +128,16 @@ void vm::step() {
 				push_int(a - b);
 				break;
 			}
+			case op_mult_int: {
+				int b { pull_int() };
+				int a { pull_int() };
+				int value { a * b };
+				if (b != 0 && value/b != a) {
+					err(Error::err_mult_int_overflow);
+				}
+				push_int(value);
+				break;
+			}
 			#if CONFIG_HAS_OP_PUSH_INT
 			case op_push_int: {
 				has_code(int_size);
