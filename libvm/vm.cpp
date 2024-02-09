@@ -184,6 +184,11 @@ void vm::step() {
 				int v { copy_int_from_mem(stack_begin_) };
 				push_int(v); break;
 			}
+			case op_swap_int: {
+				int a { pull_int() };
+				int b { pull_int() };
+				push_int(a); push_int(b); break;
+			}
 			#if CONFIG_HAS_OP_PUSH_INT
 				case op_push_int: {
 					has_code(int_size);
