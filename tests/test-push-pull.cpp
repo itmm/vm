@@ -13,3 +13,8 @@ TEST(push_pull_tests, push_3) {
 	signed char expected[] { 30, 20, 10 };
 	EXPECT_STACK(code, expected);
 }
+
+TEST(push_pull_tests, no_ram) {
+	signed char code[] { PUSH_INT(10) };
+	EXPECT_STACK_OVERFLOW(code, 3);
+}

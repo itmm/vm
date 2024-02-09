@@ -13,6 +13,15 @@ void expect_stack(
 	1024, EXPECTED, sizeof(EXPECTED) \
 )
 
+#define EXPECT_LIMITED_STACK(CODE, RAM, EXPECTED) expect_stack( \
+	CODE, sizeof(CODE), vm::Error::err_leave_code_segment, \
+	RAM, EXPECTED, sizeof(EXPECTED) \
+)
+
 #define EXPECT_ERROR(CODE, EXPECTED) expect_stack( \
 	CODE, sizeof(CODE), EXPECTED, 1024, nullptr, 0 \
+)
+
+#define EXPECT_STACK_OVERFLOW(CODE, RAM) expect_stack( \
+	CODE, sizeof(CODE), vm::Error::err_stack_overflow, RAM, nullptr, 0 \
 )

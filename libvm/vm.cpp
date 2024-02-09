@@ -100,7 +100,7 @@ void vm::step() {
 				*--stack_begin_ = *pc_++; break;
 
 			case op_dup_ch:
-				can_push(); --stack_begin_;
+				can_pull(); can_push(); --stack_begin_;
 				stack_begin_[0] = stack_begin_[1]; break;
 
 			#if CONFIG_HAS_OP_WRITE_CH
@@ -115,7 +115,8 @@ void vm::step() {
 				int a { pull_int() };
 				if (a > 0 && b > 0 && std::numeric_limits<int>::max() - a < b) {
 					err(Error::err_add_int_overflow);
-				} else if (a < 0 && b < 0 && std::numeric_limits<int>::min() - a > b) {
+				}
+				if (a < 0 && b < 0 && std::numeric_limits<int>::min() - a > b) {
 					err(Error::err_add_int_underflow);
 				}
 				push_int(a + b);
@@ -126,7 +127,8 @@ void vm::step() {
 				int a { pull_int() };
 				if (a > 0 && b < 0 && a > std::numeric_limits<int>::max() + b) {
 					err(Error::err_sub_int_overflow);
-				} else if (a < 0 && b > 0 && a < std::numeric_limits<int>::min() + b) {
+				}
+				if (a < 0 && b > 0 && a < std::numeric_limits<int>::min() + b) {
 					err(Error::err_sub_int_underflow);
 				}
 				push_int(a - b);
@@ -178,6 +180,7 @@ void vm::step() {
 				break;
 			}
 			case op_dup_int: {
+				can_pull(4);
 				int v { copy_int_from_mem(stack_begin_) };
 				push_int(v); break;
 			}
@@ -202,7 +205,8 @@ void vm::step() {
 					int value { pull_int() };
 					if (value > std::numeric_limits<signed char>::max()) {
 						err(Error::err_int_to_ch_overflow);
-					} else if (value < std::numeric_limits<signed char>::min()) {
+					}
+					if (value < std::numeric_limits<signed char>::min()) {
 						err(Error::err_int_to_ch_underflow);
 					}
 					can_push();

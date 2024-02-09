@@ -67,3 +67,15 @@ TEST(div_int_tests, div_by_0) {
 	};
 	EXPECT_ERROR(code, vm::Error::err_div_int_divide_by_0);
 }
+
+TEST(div_int_tests, no_ram) {
+	signed char code[] { PUSH_SMALL_INT(8), PUSH_SMALL_INT(2), vm::op_div_int };
+	EXPECT_STACK_OVERFLOW(code, 7);
+}
+
+TEST(div_int_tests, underflow) {
+	signed char code[] {
+		PUSH_SMALL_INT(5), PUSH_CH(0), PUSH_CH(0), PUSH_CH(0), vm::op_div_int
+	};
+	EXPECT_ERROR(code, vm::Error::err_stack_underflow);
+}

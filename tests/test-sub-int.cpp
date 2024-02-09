@@ -55,3 +55,15 @@ TEST(sub_int_tests, two_bigs) {
 	signed char expected[] { RAW_INT(2) };
 	EXPECT_STACK(code, expected);
 }
+
+TEST(sub_int_tests, no_ram) {
+	signed char code[] { PUSH_SMALL_INT(8), PUSH_SMALL_INT(2), vm::op_sub_int };
+	EXPECT_STACK_OVERFLOW(code, 7);
+}
+
+TEST(sub_int_tests, underflow) {
+	signed char code[] {
+		PUSH_SMALL_INT(5), PUSH_CH(0), PUSH_CH(0), PUSH_CH(0), vm::op_sub_int
+	};
+	EXPECT_ERROR(code, vm::Error::err_stack_underflow);
+}

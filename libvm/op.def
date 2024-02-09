@@ -22,6 +22,7 @@
 	OP(div_int)
 	OP(mod_int)
 	OP(dup_int)
+	OP(swap_int)
 	#if CONFIG_HAS_OP_PUSH_INT
 		OP(push_int)
 	#endif

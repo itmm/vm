@@ -7,7 +7,7 @@ TEST(add_int_tests, simple) {
 		PUSH_SMALL_INT(10), PUSH_SMALL_INT(20), vm::op_add_int
 	};
 	signed char expected[] { RAW_INT(30) };
-	EXPECT_STACK(code, expected);
+	EXPECT_LIMITED_STACK(code, 8, expected);
 }
 
 TEST(add_int_tests, negative) {
@@ -54,4 +54,16 @@ TEST(add_int_tests, two_bigs) {
 	};
 	signed char expected[] { RAW_INT(-1) };
 	EXPECT_STACK(code, expected);
+}
+
+TEST(add_int_tests, no_ram) {
+	signed char code[] { PUSH_SMALL_INT(5), PUSH_SMALL_INT(6), vm::op_add_int };
+	EXPECT_STACK_OVERFLOW(code, 7);
+}
+
+TEST(add_int_tests, underflow) {
+	signed char code[] {
+		PUSH_SMALL_INT(5), PUSH_CH(0), PUSH_CH(0), PUSH_CH(0), vm::op_add_int
+	};
+	EXPECT_ERROR(code, vm::Error::err_stack_underflow);
 }
