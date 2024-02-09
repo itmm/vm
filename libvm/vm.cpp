@@ -99,6 +99,10 @@ void vm::step() {
 				can_push(); has_code();
 				*--stack_begin_ = *pc_++; break;
 
+			case op_dup_ch:
+				can_push(); --stack_begin_;
+				stack_begin_[0] = stack_begin_[1]; break;
+
 			#if CONFIG_HAS_OP_WRITE_CH
 				case op_write_ch:
 					can_pull();
@@ -172,6 +176,10 @@ void vm::step() {
 					push_int(a % b);
 				#endif
 				break;
+			}
+			case op_dup_int: {
+				int v { copy_int_from_mem(stack_begin_) };
+				push_int(v); break;
 			}
 			#if CONFIG_HAS_OP_PUSH_INT
 				case op_push_int: {

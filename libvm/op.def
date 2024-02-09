@@ -10,6 +10,7 @@
 #endif
 #if CONFIG_HAS_CH
     OP(push_ch)
+    OP(dup_ch)
     #if CONFIG_HAS_OP_WRITE_CH
         OP(write_ch)
     #endif
@@ -20,6 +21,7 @@
 	OP(mult_int)
 	OP(div_int)
 	OP(mod_int)
+	OP(dup_int)
 	#if CONFIG_HAS_OP_PUSH_INT
 		OP(push_int)
 	#endif
