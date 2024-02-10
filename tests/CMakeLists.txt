@@ -2,6 +2,7 @@ find_package(GTest REQUIRED)
 
 add_executable(Tests
 	test-add-int.cpp
+	test-bool.cpp
 	test-ch-to-int.cpp
 	test-div-int.cpp
 	test-dup.cpp

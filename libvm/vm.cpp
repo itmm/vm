@@ -140,6 +140,21 @@ void vm::step() {
 				*stack_begin_ = *stack_begin_ < other ? 1 : 0;
 				break;
 			}
+			case op_not_ch:
+				can_pull(); *stack_begin_ = ~*stack_begin_; break;
+
+			case op_and_ch: {
+				can_pull(2); char other { *stack_begin_++ };
+				*stack_begin_ = *stack_begin_ & other; break;
+			}
+			case op_or_ch: {
+				can_pull(2); char other { *stack_begin_++ };
+				*stack_begin_ = *stack_begin_ | other; break;
+			}
+			case op_xor_ch: {
+				can_pull(2); char other { *stack_begin_++ };
+				*stack_begin_ = *stack_begin_ ^ other; break;
+			}
 			#if CONFIG_HAS_OP_WRITE_CH
 				case op_write_ch:
 					can_pull();
@@ -239,6 +254,18 @@ void vm::step() {
 				int b { pull_int() }; int a { pull_int() };
 				*--stack_begin_ = a < b ? 1 : 0; break;
 			}
+			case op_not_int:
+				push_int(~pull_int()); break;
+
+			case op_and_int:
+				push_int(pull_int() & pull_int()); break;
+
+			case op_or_int:
+				push_int(pull_int() | pull_int()); break;
+
+			case op_xor_int:
+				push_int(pull_int() ^ pull_int()); break;
+
 			#if CONFIG_HAS_OP_PUSH_INT
 				case op_push_int:
 					push_int(copy_int_from_code()); pc_ += int_size; break;
