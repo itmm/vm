@@ -53,7 +53,8 @@ namespace {
 		}
 	}
 
-	int copy_int_from_mem(const signed char* mem) {
+	int copy_int_from_mem(const signed char* mem, const signed char* end) {
+		if (mem + int_size > end) { err(Error::err_stack_underflow); }
 		int value { 0 };
 		for (int i { int_size }; i; --i) {
 			value = (value << bits_per_byte) + (*mem++ & byte_mask);
@@ -61,9 +62,25 @@ namespace {
 		return value;
 	}
 
+	int copy_int_from_stack(const signed char* mem = stack_begin_) {
+		return copy_int_from_mem(mem, ram_end_);
+	}
+
+	int copy_int_from_code(const signed char* mem = pc_) {
+		return copy_int_from_mem(mem, code_end_);
+	}
+
+	signed char copy_ch_from_mem(const signed char* mem, const signed char* end) {
+		if (mem >= end) { err(Error::err_stack_underflow); }
+		return *mem;
+	}
+
+	signed char copy_ch_from_stack(const signed char* mem = stack_begin_) {
+		return copy_ch_from_mem(mem, ram_end_);
+	}
+
 	int pull_int() {
-		can_pull(int_size);
-		int value { copy_int_from_mem(stack_begin_) };
+		int value { copy_int_from_stack() };
 		stack_begin_ += int_size;
 		return value;
 	}
@@ -103,6 +120,11 @@ void vm::step() {
 				can_pull(); can_push(); --stack_begin_;
 				stack_begin_[0] = stack_begin_[1]; break;
 
+			case op_fetch_ch: {
+				int value { pull_int() };
+				*--stack_begin_ = copy_ch_from_stack(stack_begin_ + value);
+				break;
+			}
 			#if CONFIG_HAS_OP_WRITE_CH
 				case op_write_ch:
 					can_pull();
@@ -179,23 +201,21 @@ void vm::step() {
 				#endif
 				break;
 			}
-			case op_dup_int: {
-				can_pull(4);
-				int v { copy_int_from_mem(stack_begin_) };
-				push_int(v); break;
-			}
+			case op_dup_int:
+				push_int(copy_int_from_stack()); break;
+
 			case op_swap_int: {
 				int a { pull_int() };
 				int b { pull_int() };
 				push_int(a); push_int(b); break;
 			}
+			case op_fetch_int: {
+				int value { pull_int() };
+				push_int(copy_int_from_stack(stack_begin_ + value)); break;
+			}
 			#if CONFIG_HAS_OP_PUSH_INT
-				case op_push_int: {
-					has_code(int_size);
-					int value { copy_int_from_mem(pc_) }; pc_ += int_size;
-					push_int(value);
-					break;
-				}
+				case op_push_int:
+					push_int(copy_int_from_code()); pc_ += int_size; break;
 			#endif
 		#endif
 		#if CONFIG_HAS_CH && CONFIG_HAS_INT
