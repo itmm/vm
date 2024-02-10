@@ -10,6 +10,7 @@ add_executable(Tests
 	test-less.cpp
 	test-mod-int.cpp
 	test-mult-int.cpp
+	test-pull.cpp
 	test-sub-int.cpp
 	test-swap.cpp
 	test-push-pull.cpp

@@ -116,6 +116,9 @@ void vm::step() {
 				can_push(); has_code();
 				*--stack_begin_ = *pc_++; break;
 
+			case op_pull_ch:
+				can_pull(); stack_begin_++; break;
+
 			case op_dup_ch:
 				can_pull(); can_push(); --stack_begin_;
 				stack_begin_[0] = stack_begin_[1]; break;
@@ -144,6 +147,9 @@ void vm::step() {
 			#endif
 		#endif
 		#if CONFIG_HAS_INT
+			case op_pull_int:
+				pull_int(); break;
+
 			case op_add_int: {
 				int b { pull_int() };
 				int a { pull_int() };

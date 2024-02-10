@@ -9,6 +9,7 @@
     OP(break)
 #endif
 #if CONFIG_HAS_CH
+    OP(pull_ch)
     OP(push_ch)
     OP(dup_ch)
     OP(fetch_ch)
@@ -19,6 +20,7 @@
     #endif
 #endif
 #if CONFIG_HAS_INT
+    OP(pull_int)
     OP(add_int)
 	OP(sub_int)
 	OP(mult_int)
