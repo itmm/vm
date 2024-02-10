@@ -5,7 +5,9 @@ add_executable(Tests
 	test-ch-to-int.cpp
 	test-div-int.cpp
 	test-dup.cpp
+	test-equals.cpp
 	test-fetch.cpp
+	test-less.cpp
 	test-mod-int.cpp
 	test-mult-int.cpp
 	test-sub-int.cpp

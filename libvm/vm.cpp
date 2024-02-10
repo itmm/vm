@@ -125,6 +125,18 @@ void vm::step() {
 				*--stack_begin_ = copy_ch_from_stack(stack_begin_ + value);
 				break;
 			}
+			case op_equals_ch: {
+				can_pull(2);
+				signed char other { *stack_begin_++ };
+				*stack_begin_ = *stack_begin_ == other ? 1 : 0;
+				break;
+			}
+			case op_less_ch: {
+				can_pull(2);
+				signed char other { *stack_begin_++ };
+				*stack_begin_ = *stack_begin_ < other ? 1 : 0;
+				break;
+			}
 			#if CONFIG_HAS_OP_WRITE_CH
 				case op_write_ch:
 					can_pull();
@@ -212,6 +224,14 @@ void vm::step() {
 			case op_fetch_int: {
 				int value { pull_int() };
 				push_int(copy_int_from_stack(stack_begin_ + value)); break;
+			}
+			case op_equals_int: {
+				int b { pull_int() }; int a { pull_int() };
+				*--stack_begin_ = a == b ? 1 : 0; break;
+			}
+			case op_less_int: {
+				int b { pull_int() }; int a { pull_int() };
+				*--stack_begin_ = a < b ? 1 : 0; break;
 			}
 			#if CONFIG_HAS_OP_PUSH_INT
 				case op_push_int:

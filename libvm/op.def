@@ -12,6 +12,8 @@
     OP(push_ch)
     OP(dup_ch)
     OP(fetch_ch)
+    OP(equals_ch)
+    OP(less_ch)
     #if CONFIG_HAS_OP_WRITE_CH
         OP(write_ch)
     #endif
@@ -25,6 +27,8 @@
 	OP(dup_int)
 	OP(swap_int)
 	OP(fetch_int)
+    OP(equals_int)
+    OP(less_int)
 	#if CONFIG_HAS_OP_PUSH_INT
 		OP(push_int)
 	#endif
