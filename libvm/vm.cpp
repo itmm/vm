@@ -10,6 +10,7 @@ namespace {
 	signed char* ram_end_;
 	const signed char* code_begin_;
 	const signed char* code_end_;
+	signed char* free_list { nullptr };
 
 	const signed char* pc_;
 	signed char* stack_begin_;
@@ -120,6 +121,19 @@ namespace {
 		);
 	}
 
+	signed char* heap_ptr_from_int(int value) {
+		if (! value) { return nullptr; }
+		auto result { ram_begin_ + value };
+		assure_valid_ptr(
+			result, 0, ram_begin_, heap_end_, Error::err_leave_heap_segment
+		);
+		return result;
+	}
+
+	signed char* copy_ptr_from_heap(const signed char* mem) {
+		return heap_ptr_from_int(copy_int_from_heap(mem));
+	}
+
 	void copy_int_to_mem(
 		int value, signed char* mem,
 		const signed char* begin, const signed char *end, Error::Code code
@@ -142,6 +156,18 @@ namespace {
 		copy_int_to_mem(
 			value, mem, ram_begin_, heap_end_, Error::err_leave_heap_segment
 		);
+	}
+
+	int heap_ptr_to_int(const signed char* ptr) {
+		if (!ptr) { return 0; }
+		assure_valid_ptr(
+			ptr, 0, ram_begin_, heap_end_, vm::Error::err_leave_heap_segment
+		);
+		return static_cast<int>(ptr - ram_begin_);
+	}
+
+	void copy_ptr_to_heap(const signed char* ptr, signed char* mem) {
+		copy_int_to_heap(heap_ptr_to_int(ptr), mem);
 	}
 
 	void push_int(int value) {
@@ -194,6 +220,90 @@ namespace {
 		if (invert) { condition = negate(condition); }
 		jump(offset, condition);
 	}
+
+	void chain_in_free_list(signed char* next, signed char* pre) {
+		if (pre) { copy_ptr_to_heap(next, pre + int_size); }
+		else { free_list = next; }
+	}
+
+	signed char* find_on_free_list(int size, bool tight_fit) {
+		signed char* pre { nullptr };
+		auto current { free_list };
+		while (current) {
+			int cur_size { copy_int_from_heap(current) };
+			auto next { heap_ptr_from_int(
+				copy_int_from_heap(current + int_size)
+			) };
+			bool found {
+				tight_fit ?
+					cur_size == size || cur_size > 3 * size :
+					cur_size >= size
+			};
+			if (found) {
+				int rest_size { cur_size - size };
+				if (rest_size >= 2 * int_size) {
+					signed char* rest_block { current + size };
+					copy_int_to_heap(rest_size, rest_block);
+					copy_int_to_heap(size, current);
+					chain_in_free_list(next, rest_block);
+					chain_in_free_list(rest_block, pre);
+				} else { chain_in_free_list(next, pre); }
+				return current + int_size;
+			}
+			pre = current; current = next;
+		}
+		return nullptr;
+	}
+
+	signed char* find_on_free_list(int size) {
+		auto got { find_on_free_list(size, true) };
+		if (! got) { got = find_on_free_list(size, false); }
+		return got;
+	}
+
+	signed char* alloc_block(int size) {
+		size = std::min(size + int_size, 2 * int_size);
+		auto found { find_on_free_list(size) };
+		if (found) { return found; }
+		if (heap_end_ + size > stack_begin_) { err(Error::err_heap_overflow); }
+		found = heap_end_; heap_end_ += size;
+		copy_int_to_heap(size, found);
+		return found + int_size;
+	}
+
+	void insert_into_free_list(signed char* block) {
+		signed char* greater { nullptr };
+		signed char* current { free_list };
+		while (current && current > block) {
+			greater = current;
+			current = copy_ptr_from_heap(current + int_size);
+		}
+		copy_ptr_to_heap(current, block + int_size);
+		if (greater) { copy_ptr_to_heap(block, greater + int_size); }
+		else { free_list = block; }
+	}
+
+	void free_block(signed char* block) {
+		assure_valid_ptr(
+			block, int_size, ram_begin_ + int_size, heap_end_ + int_size,
+			Error::err_free_invalid_block
+		);
+		block -= int_size;
+		int size { copy_int_from_heap(block) };
+		if (size < 2 * int_size) { err(Error::err_free_invalid_block); }
+		assure_valid_ptr(
+			block, size, ram_begin_, heap_end_, Error::err_free_invalid_block
+		);
+		if (block + size == heap_end_) {
+			heap_end_ = block;
+			while (free_list && free_list + copy_int_from_heap(free_list) == heap_end_) {
+				heap_end_ = free_list;
+				free_list = copy_ptr_from_heap(free_list + int_size);
+			}
+			return;
+		}
+		insert_into_free_list(block);
+	}
 }
 
 void vm::init(
@@ -223,16 +333,31 @@ void vm::step() {
 		#endif
 		case op_jmp_ch:
 			jump(pull_ch(), true_lit); break;
+
 		case op_jeq_ch:
 			jump_with_stack_condition(pull_ch(), true); break;
+
 		case op_jne_ch:
 			jump_with_stack_condition(pull_ch(), false); break;
+
 		case op_jmp_int:
 			jump(pull_int(), true_lit); break;
+
 		case op_jeq_int:
 			jump_with_stack_condition(pull_int(), true); break;
+
 		case op_jne_int:
 			jump_with_stack_condition(pull_int(), false); break;
+
+		case op_small_new:
+			alloc_block(pull_ch()); break;
+
+		case op_new:
+			alloc_block(pull_int()); break;
+
+		case op_free:
+			free_block(heap_ptr_from_int(pull_int())); break;
+
 		#if CONFIG_HAS_CH
 			case op_push_ch:
 				push_ch(copy_ch_from_code()); pc_++; break;

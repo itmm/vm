@@ -7,7 +7,7 @@
 * Test Cases small_store
 * Test Cases receive
 * Test Cases send
-* new/free
+* Test Cases new/free
 * use constants in test cases
   * add
   * bool
