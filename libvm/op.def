@@ -8,12 +8,12 @@
 #if CONFIG_HAS_OP_BREAK
     OP(break)
 #endif
-OP(jmp_ch)
-OP(jeq_ch)
-OP(jne_ch)
-OP(jmp_int)
-OP(jeq_int)
-OP(jne_int)
+OP(small_jmp)
+OP(small_jeq)
+OP(small_jne)
+OP(jmp)
+OP(jeq)
+OP(jne)
 OP(new)
 OP(small_new)
 OP(free)

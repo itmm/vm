@@ -331,22 +331,22 @@ void vm::step() {
 		#if CONFIG_HAS_OP_BREAK
 			case op_break: err(Error::err_break);
 		#endif
-		case op_jmp_ch:
+		case op_small_jmp:
 			jump(pull_ch(), true_lit); break;
 
-		case op_jeq_ch:
+		case op_small_jeq:
 			jump_with_stack_condition(pull_ch(), true); break;
 
-		case op_jne_ch:
+		case op_small_jne:
 			jump_with_stack_condition(pull_ch(), false); break;
 
-		case op_jmp_int:
+		case op_jmp:
 			jump(pull_int(), true_lit); break;
 
-		case op_jeq_int:
+		case op_jeq:
 			jump_with_stack_condition(pull_int(), true); break;
 
-		case op_jne_int:
+		case op_jne:
 			jump_with_stack_condition(pull_int(), false); break;
 
 		case op_small_new:
