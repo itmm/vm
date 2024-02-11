@@ -4,7 +4,7 @@
 
 TEST(equals_tests, equals_ch) {
 	signed char code[] { PUSH_CH(5), PUSH_CH(5), vm::op_equals_ch };
-	signed char expected[] { 1 };
+	signed char expected[] { -1 };
 	EXPECT_LIMITED_STACK(code, 2, expected);
 }
 
@@ -23,7 +23,7 @@ TEST(equals_tests, equals_int) {
 	signed char code[] {
 		PUSH_SMALL_INT(5), PUSH_SMALL_INT(5), vm::op_equals_int
 	};
-	signed char expected[] { 1 };
+	signed char expected[] { -1 };
 	EXPECT_LIMITED_STACK(code, 8, expected);
 }
 
