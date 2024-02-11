@@ -2,6 +2,8 @@
 
 #include "vm-tests.h"
 
+using namespace vm;
+
 TEST(push_pull_tests, empty) {
 	signed char code[] { }, expected[] {};
 	EXPECT_STACK(code, expected);
@@ -15,5 +17,5 @@ TEST(push_pull_tests, push_3) {
 
 TEST(push_pull_tests, no_ram) {
 	signed char code[] { PUSH_INT(10) };
-	EXPECT_STACK_OVERFLOW(code, 3);
+	EXPECT_STACK_OVERFLOW(code, int_size - 1);
 }

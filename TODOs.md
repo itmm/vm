@@ -9,13 +9,4 @@
 * Test Cases send
 * Test Cases new/free
 * use constants in test cases
-  * dup
-  * equals
-  * fetch
   * jmp
-  * mod
-  * mult
-  * pull
-  * push-pull
-  * sub
-  * swap
