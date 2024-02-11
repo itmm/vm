@@ -65,5 +65,5 @@ TEST(add_int_tests, underflow) {
 	signed char code[] {
 		PUSH_SMALL_INT(5), PUSH_CH(0), PUSH_CH(0), PUSH_CH(0), vm::op_add_int
 	};
-	EXPECT_ERROR(code, vm::Error::err_stack_underflow);
+	EXPECT_ERROR(code, vm::Error::err_leave_stack_segment);
 }

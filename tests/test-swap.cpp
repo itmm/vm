@@ -14,5 +14,5 @@ TEST(swap_tests, empty_ch) {
 	signed char code[] {
 		PUSH_SMALL_INT(1), PUSH_CH(0), PUSH_CH(0), PUSH_CH(0), vm::op_swap_int
 	};
-	EXPECT_ERROR(code, vm::Error::err_stack_underflow);
+	EXPECT_ERROR(code, vm::Error::err_leave_stack_segment);
 }

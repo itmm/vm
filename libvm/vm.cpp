@@ -5,14 +5,16 @@
 
 using namespace vm;
 
-constexpr int int_size { 4 };
-constexpr int bits_per_byte { 8 };
-constexpr int byte_mask { 0xff };
-
 namespace {
+	constexpr int int_size { 4 };
+	constexpr int bits_per_byte { 8 };
+	constexpr int byte_mask { 0xff };
+	constexpr signed char true_lit { -1 };
+	constexpr signed char false_lit { 0 };
+
 	[[maybe_unused]] signed char* ram_begin_;
 	signed char* ram_end_;
-	[[maybe_unused]] const signed char* code_begin_;
+	const signed char* code_begin_;
 	const signed char* code_end_;
 
 	const signed char* pc_;
@@ -29,32 +31,23 @@ namespace {
 		if (!begin || end < begin) { err(code); }
 	}
 
-	void has_code(int count = 1) {
-		if (pc_ + count > code_end_) { err(Error::err_leave_code_segment); }
+	void has_code() {
+		if (pc_ >= code_end_) { err(Error::err_leave_code_segment); }
 	}
 
-	void can_push(int count = 1) {
-		if (stack_begin_ < heap_end_ + count) {
-			err(Error::err_stack_overflow);
+	void assure_valid_ptr(
+		const signed char* ptr, int size,
+		const signed char* begin, const signed char* end
+	) {
+		if (ptr < begin || ptr + size > end) {
+			err(Error::err_leave_stack_segment);
 		}
 	}
 
-	void (can_pull(int count = 1)) {
-		if (stack_begin_ + count > ram_end_) {
-			err(Error::err_stack_underflow);
-		}
-	}
-
-	void push_int(int value) {
-		can_push(int_size);
-		for (int i { int_size }; i; --i) {
-			*--stack_begin_ = static_cast<signed char>(value);
-			value >>= bits_per_byte;
-		}
-	}
-
-	int copy_int_from_mem(const signed char* mem, const signed char* end) {
-		if (mem + int_size > end) { err(Error::err_stack_underflow); }
+	int copy_int_from_mem(
+		const signed char* mem, const signed char* begin, const signed char* end
+	) {
+		assure_valid_ptr(mem, int_size, begin, end);
 		int value { 0 };
 		for (int i { int_size }; i; --i) {
 			value = (value << bits_per_byte) + (*mem++ & byte_mask);
@@ -63,26 +56,105 @@ namespace {
 	}
 
 	int copy_int_from_stack(const signed char* mem = stack_begin_) {
-		return copy_int_from_mem(mem, ram_end_);
-	}
-
-	int copy_int_from_code(const signed char* mem = pc_) {
-		return copy_int_from_mem(mem, code_end_);
-	}
-
-	signed char copy_ch_from_mem(const signed char* mem, const signed char* end) {
-		if (mem >= end) { err(Error::err_stack_underflow); }
-		return *mem;
-	}
-
-	signed char copy_ch_from_stack(const signed char* mem = stack_begin_) {
-		return copy_ch_from_mem(mem, ram_end_);
+		return copy_int_from_mem(mem, stack_begin_, ram_end_);
 	}
 
 	int pull_int() {
 		int value { copy_int_from_stack() };
 		stack_begin_ += int_size;
 		return value;
+	}
+
+	int copy_int_from_code(const signed char* mem = pc_) {
+		return copy_int_from_mem(mem, code_begin_, code_end_);
+	}
+
+	signed char copy_ch_from_mem(
+		const signed char* mem, const signed char* begin, const signed char* end
+	) {
+		assure_valid_ptr(mem, 1, begin, end); return *mem;
+	}
+
+	signed char copy_ch_from_stack(const signed char* mem = stack_begin_) {
+		return copy_ch_from_mem(mem, stack_begin_, ram_end_);
+	}
+
+	signed char pull_ch() {
+		auto value { copy_ch_from_stack() }; ++stack_begin_; return value;
+	}
+
+	void copy_ch_to_mem(
+		signed char value, signed char* mem,
+		const signed char* begin, const signed char* end
+	) {
+		assure_valid_ptr(mem, 1, begin, end); *mem = value;
+	}
+
+	void copy_ch_to_stack(signed char value, signed char* mem = stack_begin_) {
+		return copy_ch_to_mem(value, mem, stack_begin_, ram_end_);
+	}
+
+	void copy_int_to_mem(
+		int value, signed char* mem,
+		const signed char* begin, const signed char *end
+	) {
+		assure_valid_ptr(mem, int_size, begin, end);
+		mem += int_size;
+		for (int i { int_size }; i; --i) {
+			*--mem = static_cast<signed char>(value);
+			value >>= bits_per_byte;
+		}
+	}
+
+	void copy_int_to_stack(int value, signed char* mem = stack_begin_) {
+		copy_int_to_mem(value, mem, stack_begin_, ram_end_);
+	}
+
+	void push_int(int value) {
+		assure_valid_ptr(
+			stack_begin_ - int_size, int_size, heap_end_, stack_begin_
+		);
+		stack_begin_ -= int_size; copy_int_to_stack(value);
+	}
+
+	void fetch_int(int offset) {
+		push_int(copy_int_from_stack(stack_begin_ + offset));
+	}
+
+	void push_ch(signed char value) {
+		assure_valid_ptr(stack_begin_ - 1, 1, heap_end_, stack_begin_);
+		*--stack_begin_ = value;
+	}
+
+	void fetch_ch(int offset) {
+		push_ch(copy_ch_from_stack(stack_begin_ + offset));
+	}
+
+	void store_ch(int offset) {
+		auto ch { pull_ch() }; copy_ch_to_stack(ch, stack_begin_ + offset);
+	}
+
+	void store_int(int offset) {
+		auto value { pull_int() };
+		copy_int_to_stack(value, stack_begin_ + offset);
+	}
+
+	void jump(int offset, signed char condition) {
+		const signed char* target { pc_ + offset };
+		if (target < code_begin_ || target >= code_end_) {
+			err(Error::err_leave_code_segment);
+		}
+		if (condition) { pc_ = target; }
+	}
+
+	inline signed char negate(signed char ch) {
+		return static_cast<signed char>(~ch);
+	}
+
+	void jump_with_stack_condition(int offset, bool invert) {
+		signed char condition { pull_ch() };
+		if (invert) { condition = negate(condition); }
+		jump(offset, condition);
 	}
 }
 
@@ -111,54 +183,73 @@ void vm::step() {
 		#if CONFIG_HAS_OP_BREAK
 			case op_break: err(Error::err_break);
 		#endif
+		case op_jmp_ch:
+			jump(pull_ch(), true_lit); break;
+		case op_jeq_ch:
+			jump_with_stack_condition(pull_ch(), true); break;
+		case op_jne_ch:
+			jump_with_stack_condition(pull_ch(), false); break;
+		case op_jmp_int:
+			jump(pull_int(), true_lit); break;
+		case op_jeq_int:
+			jump_with_stack_condition(pull_int(), true); break;
+		case op_jne_int:
+			jump_with_stack_condition(pull_int(), false); break;
 		#if CONFIG_HAS_CH
 			case op_push_ch:
-				can_push(); has_code();
-				*--stack_begin_ = *pc_++; break;
+				has_code(); push_ch(*pc_++); break;
 
 			case op_pull_ch:
-				can_pull(); stack_begin_++; break;
+				pull_ch(); break;
 
-			case op_dup_ch:
-				can_pull(); can_push(); --stack_begin_;
-				stack_begin_[0] = stack_begin_[1]; break;
-
-			case op_fetch_ch: {
-				int value { pull_int() };
-				*--stack_begin_ = copy_ch_from_stack(stack_begin_ + value);
-				break;
+			case op_dup_ch: {
+				auto ch { pull_ch() }; push_ch(ch); push_ch(ch); break;
 			}
+			case op_small_fetch_ch:
+				fetch_ch(pull_ch()); break;
+
+			case op_fetch_ch:
+				fetch_ch(pull_int()); break;
+
+			case op_small_store_ch:
+				store_ch(pull_ch()); break;
+
+			case op_store_ch:
+				store_ch(pull_int()); break;
+
 			case op_equals_ch: {
-				can_pull(2);
-				signed char other { *stack_begin_++ };
-				*stack_begin_ = *stack_begin_ == other ? -1 : 0;
+				auto b { pull_ch() }; auto a { pull_ch() };
+				*--stack_begin_ = a == b ? true_lit : false_lit;
 				break;
 			}
 			case op_less_ch: {
-				can_pull(2);
-				signed char other { *stack_begin_++ };
-				*stack_begin_ = *stack_begin_ < other ? -1 : 0;
+				auto b { pull_ch() }; auto a { pull_ch() };
+				*--stack_begin_ = a < b ? true_lit : false_lit;
 				break;
 			}
-			case op_not_ch:
-				can_pull(); *stack_begin_ = ~*stack_begin_; break;
-
+			case op_not_ch: {
+				auto value { pull_ch() };
+				*--stack_begin_ = negate(value);
+				break;
+			}
 			case op_and_ch: {
-				can_pull(2); char other { *stack_begin_++ };
-				*stack_begin_ = *stack_begin_ & other; break;
+				auto b { pull_ch() }; auto a { pull_ch() };
+				*--stack_begin_ = static_cast<signed char>(a & b);
+				break;
 			}
 			case op_or_ch: {
-				can_pull(2); char other { *stack_begin_++ };
-				*stack_begin_ = *stack_begin_ | other; break;
+				auto b { pull_ch() }; auto a { pull_ch() };
+				*--stack_begin_ = static_cast<signed char>(a | b);
+				break;
 			}
 			case op_xor_ch: {
-				can_pull(2); char other { *stack_begin_++ };
-				*stack_begin_ = *stack_begin_ ^ other; break;
+				auto b { pull_ch() }; auto a { pull_ch() };
+				*--stack_begin_ = static_cast<signed char>(a ^ b);
+				break;
 			}
 			#if CONFIG_HAS_OP_WRITE_CH
 				case op_write_ch:
-					can_pull();
-					std::cout << *stack_begin_++; break;
+					std::cout << pull_ch(); break;
 			#endif
 		#endif
 		#if CONFIG_HAS_INT
@@ -166,8 +257,7 @@ void vm::step() {
 				pull_int(); break;
 
 			case op_add_int: {
-				int b { pull_int() };
-				int a { pull_int() };
+				int b { pull_int() }; int a { pull_int() };
 				if (a > 0 && b > 0 && std::numeric_limits<int>::max() - a < b) {
 					err(Error::err_add_int_overflow);
 				}
@@ -178,8 +268,7 @@ void vm::step() {
 				break;
 			}
 			case op_sub_int: {
-				int b { pull_int() };
-				int a { pull_int() };
+				int b { pull_int() }; int a { pull_int() };
 				if (a > 0 && b < 0 && a > std::numeric_limits<int>::max() + b) {
 					err(Error::err_sub_int_overflow);
 				}
@@ -190,21 +279,19 @@ void vm::step() {
 				break;
 			}
 			case op_mult_int: {
-				int b { pull_int() };
-				int a { pull_int() };
+				int b { pull_int() }; int a { pull_int() };
 				if (a == 0x80000000 && b == -1) {
 					err(Error::err_mult_int_overflow);
 				}
 				int value { a * b };
-				if (b != 0 && value/b != a) {
+				if (b != 0 && value / b != a) {
 					err(Error::err_mult_int_overflow);
 				}
 				push_int(value);
 				break;
 			}
 			case op_div_int: {
-				int b { pull_int() };
-				int a { pull_int() };
+				int b { pull_int() }; int a { pull_int() };
 				if (b == 0) { err(Error::err_div_int_divide_by_0); }
 				if (a == 0x80000000 && b == -1) {
 					err(Error::err_div_int_overflow);
@@ -220,8 +307,7 @@ void vm::step() {
 				break;
 			}
 			case op_mod_int: {
-				int b { pull_int() };
-				int a { pull_int() };
+				int b { pull_int() }; int a { pull_int() };
 				if (b == 0) { err(Error::err_mod_int_divide_by_0); }
 				#if CONFIG_OBERON_MATH
 					int value { a % b };
@@ -238,21 +324,29 @@ void vm::step() {
 				push_int(copy_int_from_stack()); break;
 
 			case op_swap_int: {
-				int a { pull_int() };
-				int b { pull_int() };
+				int a { pull_int() }; int b { pull_int() };
 				push_int(a); push_int(b); break;
 			}
-			case op_fetch_int: {
-				int value { pull_int() };
-				push_int(copy_int_from_stack(stack_begin_ + value)); break;
-			}
+
+			case op_small_fetch_int:
+				fetch_int(pull_ch()); break;
+
+			case op_fetch_int:
+				fetch_int(pull_int()); break;
+
+			case op_small_store_int:
+				store_int(pull_ch()); break;
+
+			case op_store_int:
+				store_int(pull_int()); break;
+
 			case op_equals_int: {
 				int b { pull_int() }; int a { pull_int() };
-				*--stack_begin_ = a == b ? -1 : 0; break;
+				*--stack_begin_ = a == b ? true_lit : false_lit; break;
 			}
 			case op_less_int: {
 				int b { pull_int() }; int a { pull_int() };
-				*--stack_begin_ = a < b ? -1 : 0; break;
+				*--stack_begin_ = a < b ? true_lit : false_lit; break;
 			}
 			case op_not_int:
 				push_int(~pull_int()); break;
@@ -274,9 +368,7 @@ void vm::step() {
 		#if CONFIG_HAS_CH && CONFIG_HAS_INT
 			#if CONFIG_HAS_OP_CH_TO_INT
 				case op_ch_to_int:
-					can_pull();
-					push_int(*stack_begin_++);
-					break;
+					push_int(pull_ch()); break;
 			#endif
 			#if CONFIG_HAS_OP_INT_TO_CH
 				case op_int_to_ch: {
@@ -287,8 +379,7 @@ void vm::step() {
 					if (value < std::numeric_limits<signed char>::min()) {
 						err(Error::err_int_to_ch_underflow);
 					}
-					can_push();
-					*--stack_begin_ = static_cast<signed char>(value);
+					push_ch(static_cast<signed char>(value));
 					break;
 				}
 			#endif
@@ -298,4 +389,3 @@ void vm::step() {
 }
 
 const signed char* vm::stack_begin() { return stack_begin_; }
-

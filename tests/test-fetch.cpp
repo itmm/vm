@@ -12,7 +12,7 @@ TEST(fetch_tests, fetch_ch) {
 
 TEST(fetch_tests, ch_out_of_range) {
 	signed char code[] { PUSH_CH(10), PUSH_SMALL_INT(1), vm::op_fetch_ch };
-	EXPECT_ERROR(code, vm::Error::err_stack_underflow);
+	EXPECT_ERROR(code, vm::Error::err_leave_stack_segment);
 }
 
 TEST(fetch_tests, fetch_int) {
@@ -28,5 +28,5 @@ TEST(fetch_tests, int_out_of_range) {
 	signed char code[] {
 		PUSH_SMALL_INT(10), PUSH_SMALL_INT(4), vm::op_fetch_int
 	};
-	EXPECT_ERROR(code, vm::Error::err_stack_underflow);
+	EXPECT_ERROR(code, vm::Error::err_leave_stack_segment);
 }

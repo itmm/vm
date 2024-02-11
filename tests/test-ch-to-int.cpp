@@ -27,5 +27,5 @@ TEST(ch_to_int_tests, no_ram) {
 
 TEST(ch_to_int_tests, underflow) {
 	signed char code[] { vm::op_ch_to_int };
-	EXPECT_ERROR(code, vm::Error::err_stack_underflow);
+	EXPECT_ERROR(code, vm::Error::err_leave_stack_segment);
 }

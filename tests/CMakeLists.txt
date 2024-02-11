@@ -8,6 +8,7 @@ add_executable(Tests
 	test-dup.cpp
 	test-equals.cpp
 	test-fetch.cpp
+	test-jmp.cpp
 	test-less.cpp
 	test-mod-int.cpp
 	test-mult-int.cpp

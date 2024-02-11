@@ -23,5 +23,5 @@ void expect_stack(
 )
 
 #define EXPECT_STACK_OVERFLOW(CODE, RAM) expect_stack( \
-	CODE, sizeof(CODE), vm::Error::err_stack_overflow, RAM, nullptr, 0 \
+	CODE, sizeof(CODE), vm::Error::err_leave_stack_segment, RAM, nullptr, 0 \
 )

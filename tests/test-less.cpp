@@ -16,7 +16,7 @@ TEST(less_tests, less_ch) {
 
 TEST(less_tests, underflow_ch) {
 	signed char code[] { PUSH_CH(4), vm::op_less_ch };
-	EXPECT_ERROR(code, vm::Error::err_stack_underflow);
+	EXPECT_ERROR(code, vm::Error::err_leave_stack_segment);
 }
 
 TEST(less_tests, equals_int) {
@@ -39,5 +39,5 @@ TEST(less_tests, underflow_int) {
 	signed char code[] {
 		PUSH_SMALL_INT(1), PUSH_CH(0), PUSH_CH(0), PUSH_CH(0), vm::op_less_int
 	};
-	EXPECT_ERROR(code, vm::Error::err_stack_underflow);
+	EXPECT_ERROR(code, vm::Error::err_leave_stack_segment);
 }
