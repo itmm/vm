@@ -37,7 +37,7 @@ namespace {
 
 	void assure_valid_ptr(
 		const signed char* ptr, int size,
-		const signed char* begin, const signed char* end
+		const signed char* begin, const signed char* end, Error::Code code
 	) {
 		if (ptr < begin || ptr + size > end) {
 			err(Error::err_leave_stack_segment);
@@ -45,9 +45,10 @@ namespace {
 	}
 
 	int copy_int_from_mem(
-		const signed char* mem, const signed char* begin, const signed char* end
+		const signed char* mem,
+		const signed char* begin, const signed char* end, Error::Code code
 	) {
-		assure_valid_ptr(mem, int_size, begin, end);
+		assure_valid_ptr(mem, int_size, begin, end, code);
 		int value { 0 };
 		for (int i { int_size }; i; --i) {
 			value = (value << bits_per_byte) + (*mem++ & byte_mask);
@@ -56,7 +57,9 @@ namespace {
 	}
 
 	int copy_int_from_stack(const signed char* mem = stack_begin_) {
-		return copy_int_from_mem(mem, stack_begin_, ram_end_);
+		return copy_int_from_mem(
+			mem, stack_begin_, ram_end_, Error::err_leave_stack_segment
+		);
 	}
 
 	int pull_int() {
@@ -66,17 +69,22 @@ namespace {
 	}
 
 	int copy_int_from_code(const signed char* mem = pc_) {
-		return copy_int_from_mem(mem, code_begin_, code_end_);
+		return copy_int_from_mem(
+			mem, code_begin_, code_end_, Error::err_leave_code_segment
+		);
 	}
 
 	signed char copy_ch_from_mem(
-		const signed char* mem, const signed char* begin, const signed char* end
+		const signed char* mem, const signed char* begin,
+		const signed char* end, Error::Code code
 	) {
-		assure_valid_ptr(mem, 1, begin, end); return *mem;
+		assure_valid_ptr(mem, 1, begin, end, code); return *mem;
 	}
 
 	signed char copy_ch_from_stack(const signed char* mem = stack_begin_) {
-		return copy_ch_from_mem(mem, stack_begin_, ram_end_);
+		return copy_ch_from_mem(
+			mem, stack_begin_, ram_end_, Error::err_leave_stack_segment
+		);
 	}
 
 	signed char pull_ch() {
@@ -85,20 +93,22 @@ namespace {
 
 	void copy_ch_to_mem(
 		signed char value, signed char* mem,
-		const signed char* begin, const signed char* end
+		const signed char* begin, const signed char* end, Error::Code code
 	) {
-		assure_valid_ptr(mem, 1, begin, end); *mem = value;
+		assure_valid_ptr(mem, 1, begin, end, code); *mem = value;
 	}
 
 	void copy_ch_to_stack(signed char value, signed char* mem = stack_begin_) {
-		return copy_ch_to_mem(value, mem, stack_begin_, ram_end_);
+		return copy_ch_to_mem(
+			value, mem, stack_begin_, ram_end_, Error::err_leave_stack_segment
+		);
 	}
 
 	void copy_int_to_mem(
 		int value, signed char* mem,
-		const signed char* begin, const signed char *end
+		const signed char* begin, const signed char *end, Error::Code code
 	) {
-		assure_valid_ptr(mem, int_size, begin, end);
+		assure_valid_ptr(mem, int_size, begin, end, code);
 		mem += int_size;
 		for (int i { int_size }; i; --i) {
 			*--mem = static_cast<signed char>(value);
@@ -107,12 +117,15 @@ namespace {
 	}
 
 	void copy_int_to_stack(int value, signed char* mem = stack_begin_) {
-		copy_int_to_mem(value, mem, stack_begin_, ram_end_);
+		copy_int_to_mem(
+			value, mem, stack_begin_, ram_end_, Error::err_leave_stack_segment
+		);
 	}
 
 	void push_int(int value) {
 		assure_valid_ptr(
-			stack_begin_ - int_size, int_size, heap_end_, stack_begin_
+			stack_begin_ - int_size, int_size, heap_end_, stack_begin_,
+			Error::err_stack_overflow
 		);
 		stack_begin_ -= int_size; copy_int_to_stack(value);
 	}
@@ -122,7 +135,10 @@ namespace {
 	}
 
 	void push_ch(signed char value) {
-		assure_valid_ptr(stack_begin_ - 1, 1, heap_end_, stack_begin_);
+		assure_valid_ptr(
+			stack_begin_ - 1, 1, heap_end_, stack_begin_,
+			Error::err_stack_overflow
+		);
 		*--stack_begin_ = value;
 	}
 
