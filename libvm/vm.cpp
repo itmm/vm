@@ -10,7 +10,7 @@ namespace {
 	signed char* ram_end_;
 	const signed char* code_begin_;
 	const signed char* code_end_;
-	signed char* free_list { nullptr };
+	signed char* free_list_ { nullptr };
 
 	const signed char* pc_;
 	signed char* stack_begin_;
@@ -223,12 +223,12 @@ namespace {
 
 	void chain_in_free_list(signed char* next, signed char* pre) {
 		if (pre) { copy_ptr_to_heap(next, pre + int_size); }
-		else { free_list = next; }
+		else { free_list_ = next; }
 	}
 
 	signed char* find_on_free_list(int size, bool tight_fit) {
 		signed char* pre { nullptr };
-		auto current { free_list };
+		auto current { free_list_ };
 		while (current) {
 			int cur_size { copy_int_from_heap(current) };
 			auto next { heap_ptr_from_int(
@@ -273,14 +273,14 @@ namespace {
 
 	void insert_into_free_list(signed char* block) {
 		signed char* greater { nullptr };
-		signed char* current { free_list };
+		signed char* current { free_list_ };
 		while (current && current > block) {
 			greater = current;
 			current = copy_ptr_from_heap(current + int_size);
 		}
 		copy_ptr_to_heap(current, block + int_size);
 		if (greater) { copy_ptr_to_heap(block, greater + int_size); }
-		else { free_list = block; }
+		else { free_list_ = block; }
 	}
 
 	void free_block(signed char* block) {
@@ -296,9 +296,9 @@ namespace {
 		);
 		if (block + size == heap_end_) {
 			heap_end_ = block;
-			while (free_list && free_list + copy_int_from_heap(free_list) == heap_end_) {
-				heap_end_ = free_list;
-				free_list = copy_ptr_from_heap(free_list + int_size);
+			while (free_list_ && free_list_ + copy_int_from_heap(free_list_) == heap_end_) {
+				heap_end_ = free_list_;
+				free_list_ = copy_ptr_from_heap(free_list_ + int_size);
 			}
 			return;
 		}
