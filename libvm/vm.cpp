@@ -39,9 +39,7 @@ namespace {
 		const signed char* ptr, int size,
 		const signed char* begin, const signed char* end, Error::Code code
 	) {
-		if (ptr < begin || ptr + size > end) {
-			err(Error::err_leave_stack_segment);
-		}
+		if (ptr < begin || ptr + size > end) { err(code); }
 	}
 
 	int copy_int_from_mem(
