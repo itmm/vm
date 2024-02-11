@@ -9,10 +9,6 @@
 * Test Cases send
 * Test Cases new/free
 * use constants in test cases
-  * add
-  * bool
-  * ch-to-int
-  * div
   * dup
   * equals
   * fetch

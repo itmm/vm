@@ -2,6 +2,8 @@
 
 #include "vm-tests.h"
 
+using namespace vm;
+
 TEST(ch_to_int_tests, zero) {
 	signed char code[] { PUSH_SMALL_INT(0) };
 	signed char expected[] { RAW_INT(0) };
@@ -22,10 +24,10 @@ TEST(ch_to_int_tests, negative) {
 
 TEST(ch_to_int_tests, no_ram) {
 	signed char code[] { PUSH_SMALL_INT(5) };
-	EXPECT_STACK_OVERFLOW(code, 3);
+	EXPECT_STACK_OVERFLOW(code, int_size - 1);
 }
 
 TEST(ch_to_int_tests, underflow) {
-	signed char code[] { vm::op_ch_to_int };
-	EXPECT_ERROR(code, vm::Error::err_leave_stack_segment);
+	signed char code[] { op_ch_to_int };
+	EXPECT_ERROR(code, Error::err_leave_stack_segment);
 }
