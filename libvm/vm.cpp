@@ -331,24 +331,30 @@ void vm::step() {
 		#if CONFIG_HAS_OP_BREAK
 			case op_break: err(Error::err_break);
 		#endif
-		case op_small_jmp:
-			jump(pull_ch(), true_lit); break;
-
-		case op_small_jeq:
-			jump_with_stack_condition(pull_ch(), true); break;
-
-		case op_small_jne:
-			jump_with_stack_condition(pull_ch(), false); break;
-
-		case op_jmp:
-			jump(pull_int(), true_lit); break;
-
-		case op_jeq:
-			jump_with_stack_condition(pull_int(), true); break;
-
-		case op_jne:
-			jump_with_stack_condition(pull_int(), false); break;
-
+		case op_small_jmp: {
+			auto value { copy_ch_from_code() }; pc_ += ch_size;
+			jump(value, true_lit); break;
+		}
+		case op_small_jeq: {
+			auto value { copy_ch_from_code() }; pc_ += ch_size;
+			jump_with_stack_condition(value, true); break;
+		}
+		case op_small_jne: {
+			auto value { copy_ch_from_code() }; pc_ += ch_size;
+			jump_with_stack_condition(value, false); break;
+		}
+		case op_jmp: {
+			int value { copy_int_from_code() }; pc_ += int_size;
+			jump(value, true_lit); break;
+		}
+		case op_jeq: {
+			int value { copy_int_from_code() }; pc_ += int_size;
+			jump_with_stack_condition(value, true); break;
+		}
+		case op_jne: {
+			int value { copy_int_from_code() }; pc_ += int_size;
+			jump_with_stack_condition(value, false); break;
+		}
 		case op_small_new:
 			alloc_block(pull_ch()); break;
 
