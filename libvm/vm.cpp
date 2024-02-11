@@ -205,7 +205,7 @@ namespace {
 
 	void jump(int offset, signed char condition) {
 		const signed char* target { pc_ + offset };
-		if (target < code_begin_ || target >= code_end_) {
+		if (target < code_begin_ || target > code_end_) {
 			err(Error::err_leave_code_segment);
 		}
 		if (condition) { pc_ = target; }
@@ -216,7 +216,7 @@ namespace {
 	}
 
 	void jump_with_stack_condition(int offset, bool invert) {
-		signed char condition { pull_ch() };
+		auto condition { pull_ch() };
 		if (invert) { condition = negate(condition); }
 		jump(offset, condition);
 	}
@@ -335,11 +335,11 @@ void vm::step() {
 			auto value { copy_ch_from_code() }; pc_ += ch_size;
 			jump(value, true_lit); break;
 		}
-		case op_small_jeq: {
+		case op_small_jmp_false: {
 			auto value { copy_ch_from_code() }; pc_ += ch_size;
 			jump_with_stack_condition(value, true); break;
 		}
-		case op_small_jne: {
+		case op_small_jmp_true: {
 			auto value { copy_ch_from_code() }; pc_ += ch_size;
 			jump_with_stack_condition(value, false); break;
 		}
@@ -347,11 +347,11 @@ void vm::step() {
 			int value { copy_int_from_code() }; pc_ += int_size;
 			jump(value, true_lit); break;
 		}
-		case op_jeq: {
+		case op_jmp_false: {
 			int value { copy_int_from_code() }; pc_ += int_size;
 			jump_with_stack_condition(value, true); break;
 		}
-		case op_jne: {
+		case op_jmp_true: {
 			int value { copy_int_from_code() }; pc_ += int_size;
 			jump_with_stack_condition(value, false); break;
 		}
