@@ -3,6 +3,14 @@
 #include <exception>
 
 namespace vm {
+	constexpr int int_size { 4 };
+	constexpr int ch_size { 1 };
+	constexpr int bits_per_byte { 8 };
+	constexpr int byte_mask { 0xff };
+	constexpr signed char true_lit { -1 };
+	constexpr signed char false_lit { 0 };
+	static_assert(true_lit != false_lit);
+
 	class Error: public std::exception {
 	public:
 		enum Code {

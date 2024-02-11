@@ -6,13 +6,7 @@
 using namespace vm;
 
 namespace {
-	constexpr int int_size { 4 };
-	constexpr int bits_per_byte { 8 };
-	constexpr int byte_mask { 0xff };
-	constexpr signed char true_lit { -1 };
-	constexpr signed char false_lit { 0 };
-
-	[[maybe_unused]] signed char* ram_begin_;
+	signed char* ram_begin_;
 	signed char* ram_end_;
 	const signed char* code_begin_;
 	const signed char* code_end_;
@@ -31,7 +25,7 @@ namespace {
 		if (!begin || end < begin) { err(code); }
 	}
 
-	void has_code() {
+	inline void has_code() {
 		if (pc_ >= code_end_) { err(Error::err_leave_code_segment); }
 	}
 
@@ -40,6 +34,54 @@ namespace {
 		const signed char* begin, const signed char* end, Error::Code code
 	) {
 		if (ptr < begin || ptr + size > end) { err(code); }
+	}
+
+	signed char copy_ch_from_mem(
+		const signed char* mem, const signed char* begin,
+		const signed char* end, Error::Code code
+	) {
+		assure_valid_ptr(mem, 1, begin, end, code); return *mem;
+	}
+
+	signed char copy_ch_from_stack(const signed char* mem = stack_begin_) {
+		return copy_ch_from_mem(
+			mem, stack_begin_, ram_end_, Error::err_leave_stack_segment
+		);
+	}
+
+	signed char pull_ch() {
+		auto value { copy_ch_from_stack() }; ++stack_begin_; return value;
+	}
+
+	signed char copy_ch_from_code(const signed char* mem = pc_) {
+		return copy_ch_from_mem(
+			mem, code_begin_, code_end_, Error::err_leave_code_segment
+		);
+	}
+
+	signed char copy_ch_from_heap(const signed char* mem) {
+		return copy_ch_from_mem(
+			mem, ram_begin_, heap_end_, Error::err_leave_heap_segment
+		);
+	}
+
+	void copy_ch_to_mem(
+		signed char value, signed char* mem,
+		const signed char* begin, const signed char* end, Error::Code code
+	) {
+		assure_valid_ptr(mem, 1, begin, end, code); *mem = value;
+	}
+
+	void copy_ch_to_stack(signed char value, signed char* mem = stack_begin_) {
+		return copy_ch_to_mem(
+			value, mem, stack_begin_, ram_end_, Error::err_leave_stack_segment
+		);
+	}
+
+	void copy_ch_to_heap(signed char value, signed char* mem) {
+		return copy_ch_to_mem(
+			value, mem, ram_begin_, heap_end_, Error::err_leave_heap_segment
+		);
 	}
 
 	int copy_int_from_mem(
@@ -72,33 +114,9 @@ namespace {
 		);
 	}
 
-	signed char copy_ch_from_mem(
-		const signed char* mem, const signed char* begin,
-		const signed char* end, Error::Code code
-	) {
-		assure_valid_ptr(mem, 1, begin, end, code); return *mem;
-	}
-
-	signed char copy_ch_from_stack(const signed char* mem = stack_begin_) {
-		return copy_ch_from_mem(
-			mem, stack_begin_, ram_end_, Error::err_leave_stack_segment
-		);
-	}
-
-	signed char pull_ch() {
-		auto value { copy_ch_from_stack() }; ++stack_begin_; return value;
-	}
-
-	void copy_ch_to_mem(
-		signed char value, signed char* mem,
-		const signed char* begin, const signed char* end, Error::Code code
-	) {
-		assure_valid_ptr(mem, 1, begin, end, code); *mem = value;
-	}
-
-	void copy_ch_to_stack(signed char value, signed char* mem = stack_begin_) {
-		return copy_ch_to_mem(
-			value, mem, stack_begin_, ram_end_, Error::err_leave_stack_segment
+	int copy_int_from_heap(const signed char* mem) {
+		return copy_int_from_mem(
+			mem, ram_begin_, heap_end_, Error::err_leave_heap_segment
 		);
 	}
 
@@ -120,16 +138,18 @@ namespace {
 		);
 	}
 
+	void copy_int_to_heap(int value, signed char* mem) {
+		copy_int_to_mem(
+			value, mem, ram_begin_, heap_end_, Error::err_leave_heap_segment
+		);
+	}
+
 	void push_int(int value) {
 		assure_valid_ptr(
 			stack_begin_ - int_size, int_size, heap_end_, stack_begin_,
 			Error::err_stack_overflow
 		);
 		stack_begin_ -= int_size; copy_int_to_stack(value);
-	}
-
-	void fetch_int(int offset) {
-		push_int(copy_int_from_stack(stack_begin_ + offset));
 	}
 
 	void push_ch(signed char value) {
@@ -146,6 +166,10 @@ namespace {
 
 	void store_ch(int offset) {
 		auto ch { pull_ch() }; copy_ch_to_stack(ch, stack_begin_ + offset);
+	}
+
+	void fetch_int(int offset) {
+		push_int(copy_int_from_stack(stack_begin_ + offset));
 	}
 
 	void store_int(int offset) {
@@ -211,7 +235,7 @@ void vm::step() {
 			jump_with_stack_condition(pull_int(), false); break;
 		#if CONFIG_HAS_CH
 			case op_push_ch:
-				has_code(); push_ch(*pc_++); break;
+				push_ch(copy_ch_from_code()); pc_++; break;
 
 			case op_pull_ch:
 				pull_ch(); break;
@@ -231,6 +255,13 @@ void vm::step() {
 			case op_store_ch:
 				store_ch(pull_int()); break;
 
+			case op_send_ch: {
+				int offset { pull_int() };
+				copy_ch_to_heap(pull_ch(), ram_begin_ + offset); break;
+			}
+			case op_receive_ch: {
+				push_ch(copy_ch_from_heap(ram_begin_ + pull_int())); break;
+			}
 			case op_equals_ch: {
 				auto b { pull_ch() }; auto a { pull_ch() };
 				*--stack_begin_ = a == b ? true_lit : false_lit;
@@ -353,6 +384,13 @@ void vm::step() {
 
 			case op_store_int:
 				store_int(pull_int()); break;
+
+			case op_send_int: {
+				int offset { pull_int() };
+				copy_int_to_heap(pull_int(), ram_begin_ + offset); break;
+			}
+			case op_receive_int:
+				push_int(copy_int_from_heap(ram_begin_ + pull_int())); break;
 
 			case op_equals_int: {
 				int b { pull_int() }; int a { pull_int() };
