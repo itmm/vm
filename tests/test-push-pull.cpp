@@ -3,8 +3,7 @@
 #include "vm-tests.h"
 
 TEST(push_pull_tests, empty) {
-	signed char code[] { };
-	signed char expected[] {};
+	signed char code[] { }, expected[] {};
 	EXPECT_STACK(code, expected);
 }
 
