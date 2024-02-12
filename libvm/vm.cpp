@@ -355,13 +355,13 @@ void vm::step() {
 			int value { copy_int_from_code() }; pc_ += int_size;
 			jump_with_stack_condition(value, false); break;
 		}
-		case op_small_new:
+		case op_small_new: // TODO: add unit-tests
 			alloc_block(pull_ch()); break;
 
-		case op_new:
+		case op_new: // TODO: add unit-tests
 			alloc_block(pull_int()); break;
 
-		case op_free:
+		case op_free: // TODO: add unit-tests
 			free_block(heap_ptr_from_int(pull_int())); break;
 
 		#if CONFIG_HAS_CH
@@ -383,14 +383,14 @@ void vm::step() {
 			case op_small_store_ch:
 				store_ch(pull_ch()); break;
 
-			case op_store_ch:
+			case op_store_ch: // TODO: add unit-tests
 				store_ch(pull_int()); break;
 
-			case op_send_ch: {
+			case op_send_ch: { // TODO: add unit-tests
 				int offset { pull_int() };
 				copy_ch_to_heap(pull_ch(), ram_begin_ + offset); break;
 			}
-			case op_receive_ch: {
+			case op_receive_ch: { // TODO: add unit-tests
 				push_ch(copy_ch_from_heap(ram_begin_ + pull_int())); break;
 			}
 			case op_equals_ch: {
@@ -513,14 +513,14 @@ void vm::step() {
 			case op_small_store_int:
 				store_int(pull_ch()); break;
 
-			case op_store_int:
+			case op_store_int: // TODO: add unit-tests
 				store_int(pull_int()); break;
 
-			case op_send_int: {
+			case op_send_int: { // TODO: add unit-tests
 				int offset { pull_int() };
 				copy_int_to_heap(pull_int(), ram_begin_ + offset); break;
 			}
-			case op_receive_int:
+			case op_receive_int: // TODO: add unit-tests
 				push_int(copy_int_from_heap(ram_begin_ + pull_int())); break;
 
 			case op_equals_int: {
