@@ -383,7 +383,7 @@ void vm::step() {
 			case op_small_store_ch:
 				store_ch(pull_ch()); break;
 
-			case op_store_ch: // TODO: add unit-tests
+			case op_store_ch:
 				store_ch(pull_int()); break;
 
 			case op_send_ch: { // TODO: add unit-tests
@@ -513,7 +513,7 @@ void vm::step() {
 			case op_small_store_int:
 				store_int(pull_ch()); break;
 
-			case op_store_int: // TODO: add unit-tests
+			case op_store_int:
 				store_int(pull_int()); break;
 
 			case op_send_int: { // TODO: add unit-tests
