@@ -10,7 +10,7 @@ namespace {
 	signed char* ram_end_;
 	const signed char* code_begin_;
 	const signed char* code_end_;
-	signed char* free_list_ { nullptr };
+	signed char* free_list_;
 
 	const signed char* pc_;
 	signed char* stack_begin_;
@@ -262,11 +262,12 @@ namespace {
 	}
 
 	signed char* alloc_block(int size) {
-		size = std::min(size + int_size, 2 * int_size);
+		size = std::max(size + int_size, 2 * int_size);
 		auto found { find_on_free_list(size) };
 		if (found) { return found; }
 		if (heap_end_ + size > stack_begin_) { err(Error::err_heap_overflow); }
 		found = heap_end_; heap_end_ += size;
+		free_list_ = nullptr;
 		copy_int_to_heap(size, found);
 		return found + int_size;
 	}
@@ -284,6 +285,7 @@ namespace {
 	}
 
 	void free_block(signed char* block) {
+		// TODO: merge free list blocks
 		assure_valid_ptr(
 			block, int_size, ram_begin_ + int_size, heap_end_ + int_size,
 			Error::err_free_invalid_block
@@ -572,3 +574,5 @@ void vm::step() {
 }
 
 const signed char* vm::stack_begin() { return stack_begin_; }
+const signed char* vm::heap_end() { return heap_end_; }
+const signed char* vm::ram_end() { return ram_end_; }
