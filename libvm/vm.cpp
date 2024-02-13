@@ -261,15 +261,17 @@ namespace {
 		return got;
 	}
 
-	signed char* alloc_block(int size) {
+	void alloc_block(int size) {
 		size = std::max(size + int_size, 2 * int_size);
 		auto found { find_on_free_list(size) };
-		if (found) { return found; }
-		if (heap_end_ + size > stack_begin_) { err(Error::err_heap_overflow); }
-		found = heap_end_; heap_end_ += size;
-		free_list_ = nullptr;
-		copy_int_to_heap(size, found);
-		return found + int_size;
+		if (!found) {
+			if (heap_end_ + size > stack_begin_) { err(Error::err_heap_overflow); }
+			found = heap_end_;
+			heap_end_ += size;
+			free_list_ = nullptr;
+			copy_int_to_heap(size, found);
+		}
+		push_int(heap_ptr_to_int(found) + int_size);
 	}
 
 	void insert_into_free_list(signed char* block) {
@@ -575,4 +577,4 @@ void vm::step() {
 
 const signed char* vm::stack_begin() { return stack_begin_; }
 const signed char* vm::heap_end() { return heap_end_; }
-const signed char* vm::ram_end() { return ram_end_; }
+const signed char* vm::ram_begin() { return ram_begin_; }

@@ -37,5 +37,5 @@ namespace vm {
 
 	const signed char* stack_begin();
 	const signed char* heap_end();
-	const signed char* ram_end();
+	const signed char* ram_begin();
 }
