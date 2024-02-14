@@ -248,7 +248,7 @@ namespace {
 					chain_in_free_list(next, rest_block);
 					chain_in_free_list(rest_block, pre);
 				} else { chain_in_free_list(next, pre); }
-				return current + int_size;
+				return current;
 			}
 			pre = current; current = next;
 		}
