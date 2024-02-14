@@ -6,211 +6,190 @@
 using namespace vm;
 
 namespace {
-	signed char* ram_begin_;
-	signed char* ram_end_;
+	[[noreturn]] void err(Error::Code code) { throw Error { code }; }
+
 	const signed char* code_begin_;
 	const signed char* code_end_;
-	// TODO: separate call stack or stack guard
-	// TODO: tree of allocated blocks
-	// TODO: references to each block
 
-	const signed char* pc_;
-	signed char* stack_begin_;
-	signed char* heap_end_;
-	signed char* free_list_;
+	template<typename T, T& B, T& E, Error::Code C>
+	class Const_Ptr {
+		public:
+			explicit Const_Ptr(T ptr = nullptr): ptr_ { ptr } {
+				if (ptr_) { check(0); }
+			}
 
-	[[noreturn]] void err(Error::Code code) {
-		throw Error { code };
+			[[nodiscard]] signed char get_ch();
+			[[nodiscard]] int get_int();
+
+			[[nodiscard]] T get() const { return ptr_; }
+
+			explicit operator bool() { return ptr_; }
+
+		protected:
+			T ptr_;
+
+			void check(int size) const;
+	};
+
+	template<typename T, T& B, T& E, Error::Code C>
+	void Const_Ptr<T, B, E, C>::check(int size) const {
+		if (ptr_ < B || ptr_ + size > E) { err(C); }
 	}
 
-	void check_range(
-		const signed char* begin, const signed char* end, Error::Code code
-	) {
-		if (!begin || end < begin) { err(code); }
+	template<typename T, T& B, T& E, Error::Code C>
+	signed char Const_Ptr<T, B, E, C>::get_ch() {
+		check(ch_size); return *ptr_;
 	}
 
-	inline void has_code() {
-		if (pc_ >= code_end_) { err(Error::err_leave_code_segment); }
-	}
-
-	void assure_valid_ptr(
-		const signed char* ptr, int size,
-		const signed char* begin, const signed char* end, Error::Code code
-	) {
-		if (ptr < begin || ptr + size > end) { err(code); }
-	}
-
-	signed char copy_ch_from_mem(
-		const signed char* mem, const signed char* begin,
-		const signed char* end, Error::Code code
-	) {
-		assure_valid_ptr(mem, 1, begin, end, code); return *mem;
-	}
-
-	signed char copy_ch_from_stack(const signed char* mem = stack_begin_) {
-		return copy_ch_from_mem(
-			mem, stack_begin_, ram_end_, Error::err_leave_stack_segment
-		);
-	}
-
-	signed char pull_ch() {
-		auto value { copy_ch_from_stack() }; ++stack_begin_; return value;
-	}
-
-	signed char copy_ch_from_code(const signed char* mem = pc_) {
-		return copy_ch_from_mem(
-			mem, code_begin_, code_end_, Error::err_leave_code_segment
-		);
-	}
-
-	signed char copy_ch_from_heap(const signed char* mem) {
-		return copy_ch_from_mem(
-			mem, ram_begin_, heap_end_, Error::err_leave_heap_segment
-		);
-	}
-
-	void copy_ch_to_mem(
-		signed char value, signed char* mem,
-		const signed char* begin, const signed char* end, Error::Code code
-	) {
-		assure_valid_ptr(mem, 1, begin, end, code); *mem = value;
-	}
-
-	void copy_ch_to_stack(signed char value, signed char* mem = stack_begin_) {
-		return copy_ch_to_mem(
-			value, mem, stack_begin_, ram_end_, Error::err_leave_stack_segment
-		);
-	}
-
-	void copy_ch_to_heap(signed char value, signed char* mem) {
-		return copy_ch_to_mem(
-			value, mem, ram_begin_, heap_end_, Error::err_leave_heap_segment
-		);
-	}
-
-	int copy_int_from_mem(
-		const signed char* mem,
-		const signed char* begin, const signed char* end, Error::Code code
-	) {
-		assure_valid_ptr(mem, int_size, begin, end, code);
+	template<typename T, T& B, T& E, Error::Code C>
+	int Const_Ptr<T, B, E, C>::get_int() {
+		check(int_size);
 		int value { 0 };
-		for (int i { int_size }; i; --i) {
-			value = (value << bits_per_byte) + (*mem++ & byte_mask);
+		for (auto i { ptr_ }, e { ptr_ + int_size }; i < e; ++i) {
+			value = (value << bits_per_byte) + (*i & byte_mask);
 		}
 		return value;
 	}
 
-	int copy_int_from_stack(const signed char* mem = stack_begin_) {
-		return copy_int_from_mem(
-			mem, stack_begin_, ram_end_, Error::err_leave_stack_segment
-		);
-	}
-
-	int pull_int() {
-		int value { copy_int_from_stack() };
-		stack_begin_ += int_size;
-		return value;
-	}
-
-	int copy_int_from_code(const signed char* mem = pc_) {
-		return copy_int_from_mem(
-			mem, code_begin_, code_end_, Error::err_leave_code_segment
-		);
-	}
-
-	int copy_int_from_heap(const signed char* mem) {
-		return copy_int_from_mem(
-			mem, ram_begin_, heap_end_, Error::err_leave_heap_segment
-		);
-	}
-
-	signed char* heap_ptr_from_int(int value) {
-		if (! value) { return nullptr; }
-		auto result { ram_begin_ + value };
-		assure_valid_ptr(
-			result, 0, ram_begin_, heap_end_, Error::err_leave_heap_segment
-		);
-		return result;
-	}
-
-	signed char* copy_ptr_from_heap(const signed char* mem) {
-		return heap_ptr_from_int(copy_int_from_heap(mem));
-	}
-
-	void copy_int_to_mem(
-		int value, signed char* mem,
-		const signed char* begin, const signed char *end, Error::Code code
+	template<typename T, T& B, T& E, Error::Code C>
+	Const_Ptr<T, B, E, C> operator+(
+		const Const_Ptr<T, B, E, C>& ptr, int offset
 	) {
-		assure_valid_ptr(mem, int_size, begin, end, code);
-		mem += int_size;
-		for (int i { int_size }; i; --i) {
-			*--mem = static_cast<signed char>(value);
+		return Const_Ptr<T, B, E, C> { ptr.get() + offset };
+	}
+
+	template<typename T, T& B, T& E, Error::Code C>
+	Const_Ptr<T, B, E, C> operator-(
+		const Const_Ptr<T, B, E, C>& ptr, int offset
+	) {
+		return Const_Ptr<T, B, E, C> { ptr.get() - offset };
+	}
+
+	template<typename T, T& B, T& E, Error::Code C>
+	bool operator==(
+		const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b
+	) {
+		return a.get() == b.get();
+	}
+
+	template<typename T, T& B, T& E, Error::Code C>
+	bool operator<(
+		const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b
+	) {
+		return a.get() < b.get();
+	}
+
+	using Code_Ptr = Const_Ptr<
+	    const signed char*, code_begin_, code_end_,
+		Error::err_leave_code_segment
+	>;
+
+	Code_Ptr pc_;
+
+	template<typename T, T& B, T& E, Error::Code C>
+	class Ptr : public Const_Ptr<T, B, E, C> {
+		public:
+			explicit Ptr(T ptr = nullptr): Const_Ptr<T, B, E, C>(ptr) { }
+
+			void set_ch(signed char value);
+			void set_int(int value);
+	};
+
+	template<typename T, T& B, T& E, Error::Code C>
+	void Ptr<T, B, E, C>::set_ch(signed char value) {
+		this->check(ch_size); *this->ptr_ = value;
+	}
+
+	template<typename T, T& B, T& E, Error::Code C>
+	void Ptr<T, B, E, C>::set_int(int value) {
+		this->check(int_size);
+		for (
+			auto i { this->ptr_ + int_size - 1 }, e { this->ptr_ }; i >= e; --i
+		) {
+			*i = static_cast<signed char>(value);
 			value >>= bits_per_byte;
 		}
 	}
 
-	void copy_int_to_stack(int value, signed char* mem = stack_begin_) {
-		copy_int_to_mem(
-			value, mem, stack_begin_, ram_end_, Error::err_leave_stack_segment
-		);
+	template<typename T, T& B, T& E, Error::Code C>
+	Ptr<T, B, E, C> operator+(const Ptr<T, B, E, C>& ptr, int offset) {
+		return Ptr<T, B, E, C>(ptr.get() + offset);
 	}
 
-	void copy_int_to_heap(int value, signed char* mem) {
-		copy_int_to_mem(
-			value, mem, ram_begin_, heap_end_, Error::err_leave_heap_segment
-		);
+	template<typename T, T& B, T& E, Error::Code C>
+	Ptr<T, B, E, C> operator-(const Ptr<T, B, E, C>& ptr, int offset) {
+		return Ptr<T, B, E, C>(ptr.get() - offset);
 	}
 
-	int heap_ptr_to_int(const signed char* ptr) {
-		if (!ptr) { return 0; }
-		assure_valid_ptr(
-			ptr, 0, ram_begin_, heap_end_, vm::Error::err_leave_heap_segment
-		);
-		return static_cast<int>(ptr - ram_begin_);
+	signed char* ram_begin_;
+	signed char* heap_end_;
+	signed char* stack_begin_;
+	signed char* ram_end_;
+
+	using Heap_Ptr = Ptr<
+		signed char*, ram_begin_, heap_end_, Error::err_leave_heap_segment
+	>;
+
+	using Stack_Ptr = Ptr<
+		signed char*, stack_begin_, ram_end_, Error::err_leave_stack_segment
+	>;
+
+	Heap_Ptr get_ptr(Heap_Ptr ptr) {
+		int value { ptr.get_int() };
+		return Heap_Ptr { value >= 0 ? ram_begin_ + value : nullptr };
 	}
 
-	void copy_ptr_to_heap(const signed char* ptr, signed char* mem) {
-		copy_int_to_heap(heap_ptr_to_int(ptr), mem);
+	void set_ptr(Heap_Ptr ptr, const Heap_Ptr value) {
+		auto got { value.get() };
+		ptr.set_int(got ? static_cast<int>(got - ram_begin_) : -1);
+	}
+
+	Heap_Ptr free_list_;
+
+	// TODO: separate call stack or stack guard
+	// TODO: tree of allocated blocks
+	// TODO: references to each block
+
+	signed char pull_ch() {
+		auto value { Stack_Ptr { stack_begin_ }.get_ch() };
+		++stack_begin_; return value;
+	}
+
+	int pull_int() {
+		int value { Stack_Ptr { stack_begin_ }.get_int() };
+		stack_begin_ += int_size;
+		return value;
 	}
 
 	void push_int(int value) {
-		assure_valid_ptr(
-			stack_begin_ - int_size, int_size, heap_end_, stack_begin_,
-			Error::err_stack_overflow
-		);
-		stack_begin_ -= int_size; copy_int_to_stack(value);
+		stack_begin_ -= int_size; Stack_Ptr ptr { stack_begin_ };
+		ptr.set_int(value);
 	}
 
 	void push_ch(signed char value) {
-		assure_valid_ptr(
-			stack_begin_ - 1, 1, heap_end_, stack_begin_,
-			Error::err_stack_overflow
-		);
-		*--stack_begin_ = value;
+		stack_begin_ -= ch_size; Stack_Ptr ptr { stack_begin_ };
+		ptr.set_ch(value);
 	}
 
 	void fetch_ch(int offset) {
-		push_ch(copy_ch_from_stack(stack_begin_ + offset));
+		push_ch(Stack_Ptr { stack_begin_ + offset }.get_ch());
 	}
 
 	void store_ch(int offset) {
-		auto ch { pull_ch() }; copy_ch_to_stack(ch, stack_begin_ + offset);
+		auto ch { pull_ch() }; Stack_Ptr { stack_begin_ + offset}.set_ch(ch);
 	}
 
 	void fetch_int(int offset) {
-		push_int(copy_int_from_stack(stack_begin_ + offset));
+		push_int(Stack_Ptr { stack_begin_ + offset }.get_int());
 	}
 
 	void store_int(int offset) {
 		auto value { pull_int() };
-		copy_int_to_stack(value, stack_begin_ + offset);
+		Stack_Ptr { stack_begin_ + offset }.set_int(value);
 	}
 
 	void jump(int offset, signed char condition) {
-		const signed char* target { pc_ + offset };
-		if (target < code_begin_ || target > code_end_) {
-			err(Error::err_leave_code_segment);
-		}
+		Code_Ptr target { pc_ + offset };
 		if (condition) { pc_ = target; }
 	}
 
@@ -224,19 +203,17 @@ namespace {
 		jump(offset, condition);
 	}
 
-	void chain_in_free_list(signed char* next, signed char* pre) {
-		if (pre) { copy_ptr_to_heap(next, pre + int_size); }
+	void chain_in_free_list(const Heap_Ptr& next, Heap_Ptr pre) {
+		if (pre) { set_ptr(pre + int_size, next); }
 		else { free_list_ = next; }
 	}
 
-	signed char* find_on_free_list(int size, bool tight_fit) {
-		signed char* previous { nullptr };
+	Heap_Ptr find_on_free_list(int size, bool tight_fit) {
+		Heap_Ptr previous;
 		auto current { free_list_ };
 		while (current) {
-			int cur_size { copy_int_from_heap(current) };
-			auto next { heap_ptr_from_int(
-				copy_int_from_heap(current + int_size)
-			) };
+			int cur_size { current.get_int() };
+			auto next { get_ptr(current + int_size) };
 			bool found {
 				tight_fit ?
 					cur_size == size || cur_size > 3 * size :
@@ -245,9 +222,9 @@ namespace {
 			if (found) {
 				int rest_size { cur_size - size };
 				if (rest_size >= 2 * int_size) {
-					signed char* rest_block { current + size };
-					copy_int_to_heap(rest_size, rest_block);
-					copy_int_to_heap(size, current);
+					Heap_Ptr rest_block { current + size };
+					rest_block.set_int(rest_size);
+					current.set_int(size);
 					chain_in_free_list(next, rest_block);
 					chain_in_free_list(rest_block, previous);
 				} else { chain_in_free_list(next, previous); }
@@ -255,39 +232,42 @@ namespace {
 			}
 			previous = current; current = next;
 		}
-		return nullptr;
+		return Heap_Ptr { };
 	}
 
-	inline signed char* find_on_free_list(int size) {
+	inline Heap_Ptr find_on_free_list(int size) {
 		auto got { find_on_free_list(size, true) };
 		if (! got) { got = find_on_free_list(size, false); }
 		return got;
 	}
 
 	void dump_free_list() {
-		std::cerr << "free_list (heap_end = " << static_cast<void*>(heap_end_) << ")\n";
-		for (auto cur {free_list_}; cur; cur = copy_ptr_from_heap(cur + int_size)) {
-			auto size { copy_int_from_heap(cur) };
-			std::cerr << "\tbegin = " << static_cast<void*>(cur) << "; size = " << size << "; end = " << static_cast<void*>(cur + size) << "\n";
+		std::cerr << "free list {\n";
+		for (auto i { free_list_ }; i; i = get_ptr(i + int_size)) {
+			std::cerr << "\t" << (void*) i.get() << ", " << i.get_int() << "\n";
 		}
-	}
-	void alloc_block(int size) {
-		std::cerr << "alloc " << size << " "; dump_free_list();
-		size = std::max(size + int_size, 2 * int_size);
-		auto found { find_on_free_list(size) };
-		if (!found) {
-			if (heap_end_ + size > stack_begin_) { err(Error::err_heap_overflow); }
-			found = heap_end_;
-			heap_end_ += size;
-			free_list_ = nullptr;
-			copy_int_to_heap(size, found);
-		}
-		push_int(heap_ptr_to_int(found) + int_size);
-		std::cerr << "post alloc " << static_cast<void*>(copy_int_from_stack() + ram_begin_) << ' '; dump_free_list();
+		std::cerr << "}\n";
 	}
 
-	inline signed char* get_previous(const signed char* node) {
-		signed char* previous { nullptr};
+	void alloc_block(int size) {
+		size = std::max(size + int_size, 2 * int_size);
+		std::cerr << "XX "; dump_free_list();
+		auto found { find_on_free_list(size) };
+		std::cerr << "NN\n";
+		if (!found) {
+			if (heap_end_ + size > stack_begin_) {
+				err(Error::err_heap_overflow);
+			}
+			found = Heap_Ptr { heap_end_ };
+			heap_end_ += size;
+			found.set_int(size);
+		}
+		dump_free_list();
+		push_int(static_cast<int>(found.get() - ram_begin_) + int_size);
+	}
+
+	inline Heap_Ptr get_previous(const Heap_Ptr& node) {
+		Heap_Ptr previous;
 		auto current { free_list_};
 		for (;;) {
 			if (node == current) { return previous; }
@@ -295,61 +275,58 @@ namespace {
 				err(Error::err_free_invalid_block);
 			}
 			previous = current;
-			current = copy_ptr_from_heap(current + int_size);
+			current = get_ptr(current + int_size);
 		}
 	}
 
-	inline void insert_into_free_list(signed char* block) {
-		signed char* greater { nullptr };
-		signed char* smaller { free_list_ };
-		while (smaller && smaller > block) {
+	inline void insert_into_free_list(Heap_Ptr block) {
+		Heap_Ptr greater { };
+		Heap_Ptr smaller { free_list_ };
+		while (smaller && block < smaller) {
 			greater = smaller;
-			smaller = copy_ptr_from_heap(smaller + int_size);
+			smaller = get_ptr(smaller + int_size);
 		}
-		int size { copy_int_from_heap(block) };
+		int size { block.get_int() };
 
 		if (smaller) {
-			int smaller_size { copy_int_from_heap(smaller) };
+			int smaller_size { smaller.get_int() };
 			if (smaller + smaller_size == block) {
-				copy_int_to_heap(smaller_size + size, smaller);
+				smaller.set_int(smaller_size + size);
 				block = smaller; size += smaller_size;
-			} else {
-				copy_ptr_to_heap(smaller, block + int_size);
-			}
+			} else { set_ptr(block + int_size, smaller); }
 		}
 
 		if (greater) {
 			if (block + size == greater) {
-				copy_int_to_heap(size + copy_int_from_heap(greater), block);
+				block.set_int(size + greater.get_int());
 				greater = get_previous(greater);
-				if (greater) { copy_ptr_to_heap(block, greater + int_size); }
-			} else {
-				copy_ptr_to_heap(block, greater + int_size);
-			}
+				if (greater) { set_ptr(greater + int_size, block); }
+			} else { set_ptr(greater + int_size, block); }
 		}
 
-		if (block + size == heap_end_) {
-			heap_end_ = block; block = nullptr;
-			if (greater) { copy_ptr_to_heap(nullptr, greater + int_size); }
+		if (block.get() + size == heap_end_) {
+			heap_end_ = block.get(); block = Heap_Ptr { };
+			if (greater) { set_ptr(greater + int_size, block); }
 		}
 		if (! greater) { free_list_ = block; }
 	}
 
-	void free_block(signed char* block) {
-		std::cerr << "pre free " << static_cast<void*>(block) << " "; dump_free_list();
-		assure_valid_ptr(
-			block, int_size, ram_begin_ + int_size, heap_end_ + int_size,
-			Error::err_free_invalid_block
-		);
-		block -= int_size;
-		int size { copy_int_from_heap(block) };
+	void free_block(Heap_Ptr block) {
+		block = block - int_size;
+		int size { block.get_int() };
 		if (size < 2 * int_size) { err(Error::err_free_invalid_block); }
-		assure_valid_ptr(
-			block, size, ram_begin_, heap_end_, Error::err_free_invalid_block
-		);
+		if (block.get() + size > heap_end_) {
+			err(Error::err_free_invalid_block);
+		}
 		insert_into_free_list(block);
-		std::cerr << "post free "; dump_free_list();
+		dump_free_list();
 	}
+}
+
+void check_range(
+	const signed char* begin, const signed char* end, Error::Code code
+) {
+	if (!begin || end < begin) { err(code); }
 }
 
 void vm::init(
@@ -364,13 +341,12 @@ void vm::init(
 
 	stack_begin_ = ram_end;
 	heap_end_ = ram_begin;
-	free_list_ = nullptr;
-	pc_ = code_begin;
+	free_list_ = Heap_Ptr { };
+	pc_ = Code_Ptr { code_begin };
 }
 
 void vm::step() {
-	has_code();
-	signed char op { *pc_++ };
+	signed char op { pc_.get_ch() }; pc_ = pc_ + ch_size;
 	switch (op) {
 		#if CONFIG_HAS_OP_NOP
 			case op_nop: break;
@@ -379,27 +355,27 @@ void vm::step() {
 			case op_break: err(Error::err_break);
 		#endif
 		case op_small_jmp: {
-			auto value { copy_ch_from_code() }; pc_ += ch_size;
+			auto value { pc_.get_ch() }; pc_ = pc_ + ch_size;
 			jump(value, true_lit); break;
 		}
 		case op_small_jmp_false: {
-			auto value { copy_ch_from_code() }; pc_ += ch_size;
+			auto value { pc_.get_ch() }; pc_ = pc_ + ch_size;
 			jump_with_stack_condition(value, true); break;
 		}
 		case op_small_jmp_true: {
-			auto value { copy_ch_from_code() }; pc_ += ch_size;
+			auto value { pc_.get_ch() }; pc_ = pc_ + ch_size;
 			jump_with_stack_condition(value, false); break;
 		}
 		case op_jmp: {
-			int value { copy_int_from_code() }; pc_ += int_size;
+			int value { pc_.get_int() }; pc_ = pc_ + int_size;
 			jump(value, true_lit); break;
 		}
 		case op_jmp_false: {
-			int value { copy_int_from_code() }; pc_ += int_size;
+			int value { pc_.get_int() }; pc_ = pc_ + int_size;
 			jump_with_stack_condition(value, true); break;
 		}
 		case op_jmp_true: {
-			int value { copy_int_from_code() }; pc_ += int_size;
+			int value { pc_.get_int() }; pc_ = pc_ + int_size;
 			jump_with_stack_condition(value, false); break;
 		}
 		case op_small_new: // TODO: add unit-tests
@@ -409,11 +385,11 @@ void vm::step() {
 			alloc_block(pull_int()); break;
 
 		case op_free: // TODO: add unit-tests
-			free_block(heap_ptr_from_int(pull_int())); break;
+			free_block(Heap_Ptr { ram_begin_ + pull_int() }); break;
 
 		#if CONFIG_HAS_CH
 			case op_push_ch:
-				push_ch(copy_ch_from_code()); pc_++; break;
+				push_ch(pc_.get_ch()); pc_ = pc_ + 1; break;
 
 			case op_pull_ch:
 				pull_ch(); break;
@@ -434,11 +410,11 @@ void vm::step() {
 				store_ch(pull_int()); break;
 
 			case op_send_ch: { // TODO: add unit-tests
-				int offset { pull_int() };
-				copy_ch_to_heap(pull_ch(), ram_begin_ + offset); break;
+				Heap_Ptr ptr { ram_begin_ + pull_int() };
+				ptr.set_ch(pull_ch()); break;
 			}
 			case op_receive_ch: { // TODO: add unit-tests
-				push_ch(copy_ch_from_heap(ram_begin_ + pull_int())); break;
+				push_ch(Heap_Ptr { ram_begin_ + pull_int() }.get_ch()); break;
 			}
 			case op_equals_ch: {
 				auto b { pull_ch() }; auto a { pull_ch() };
@@ -544,7 +520,7 @@ void vm::step() {
 				break;
 			}
 			case op_dup_int:
-				push_int(copy_int_from_stack()); break;
+				push_int(Stack_Ptr { stack_begin_ }.get_int()); break;
 
 			case op_swap_int: {
 				int a { pull_int() }; int b { pull_int() };
@@ -565,10 +541,10 @@ void vm::step() {
 
 			case op_send_int: { // TODO: add unit-tests
 				int offset { pull_int() };
-				copy_int_to_heap(pull_int(), ram_begin_ + offset); break;
+				Heap_Ptr { ram_begin_ + offset }.set_int(pull_int()); break;
 			}
 			case op_receive_int: // TODO: add unit-tests
-				push_int(copy_int_from_heap(ram_begin_ + pull_int())); break;
+				push_int(Heap_Ptr { ram_begin_ + pull_int() }.get_int()); break;
 
 			case op_equals_int: {
 				int b { pull_int() }; int a { pull_int() };
@@ -592,7 +568,7 @@ void vm::step() {
 
 			#if CONFIG_HAS_OP_PUSH_INT
 				case op_push_int:
-					push_int(copy_int_from_code()); pc_ += int_size; break;
+					push_int(pc_.get_int()); pc_ = pc_ + int_size; break;
 			#endif
 		#endif
 		#if CONFIG_HAS_CH && CONFIG_HAS_INT
@@ -621,3 +597,5 @@ void vm::step() {
 const signed char* vm::stack_begin() { return stack_begin_; }
 const signed char* vm::heap_end() { return heap_end_; }
 const signed char* vm::ram_begin() { return ram_begin_; }
+const signed char* vm::ram_end() { return ram_end_; }
+const signed char* vm::pc() { return pc_.get(); }

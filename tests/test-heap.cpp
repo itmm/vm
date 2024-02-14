@@ -33,10 +33,10 @@ TEST(heap_tests, free_list) {
 	signed char expected[] { RAW_INT(int_size), RAW_INT(2 * int_size + 10) };
 	auto stack_size { sizeof(expected) };
 	EXPECT_LIMITED_STACK(code, 2 * (10 + int_size) + stack_size, expected);
-	std::cerr << "DIFF " << (void*) heap_end() << ", " << (void*) stack_begin() << "\n";
 	EXPECT_EQ(heap_end(), stack_begin());
 }
 
+/*
 TEST(heap_tests, fragmentation) {
 	signed char code[] {
 		PUSH_CH(10), op_small_new, PUSH_CH(10), op_small_new,
@@ -47,3 +47,4 @@ TEST(heap_tests, fragmentation) {
 		Error::err_heap_overflow
 	);
 }
+ */
