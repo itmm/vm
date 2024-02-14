@@ -18,8 +18,12 @@ void expect_stack(
 	RAM, EXPECTED, sizeof(EXPECTED) \
 )
 
-#define EXPECT_ERROR(CODE, EXPECTED) expect_stack( \
-	CODE, sizeof(CODE), EXPECTED, 1024, nullptr, 0 \
+#define EXPECT_LIMITED_STACK_ERROR(CODE, RAM, EXPECTED) expect_stack( \
+	CODE, sizeof(CODE), EXPECTED, RAM, nullptr, 0 \
+)
+
+#define EXPECT_ERROR(CODE, EXPECTED) EXPECT_LIMITED_STACK_ERROR( \
+	CODE, 1024, EXPECTED \
 )
 
 #define EXPECT_STACK_OVERFLOW(CODE, RAM) expect_stack( \
