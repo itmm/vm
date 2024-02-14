@@ -11,6 +11,9 @@ namespace {
 	const signed char* code_begin_;
 	const signed char* code_end_;
 	signed char* free_list_;
+	// TODO: separate call stack or stack guard
+	// TODO: tree of allocated blocks
+	// TODO: references to each block
 
 	const signed char* pc_;
 	signed char* stack_begin_;
