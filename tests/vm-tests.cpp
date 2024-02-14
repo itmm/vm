@@ -19,7 +19,7 @@ void expect_stack(
 		EXPECT_EQ(err.code, expected_error);
 	}
 	if (expected_begin) {
-		EXPECT_EQ(vm::stack_begin() + expected_size, ram + sizeof(ram));
+		EXPECT_EQ(vm::stack_begin() + expected_size, ram + ram_size);
 		for (int i { 0 }; i < expected_size; ++i) {
 			EXPECT_EQ(vm::stack_begin()[i], expected_begin[i]);
 		}

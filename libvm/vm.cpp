@@ -10,7 +10,6 @@ namespace {
 	signed char* ram_end_;
 	const signed char* code_begin_;
 	const signed char* code_end_;
-	signed char* free_list_;
 	// TODO: separate call stack or stack guard
 	// TODO: tree of allocated blocks
 	// TODO: references to each block
@@ -18,6 +17,7 @@ namespace {
 	const signed char* pc_;
 	signed char* stack_begin_;
 	signed char* heap_end_;
+	signed char* free_list_;
 
 	[[noreturn]] void err(Error::Code code) {
 		throw Error { code };
@@ -230,7 +230,7 @@ namespace {
 	}
 
 	signed char* find_on_free_list(int size, bool tight_fit) {
-		signed char* pre { nullptr };
+		signed char* previous { nullptr };
 		auto current { free_list_ };
 		while (current) {
 			int cur_size { copy_int_from_heap(current) };
@@ -249,22 +249,30 @@ namespace {
 					copy_int_to_heap(rest_size, rest_block);
 					copy_int_to_heap(size, current);
 					chain_in_free_list(next, rest_block);
-					chain_in_free_list(rest_block, pre);
-				} else { chain_in_free_list(next, pre); }
+					chain_in_free_list(rest_block, previous);
+				} else { chain_in_free_list(next, previous); }
 				return current;
 			}
-			pre = current; current = next;
+			previous = current; current = next;
 		}
 		return nullptr;
 	}
 
-	signed char* find_on_free_list(int size) {
+	inline signed char* find_on_free_list(int size) {
 		auto got { find_on_free_list(size, true) };
 		if (! got) { got = find_on_free_list(size, false); }
 		return got;
 	}
 
+	void dump_free_list() {
+		std::cerr << "free_list (heap_end = " << static_cast<void*>(heap_end_) << ")\n";
+		for (auto cur {free_list_}; cur; cur = copy_ptr_from_heap(cur + int_size)) {
+			auto size { copy_int_from_heap(cur) };
+			std::cerr << "\tbegin = " << static_cast<void*>(cur) << "; size = " << size << "; end = " << static_cast<void*>(cur + size) << "\n";
+		}
+	}
 	void alloc_block(int size) {
+		std::cerr << "alloc " << size << " "; dump_free_list();
 		size = std::max(size + int_size, 2 * int_size);
 		auto found { find_on_free_list(size) };
 		if (!found) {
@@ -275,22 +283,60 @@ namespace {
 			copy_int_to_heap(size, found);
 		}
 		push_int(heap_ptr_to_int(found) + int_size);
+		std::cerr << "post alloc " << static_cast<void*>(copy_int_from_stack() + ram_begin_) << ' '; dump_free_list();
 	}
 
-	void insert_into_free_list(signed char* block) {
-		signed char* greater { nullptr };
-		signed char* current { free_list_ };
-		while (current && current > block) {
-			greater = current;
+	inline signed char* get_previous(const signed char* node) {
+		signed char* previous { nullptr};
+		auto current { free_list_};
+		for (;;) {
+			if (node == current) { return previous; }
+			if (!current || current < node) {
+				err(Error::err_free_invalid_block);
+			}
+			previous = current;
 			current = copy_ptr_from_heap(current + int_size);
 		}
-		copy_ptr_to_heap(current, block + int_size);
-		if (greater) { copy_ptr_to_heap(block, greater + int_size); }
-		else { free_list_ = block; }
+	}
+
+	inline void insert_into_free_list(signed char* block) {
+		signed char* greater { nullptr };
+		signed char* smaller { free_list_ };
+		while (smaller && smaller > block) {
+			greater = smaller;
+			smaller = copy_ptr_from_heap(smaller + int_size);
+		}
+		int size { copy_int_from_heap(block) };
+
+		if (smaller) {
+			int smaller_size { copy_int_from_heap(smaller) };
+			if (smaller + smaller_size == block) {
+				copy_int_to_heap(smaller_size + size, smaller);
+				block = smaller; size += smaller_size;
+			} else {
+				copy_ptr_to_heap(smaller, block + int_size);
+			}
+		}
+
+		if (greater) {
+			if (block + size == greater) {
+				copy_int_to_heap(size + copy_int_from_heap(greater), block);
+				greater = get_previous(greater);
+				if (greater) { copy_ptr_to_heap(block, greater + int_size); }
+			} else {
+				copy_ptr_to_heap(block, greater + int_size);
+			}
+		}
+
+		if (block + size == heap_end_) {
+			heap_end_ = block; block = nullptr;
+			if (greater) { copy_ptr_to_heap(nullptr, greater + int_size); }
+		}
+		if (! greater) { free_list_ = block; }
 	}
 
 	void free_block(signed char* block) {
-		// TODO: merge free list blocks
+		std::cerr << "pre free " << static_cast<void*>(block) << " "; dump_free_list();
 		assure_valid_ptr(
 			block, int_size, ram_begin_ + int_size, heap_end_ + int_size,
 			Error::err_free_invalid_block
@@ -301,15 +347,8 @@ namespace {
 		assure_valid_ptr(
 			block, size, ram_begin_, heap_end_, Error::err_free_invalid_block
 		);
-		if (block + size == heap_end_) {
-			heap_end_ = block;
-			while (free_list_ && free_list_ + copy_int_from_heap(free_list_) == heap_end_) {
-				heap_end_ = free_list_;
-				free_list_ = copy_ptr_from_heap(free_list_ + int_size);
-			}
-			return;
-		}
 		insert_into_free_list(block);
+		std::cerr << "post free "; dump_free_list();
 	}
 }
 
@@ -325,6 +364,7 @@ void vm::init(
 
 	stack_begin_ = ram_end;
 	heap_end_ = ram_begin;
+	free_list_ = nullptr;
 	pc_ = code_begin;
 }
 
