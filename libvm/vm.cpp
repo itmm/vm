@@ -373,13 +373,13 @@ void vm::step() {
 			int value { pc_.get_int() }; pc_ = pc_ + int_size;
 			jump_with_stack_condition(value, false); break;
 		}
-		case op_small_new: // TODO: add unit-tests
+		case op_small_new:
 			alloc_block(pull_ch()); break;
 
-		case op_new: // TODO: add unit-tests
+		case op_new:
 			alloc_block(pull_int()); break;
 
-		case op_free: // TODO: add unit-tests
+		case op_free:
 			free_block(Heap_Ptr { ram_begin_ + pull_int() }); break;
 
 		#if CONFIG_HAS_CH
