@@ -162,11 +162,17 @@ namespace {
 	}
 
 	void push_int(int value) {
+		if (heap_end_ + int_size > stack_begin_) {
+			err(Error::err_stack_overflow);
+		}
 		stack_begin_ -= int_size; Stack_Ptr ptr { stack_begin_ };
 		ptr.set_int(value);
 	}
 
 	void push_ch(signed char value) {
+		if (heap_end_ + ch_size > stack_begin_) {
+			err(Error::err_stack_overflow);
+		}
 		stack_begin_ -= ch_size; Stack_Ptr ptr { stack_begin_ };
 		ptr.set_ch(value);
 	}
