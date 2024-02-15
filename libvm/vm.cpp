@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <limits>
+#include <set>
 
 using namespace vm;
 
@@ -19,11 +20,11 @@ namespace {
 			}
 
 			[[nodiscard]] signed char get_ch();
-			[[nodiscard]] int get_int();
+			[[nodiscard]] int get_int() const;
 
 			[[nodiscard]] T get() const { return ptr_; }
 
-			explicit operator bool() { return ptr_; }
+			explicit operator bool() const { return ptr_; }
 
 		protected:
 			T ptr_;
@@ -42,7 +43,7 @@ namespace {
 	}
 
 	template<typename T, T& B, T& E, Error::Code C>
-	int Const_Ptr<T, B, E, C>::get_int() {
+	int Const_Ptr<T, B, E, C>::get_int() const {
 		check(int_size);
 		int value { 0 };
 		for (auto i { ptr_ }, e { ptr_ + int_size }; i < e; ++i) {
@@ -247,19 +248,9 @@ namespace {
 		return got;
 	}
 
-	void dump_free_list() {
-		std::cerr << "free list {\n";
-		for (auto i { free_list_ }; i; i = get_ptr(i + int_size)) {
-			std::cerr << "\t" << (void*) i.get() << ", " << i.get_int() << "\n";
-		}
-		std::cerr << "}\n";
-	}
-
 	void alloc_block(int size) {
 		size = std::max(size + int_size, 2 * int_size);
-		std::cerr << "XX "; dump_free_list();
 		auto found { find_on_free_list(size) };
-		std::cerr << "NN\n";
 		if (!found) {
 			if (heap_end_ + size > stack_begin_) {
 				err(Error::err_heap_overflow);
@@ -268,7 +259,6 @@ namespace {
 			heap_end_ += size;
 			found.set_int(size);
 		}
-		dump_free_list();
 		push_int(static_cast<int>(found.get() - ram_begin_) + int_size);
 	}
 
@@ -300,7 +290,7 @@ namespace {
 				smaller.set_int(smaller_size + size);
 				block = smaller; size += smaller_size;
 			} else { set_ptr(block + int_size, smaller); }
-		}
+		} else { set_ptr(block + int_size, smaller); }
 
 		if (greater) {
 			if (block + size == greater) {
@@ -325,7 +315,6 @@ namespace {
 			err(Error::err_free_invalid_block);
 		}
 		insert_into_free_list(block);
-		dump_free_list();
 	}
 }
 

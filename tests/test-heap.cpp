@@ -36,7 +36,7 @@ TEST(heap_tests, free_list) {
 	EXPECT_EQ(heap_end(), stack_begin());
 }
 
-/*
+
 TEST(heap_tests, fragmentation) {
 	signed char code[] {
 		PUSH_CH(10), op_small_new, PUSH_CH(10), op_small_new,
@@ -47,4 +47,3 @@ TEST(heap_tests, fragmentation) {
 		Error::err_heap_overflow
 	);
 }
- */
