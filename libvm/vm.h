@@ -10,6 +10,8 @@ namespace vm {
 	constexpr signed char true_lit { -1 };
 	constexpr signed char false_lit { 0 };
 	static_assert(true_lit != false_lit);
+	constexpr int node_size { 3 * int_size };
+	constexpr int heap_overhead { node_size };
 
 	class Error: public std::exception {
 	public:

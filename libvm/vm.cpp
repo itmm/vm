@@ -145,7 +145,6 @@ namespace {
 		ptr.set_int(got ? static_cast<int>(got - ram_begin_) : -1);
 	}
 
-	constexpr int node_size { 3 * int_size };
 	constexpr int node_next_offset { int_size };
 	constexpr int node_prev_offset { 2 * int_size };
 
@@ -174,9 +173,9 @@ namespace {
 	}
 
 	List free_list;
+	List alloc_list;
 
 	// TODO: separate call stack or stack guard
-	// TODO: tree of allocated blocks
 	// TODO: references to each block
 
 	signed char pull_ch() {
@@ -238,8 +237,6 @@ namespace {
 		jump(offset, condition);
 	}
 
-	constexpr int heap_overhead { int_size };
-
 	Heap_Ptr find_on_free_list(int size, bool tight_fit) {
 		auto current { free_list.end };
 		while (current) {
@@ -282,6 +279,7 @@ namespace {
 			heap_end_ += size;
 			found.set_int(size);
 		}
+		//alloc_list.insert(found, alloc_list.begin);
 		push_int(static_cast<int>(found.get() - ram_begin_) + heap_overhead);
 	}
 
@@ -324,6 +322,7 @@ namespace {
 		if (block.get() + size > heap_end_) {
 			err(Error::err_free_invalid_block);
 		}
+		alloc_list.remove(block);
 		insert_into_free_list(block);
 	}
 }
@@ -347,6 +346,7 @@ void vm::init(
 	stack_begin_ = ram_end;
 	heap_end_ = ram_begin;
 	free_list = List { };
+	alloc_list = List { };
 	pc_ = Code_Ptr { code_begin };
 }
 
