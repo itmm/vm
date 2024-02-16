@@ -145,7 +145,35 @@ namespace {
 		ptr.set_int(got ? static_cast<int>(got - ram_begin_) : -1);
 	}
 
-	Heap_Ptr free_list_;
+	constexpr int node_size { 3 * int_size };
+	constexpr int node_next_offset { int_size };
+	constexpr int node_prev_offset { 2 * int_size };
+
+	struct List {
+		Heap_Ptr begin { };
+		Heap_Ptr end { };
+
+		void insert(Heap_Ptr node, Heap_Ptr next);
+		void remove(Heap_Ptr node);
+	};
+
+	void List::insert(Heap_Ptr node, Heap_Ptr next) {
+		Heap_Ptr prev;
+		if (next) { prev = get_ptr(next + node_prev_offset); } else { prev = end; }
+		set_ptr(node + node_next_offset, next);
+		set_ptr(node + node_prev_offset, prev);
+		if (next) { set_ptr(next + node_prev_offset, node); } else { end = node; }
+		if (prev) { set_ptr(prev + node_next_offset, node); } else { begin = node; }
+	}
+
+	void List::remove(Heap_Ptr node) {
+		auto next { get_ptr(node + node_next_offset) };
+		auto prev { get_ptr(node + node_prev_offset) };
+		if (next) { set_ptr(next + node_prev_offset, prev); } else { end = prev; }
+		if (prev) { set_ptr(prev + node_next_offset, next); } else { begin = next; }
+	}
+
+	List free_list;
 
 	// TODO: separate call stack or stack guard
 	// TODO: tree of allocated blocks
@@ -210,17 +238,12 @@ namespace {
 		jump(offset, condition);
 	}
 
-	void chain_in_free_list(const Heap_Ptr& next, Heap_Ptr pre) {
-		if (pre) { set_ptr(pre + int_size, next); }
-		else { free_list_ = next; }
-	}
+	constexpr int heap_overhead { int_size };
 
 	Heap_Ptr find_on_free_list(int size, bool tight_fit) {
-		Heap_Ptr previous;
-		auto current { free_list_ };
+		auto current { free_list.end };
 		while (current) {
 			int cur_size { current.get_int() };
-			auto next { get_ptr(current + int_size) };
 			bool found {
 				tight_fit ?
 					cur_size == size || cur_size > 3 * size :
@@ -228,16 +251,16 @@ namespace {
 			};
 			if (found) {
 				int rest_size { cur_size - size };
-				if (rest_size >= 2 * int_size) {
+				if (rest_size >= heap_overhead) {
 					Heap_Ptr rest_block { current + size };
 					rest_block.set_int(rest_size);
 					current.set_int(size);
-					chain_in_free_list(next, rest_block);
-					chain_in_free_list(rest_block, previous);
-				} else { chain_in_free_list(next, previous); }
+					free_list.insert(rest_block, current);
+				}
+				free_list.remove(current);
 				return current;
 			}
-			previous = current; current = next;
+			current = get_ptr(current + node_prev_offset);
 		}
 		return Heap_Ptr { };
 	}
@@ -249,7 +272,7 @@ namespace {
 	}
 
 	void alloc_block(int size) {
-		size = std::max(size + int_size, 2 * int_size);
+		size = std::max(size + heap_overhead, node_size);
 		auto found { find_on_free_list(size) };
 		if (!found) {
 			if (heap_end_ + size > stack_begin_) {
@@ -259,28 +282,15 @@ namespace {
 			heap_end_ += size;
 			found.set_int(size);
 		}
-		push_int(static_cast<int>(found.get() - ram_begin_) + int_size);
-	}
-
-	inline Heap_Ptr get_previous(const Heap_Ptr& node) {
-		Heap_Ptr previous;
-		auto current { free_list_};
-		for (;;) {
-			if (node == current) { return previous; }
-			if (!current || current < node) {
-				err(Error::err_free_invalid_block);
-			}
-			previous = current;
-			current = get_ptr(current + int_size);
-		}
+		push_int(static_cast<int>(found.get() - ram_begin_) + heap_overhead);
 	}
 
 	inline void insert_into_free_list(Heap_Ptr block) {
 		Heap_Ptr greater { };
-		Heap_Ptr smaller { free_list_ };
+		Heap_Ptr smaller { free_list.begin };
 		while (smaller && block < smaller) {
 			greater = smaller;
-			smaller = get_ptr(smaller + int_size);
+			smaller = get_ptr(smaller + node_next_offset);
 		}
 		int size { block.get_int() };
 
@@ -289,28 +299,28 @@ namespace {
 			if (smaller + smaller_size == block) {
 				smaller.set_int(smaller_size + size);
 				block = smaller; size += smaller_size;
-			} else { set_ptr(block + int_size, smaller); }
-		} else { set_ptr(block + int_size, smaller); }
+				free_list.remove(block);
+			}
+		}
 
 		if (greater) {
 			if (block + size == greater) {
 				block.set_int(size + greater.get_int());
-				greater = get_previous(greater);
-				if (greater) { set_ptr(greater + int_size, block); }
-			} else { set_ptr(greater + int_size, block); }
+				auto old_greater { greater };
+				greater = get_ptr(greater + node_next_offset);
+				free_list.remove(old_greater);
+			}
 		}
 
 		if (block.get() + size == heap_end_) {
-			heap_end_ = block.get(); block = Heap_Ptr { };
-			if (greater) { set_ptr(greater + int_size, block); }
-		}
-		if (! greater) { free_list_ = block; }
+			heap_end_ = block.get();
+		} else { free_list.insert(block, greater); }
 	}
 
 	void free_block(Heap_Ptr block) {
-		block = block - int_size;
+		block = block - heap_overhead;
 		int size { block.get_int() };
-		if (size < 2 * int_size) { err(Error::err_free_invalid_block); }
+		if (size < node_size) { err(Error::err_free_invalid_block); }
 		if (block.get() + size > heap_end_) {
 			err(Error::err_free_invalid_block);
 		}
@@ -336,7 +346,7 @@ void vm::init(
 
 	stack_begin_ = ram_end;
 	heap_end_ = ram_begin;
-	free_list_ = Heap_Ptr { };
+	free_list = List { };
 	pc_ = Code_Ptr { code_begin };
 }
 
