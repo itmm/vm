@@ -519,14 +519,9 @@ void vm::step() {
 			jump_with_stack_condition(value, false); break;
 		}
 
-		case op_new:
-			alloc_block(int_value(pull_value())); break;
-
-		case op_free:
-			free_block(pull_ptr()); break;
-
-		case op_pull:
-			pull_value(); break;
+		case op_new: alloc_block(pull_int()); break;
+		case op_free: free_block(pull_ptr()); break;
+		case op_pull: pull_value(); break;
 
 		case op_dup: {
 			auto value { pull_value() };
@@ -540,11 +535,9 @@ void vm::step() {
 		}
 
 		#if CONFIG_HAS_CH
-			case op_push_ch:
-				push_ch(pc_.get_byte()); pc_ = pc_ + 1; break;
+			case op_push_ch: push_ch(pc_.get_byte()); pc_ = pc_ + 1; break;
 
-			case op_fetch:
-				fetch(int_value(pull_value())); break;
+			case op_fetch: fetch(pull_int()); break;
 
 			case op_small_store_ch:
 				store_ch(pull_ch()); break;
