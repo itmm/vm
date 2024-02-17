@@ -24,6 +24,14 @@ namespace {
 		} else { err(Error::err_unknown_type); }
 	}
 
+	int int_value(const Value& value) {
+		if (const signed char* ch = std::get_if<signed char>(&value)) {
+			return *ch;
+		} else if (const int* val = std::get_if<int>(&value)) {
+			return *val;
+		} else { err(Error::err_no_integer); }
+	}
+
 	template<typename T, T& B, T& E, Error::Code C>
 	class Const_Ptr {
 		public:
@@ -260,9 +268,6 @@ namespace {
 	void List<P>::remove(P node) {
 		auto next { get_ptr(node + node_next_offset) };
 		auto prev { get_ptr(node + node_prev_offset) };
-		signed char* n { next.get_raw() };
-		signed char* p { prev.get_raw() };
-
 		if (next) { set_ptr(next + node_prev_offset, prev); } else { end = prev; }
 		if (prev) { set_ptr(prev + node_next_offset, next); } else { begin = next; }
 	}
@@ -517,39 +522,19 @@ void vm::step() {
 			int value { pc_.get_int() }; pc_ = pc_ + int_size;
 			jump_with_stack_condition(value, false); break;
 		}
-		case op_small_new:
-			alloc_block(pull_ch()); break;
 
 		case op_new:
-			alloc_block(pull_int()); break;
+			alloc_block(int_value(pull_value())); break;
 
 		case op_free:
 			free_block(pull_ptr()); break;
 
 		case op_pull:
-			switch (Stack_Ptr { stack_begin_ }.get_byte()) {
-				case ch_type: pull_ch(); break;
-				case int_type: pull_int(); break;
-				case ptr_type: pull_ptr(); break;
-				default: err(Error::err_pull_unknown_type);
-			} break;
+			pull_value(); break;
 
 		case op_dup: {
-			switch (Stack_Ptr { stack_begin_ }.get_byte()) {
-				case ch_type: {
-					auto value { pull_ch() };
-					push_ch(value); push_ch(value); break;
-				}
-				case int_type: {
-					auto value { pull_int() };
-					push_int(value); push_int(value); break;
-				}
-				case ptr_type: {
-					auto value { pull_ptr() };
-					push_ptr(value); push_ptr(value); break;
-				}
-				default: err(Error::err_dup_unknown_type);
-			} break;
+			auto value { pull_value() };
+			push_value(value); push_value(value); break;
 		}
 
 		case op_swap: {

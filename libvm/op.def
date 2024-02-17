@@ -15,7 +15,6 @@ OP(jmp)
 OP(jmp_true)
 OP(jmp_false)
 OP(new)
-OP(small_new)
 OP(free)
 #if CONFIG_HAS_CH
     OP(push_ch)

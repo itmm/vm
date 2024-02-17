@@ -5,7 +5,7 @@
 using namespace vm;
 
 TEST(heap_tests, small_alloc_all) {
-	signed char code[] { PUSH_CH(10), op_small_new };
+	signed char code[] { PUSH_CH(10), op_new };
 	signed char expected[] { RAW_PTR(heap_overhead) };
 	EXPECT_LIMITED_STACK(code, 10 + heap_overhead + ptr_size, expected);
 	EXPECT_EQ(heap_end(), stack_begin());
@@ -19,7 +19,7 @@ TEST(heap_tests, alloc_all) {
 }
 
 TEST(heap_tests, simple_alloc_and_free) {
-	signed char code[] { PUSH_CH(10), op_small_new, op_free };
+	signed char code[] { PUSH_CH(10), op_new, op_free };
 	signed char expected[] { };
 	EXPECT_LIMITED_STACK(code, 10 + heap_overhead + ptr_size, expected);
 	EXPECT_EQ(heap_end(), ram_begin());
@@ -27,8 +27,8 @@ TEST(heap_tests, simple_alloc_and_free) {
 
 TEST(heap_tests, free_list) {
 	signed char code[] {
-		PUSH_CH(10), op_small_new, PUSH_CH(10), op_small_new,
-		op_swap, op_free, PUSH_CH(10), op_small_new
+		PUSH_CH(10), op_new, PUSH_CH(10), op_new,
+		op_swap, op_free, PUSH_CH(10), op_new
 	};
 	int heap_size { 2 * (10 + heap_overhead) };
 	signed char expected[] {
@@ -42,8 +42,8 @@ TEST(heap_tests, free_list) {
 
 TEST(heap_tests, fragmentation) {
 	signed char code[] {
-		PUSH_CH(10), op_small_new, PUSH_CH(10), op_small_new,
-		op_swap, op_free, PUSH_CH(12), op_small_new
+		PUSH_CH(10), op_new, PUSH_CH(10), op_new,
+		op_swap, op_free, PUSH_CH(12), op_new
 	};
 	EXPECT_LIMITED_STACK_ERROR(
 		code, 10 + heap_overhead + 12 + heap_overhead + 2 * int_size,
