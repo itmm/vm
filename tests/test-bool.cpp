@@ -34,7 +34,7 @@ TEST(bool_tests, not_false_int) {
 }
 
 TEST(bool_tests, not_underflow_int) {
-	signed char code[] { PUSH_CH(0), PUSH_CH(0), PUSH_CH(0), op_not_int };
+	signed char code[] { PUSH_CH(0), op_not_int };
 	EXPECT_ERROR(code, Error::err_leave_stack_segment);
 }
 
@@ -100,10 +100,8 @@ TEST(bool_tests, and11_int) {
 }
 
 TEST(bool_tests, and_underflow_int) {
-	signed char code[] {
-		PUSH_SMALL_INT(true_lit), PUSH_CH(0), PUSH_CH(0), PUSH_CH(0), op_and_int
-	};
-	EXPECT_ERROR(code, Error::err_leave_stack_segment);
+	signed char code[] { PUSH_SMALL_INT(true_lit), PUSH_CH(0), op_and_int };
+	EXPECT_ERROR(code, Error::err_no_integer);
 }
 
 TEST(bool_tests, or00_ch) {
@@ -168,10 +166,8 @@ TEST(bool_tests, or11_int) {
 }
 
 TEST(bool_tests, or_underflow_int) {
-	signed char code[] {
-		PUSH_SMALL_INT(true_lit), PUSH_CH(0), PUSH_CH(0), PUSH_CH(0), op_or_int
-	};
-	EXPECT_ERROR(code, Error::err_leave_stack_segment);
+	signed char code[] { PUSH_SMALL_INT(true_lit), PUSH_CH(0), op_or_int };
+	EXPECT_ERROR(code, Error::err_no_integer);
 }
 
 TEST(bool_tests, xor00_ch) {
@@ -236,8 +232,6 @@ TEST(bool_tests, xor11_int) {
 }
 
 TEST(bool_tests, xor_underflow_int) {
-	signed char code[] {
-		PUSH_SMALL_INT(true_lit), PUSH_CH(0), PUSH_CH(0), PUSH_CH(0), op_xor_int
-	};
-	EXPECT_ERROR(code, Error::err_leave_stack_segment);
+	signed char code[] { PUSH_SMALL_INT(true_lit), PUSH_CH(0), op_xor_int };
+	EXPECT_ERROR(code, Error::err_no_integer);
 }

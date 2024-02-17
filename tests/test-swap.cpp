@@ -11,8 +11,6 @@ TEST(swap_tests, simple) {
 }
 
 TEST(swap_tests, empty_ch) {
-	signed char code[] {
-		PUSH_SMALL_INT(1), PUSH_CH(0), PUSH_CH(0), PUSH_CH(0), op_swap_int
-	};
-	EXPECT_ERROR(code, Error::err_leave_stack_segment);
+	signed char code[] { PUSH_SMALL_INT(1), PUSH_CH(0), op_swap_int };
+	EXPECT_ERROR(code, Error::err_no_integer);
 }

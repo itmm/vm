@@ -6,7 +6,7 @@ using namespace vm;
 
 TEST(dup_tests, dup_ch) {
 	signed char code[] { PUSH_CH(10), op_dup_ch };
-	signed char expected[] { 10, 10 };
+	signed char expected[] { RAW_CH(10), RAW_CH(10) };
 	EXPECT_LIMITED_STACK(code, 2 * ch_size, expected);
 }
 

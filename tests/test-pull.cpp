@@ -6,7 +6,7 @@ using namespace vm;
 
 TEST(pull_tests, pull_ch) {
 	signed char code[] { PUSH_CH(10), PUSH_CH(11), op_pull_ch };
-	signed char expected[] { 10 };
+	signed char expected[] { RAW_CH(10) };
 	EXPECT_LIMITED_STACK(code, 2 * ch_size, expected);
 }
 
@@ -22,6 +22,6 @@ TEST(pull_tests, pull_int) {
 }
 
 TEST(pull_tests, underflow_int) {
-	signed char code[] { PUSH_CH(0), PUSH_CH(0), PUSH_CH(0), op_pull_int };
+	signed char code[] { PUSH_CH(0), op_pull_int };
 	EXPECT_ERROR(code, Error::err_leave_stack_segment);
 }

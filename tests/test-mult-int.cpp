@@ -57,8 +57,6 @@ TEST(mult_int_tests, max_neg) {
 }
 
 TEST(mult_int_tests, underflow) {
-	signed char code[] {
-		PUSH_SMALL_INT(5), PUSH_CH(0), PUSH_CH(0), PUSH_CH(0), op_mult_int
-	};
-	EXPECT_ERROR(code, Error::err_leave_stack_segment);
+	signed char code[] { PUSH_SMALL_INT(5), PUSH_CH(0), op_mult_int };
+	EXPECT_ERROR(code, Error::err_no_integer);
 }

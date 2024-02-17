@@ -10,5 +10,7 @@
 	F(((X) >> 24) & 0xff), F(((X) >> 16)& 0xff), \
 	F(((X) >> 8) & 0xff), F((X) & 0xff)
 
-#define RAW_INT(X) FOREACH_INT_(X, ID_)
+#define RAW_CH(X) ch_type, ID_(X)
+#define RAW_INT(X) int_type, FOREACH_INT_(X, ID_)
+#define RAW_PTR(X, L, G) ptr_type, RAW_INT(X), RAW_INT(L), RAW_INT(G)
 #define PUSH_INT(X) vm::op_push_int, RAW_INT(X)

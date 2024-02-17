@@ -35,7 +35,7 @@ TEST(equals_tests, not_equals_int) {
 
 TEST(equals_tests, empty_int) {
 	signed char code[] {
-		PUSH_SMALL_INT(1), PUSH_CH(0), PUSH_CH(0), PUSH_CH(0), op_equals_int
+		PUSH_SMALL_INT(1), PUSH_CH(0), op_equals_int
 	};
-	EXPECT_ERROR(code, Error::err_leave_stack_segment);
+	EXPECT_ERROR(code, Error::err_no_integer);
 }
