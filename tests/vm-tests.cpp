@@ -18,6 +18,7 @@ void expect_stack(
 		}
 		EXPECT_EQ(err.code, expected_error);
 	}
+	//vm::dump_stack();
 	if (expected_begin) {
 		EXPECT_EQ(vm::stack_begin() + expected_size, ram + ram_size);
 		for (int i { 0 }; i < expected_size; ++i) {

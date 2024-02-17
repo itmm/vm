@@ -12,6 +12,18 @@ namespace {
 	const signed char* code_begin_;
 	const signed char* code_end_;
 
+	using Value = std::variant<signed char, int, signed char*>;
+
+	int value_size(const Value& value) {
+		if (std::get_if<signed char>(&value)) {
+			return ch_size;
+		} else if (std::get_if<int>(&value)) {
+			return int_size;
+		} else if (std::get_if<signed char*>(&value)) {
+			return ptr_size;
+		} else { err(Error::err_unknown_type); }
+	}
+
 	template<typename T, T& B, T& E, Error::Code C>
 	class Const_Ptr {
 		public:
@@ -20,10 +32,11 @@ namespace {
 			}
 
 			[[nodiscard]] signed char get_byte();
+			[[nodiscard]] Value get_value();
 			[[nodiscard]] signed char get_ch();
 			[[nodiscard]] int get_int() const;
 
-			[[nodiscard]] T get() const { return ptr_; }
+			[[nodiscard]] T get_raw() const { return ptr_; }
 
 			explicit operator bool() const { return ptr_; }
 
@@ -49,43 +62,68 @@ namespace {
 		return ptr_[1];
 	}
 
-	template<typename T, T& B, T& E, Error::Code C>
-	int Const_Ptr<T, B, E, C>::get_int() const {
-		check(int_size);
-		if (*ptr_ != int_type) { err(Error::err_no_integer); }
+	template<typename T> int get_int_value(T* ptr) {
 		int value { 0 };
-		for (auto i { ptr_ + 1 }, e { ptr_ + int_size }; i < e; ++i) {
+		for (auto i { ptr }, e { ptr + raw_int_size }; i < e; ++i) {
 			value = (value << bits_per_byte) + (*i & byte_mask);
 		}
 		return value;
 	}
 
 	template<typename T, T& B, T& E, Error::Code C>
+	int Const_Ptr<T, B, E, C>::get_int() const {
+		check(int_size);
+		if (*ptr_ != int_type) { err(Error::err_no_integer); }
+		return get_int_value(ptr_ + 1);
+	}
+
+	signed char* ram_begin_;
+	signed char* heap_end_;
+	signed char* stack_begin_;
+	signed char* ram_end_;
+
+	template<typename T, T& B, T& E, Error::Code C>
+	Value Const_Ptr<T, B, E, C>::get_value() {
+		check(1); switch (*ptr_) {
+			case ch_type: check(ch_size); return Value { ptr_[1] };
+			case int_type:
+				check(int_size); return Value { get_int_value(ptr_ + 1) };
+
+			case ptr_type: {
+				check(ptr_size);
+				int offset { get_int_value(ptr_ + 1) };
+				return Value { offset >= 0 ? ram_begin_ + offset : nullptr };
+			}
+			default: err(Error::err_unknown_type);
+		}
+	}
+
+	template<typename T, T& B, T& E, Error::Code C>
 	Const_Ptr<T, B, E, C> operator+(
 		const Const_Ptr<T, B, E, C>& ptr, int offset
 	) {
-		return Const_Ptr<T, B, E, C> { ptr.get() + offset };
+		return Const_Ptr<T, B, E, C> { ptr.get_raw() + offset };
 	}
 
 	template<typename T, T& B, T& E, Error::Code C>
 	Const_Ptr<T, B, E, C> operator-(
 		const Const_Ptr<T, B, E, C>& ptr, int offset
 	) {
-		return Const_Ptr<T, B, E, C> { ptr.get() - offset };
+		return Const_Ptr<T, B, E, C> { ptr.get_raw() - offset };
 	}
 
 	template<typename T, T& B, T& E, Error::Code C>
 	bool operator==(
 		const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b
 	) {
-		return a.get() == b.get();
+		return a.get_raw() == b.get_raw();
 	}
 
 	template<typename T, T& B, T& E, Error::Code C>
 	bool operator<(
 		const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b
 	) {
-		return a.get() < b.get();
+		return a.get_raw() < b.get_raw();
 	}
 
 	using Code_Ptr = Const_Ptr<
@@ -103,6 +141,7 @@ namespace {
 
 			void set_ch(signed char value);
 			void set_int(int value);
+			void set_value(Value value);
 	};
 
 	template<signed char*& B, signed char*& E, Error::Code C>
@@ -111,30 +150,46 @@ namespace {
 		this->ptr_[0] = ch_type; this->ptr_[1] = value;
 	}
 
+	void set_int_value(signed char* ptr, int value) {
+		for (auto i { ptr + raw_int_size - 1 }; i >= ptr; --i) {
+			*i = static_cast<signed char>(value);
+			value >>= bits_per_byte;
+		}
+		if (value != 0 && value != -1) { err(Error::err_int_overflow); }
+	}
+
 	template<signed char*& B, signed char*& E, Error::Code C>
 	void Ptr<B, E, C>::set_int(int value) {
 		this->check(int_size);
 		this->ptr_[0] = int_type;
-		for (auto i { this->ptr_ + int_size - 1 }; i > this->ptr_; --i) {
-			*i = static_cast<signed char>(value);
-			value >>= bits_per_byte;
-		}
+		set_int_value(this->ptr_ + 1, value);
+	}
+
+	template<signed char*& B, signed char*& E, Error::Code C>
+	void Ptr<B, E, C>::set_value(Value value) {
+		if (const signed char* ch = std::get_if<signed char>(&value)) {
+			this->check(ch_size);
+			this->ptr_[0] = ch_type; this->ptr_[1] = *ch;
+		} else if (int* val = std::get_if<int>(&value)) {
+			this->check(int_size);
+			this->ptr_[0] = int_type; set_int_value(this->ptr_ + 1, *val);
+		} else if (auto ptr = std::get_if<signed char*>(&value)) {
+			this->check(ptr_size);
+			this->ptr_[0] = ptr_type;
+			int v = *ptr ? static_cast<int>(*ptr - ram_begin_) : -1;
+			set_int_value(this->ptr_ + 1, v);
+		} else { err(Error::err_unknown_type); }
 	}
 
 	template<signed char*& B, signed char*& E, Error::Code C>
 	Ptr<B, E, C> operator+(const Ptr<B, E, C>& ptr, int offset) {
-		return Ptr<B, E, C>(ptr.get() + offset);
+		return Ptr<B, E, C>(ptr.get_raw() + offset);
 	}
 
 	template<signed char*& B, signed char*& E, Error::Code C>
 	Ptr<B, E, C> operator-(const Ptr<B, E, C>& ptr, int offset) {
-		return Ptr<B, E, C>(ptr.get() - offset);
+		return Ptr<B, E, C>(ptr.get_raw() - offset);
 	}
-
-	signed char* ram_begin_;
-	signed char* heap_end_;
-	signed char* stack_begin_;
-	signed char* ram_end_;
 
 	using Ram_Ptr = Ptr<ram_begin_, ram_end_, Error::err_leave_ram_segment>;
 
@@ -145,21 +200,21 @@ namespace {
 				Ptr<B, E, C> { ptr } { }
 
 			explicit Castable_Ptr(const Ram_Ptr ptr):
-				Castable_Ptr { ptr.get() }
+				Castable_Ptr { ptr.get_raw() }
 			{ }
 
-			explicit operator Ram_Ptr() { return Ram_Ptr { this->get() }; }
+			explicit operator Ram_Ptr() { return Ram_Ptr { this->get_raw() }; }
 	};
 
 	template<signed char*& B, signed char*& E, Error::Code C>
 	Castable_Ptr<B, E, C> operator+(const Castable_Ptr<B, E, C>& ptr, int offset) {
-		return Castable_Ptr<B, E, C>(ptr.get() + offset);
+		return Castable_Ptr<B, E, C>(ptr.get_raw() + offset);
 	}
 
 	template<signed char*& B, signed char*& E, Error::Code C>
 	Castable_Ptr<B, E, C> operator-(
 		const Castable_Ptr<B, E, C>& ptr, int offset
-	) { return Castable_Ptr<B, E, C>(ptr.get() - offset); }
+	) { return Castable_Ptr<B, E, C>(ptr.get_raw() - offset); }
 
 	using Heap_Ptr = Castable_Ptr<
 		ram_begin_, heap_end_, Error::err_leave_heap_segment
@@ -170,13 +225,13 @@ namespace {
 	>;
 
 	template<typename P> P get_ptr(P ptr) {
-		int value { ptr.get_int() };
+		int value { get_int_value(ptr.get_raw()) };
 		return P { value >= 0 ? ram_begin_ + value : nullptr };
 	}
 
 	template<typename P, typename Q> void set_ptr(P ptr, Q value) {
-		auto got { value.get() };
-		ptr.set_int(got ? static_cast<int>(got - ram_begin_) : -1);
+		auto got { value.get_raw() };
+		set_int_value(ptr.get_raw(), got ? static_cast<int>(got - ram_begin_) : -1);
 	}
 
 	constexpr int node_next_offset { int_size };
@@ -205,8 +260,8 @@ namespace {
 	void List<P>::remove(P node) {
 		auto next { get_ptr(node + node_next_offset) };
 		auto prev { get_ptr(node + node_prev_offset) };
-		signed char* n { next.get() };
-		signed char* p { prev.get() };
+		signed char* n { next.get_raw() };
+		signed char* p { prev.get_raw() };
 
 		if (next) { set_ptr(next + node_prev_offset, prev); } else { end = prev; }
 		if (prev) { set_ptr(prev + node_next_offset, next); } else { begin = next; }
@@ -214,9 +269,19 @@ namespace {
 
 	List<Heap_Ptr> free_list;
 	List<Heap_Ptr> alloc_list;
-	List<Ram_Ptr> ptr_list;
 
-	// TODO: separate call stack or stack guard
+	Value pull_value() {
+		auto value { Stack_Ptr { stack_begin_ }.get_value() };
+		stack_begin_ += value_size(value); return value;
+	}
+
+	void push_value(Value value) {
+		auto size { value_size(value) };
+		if (heap_end_ + size > stack_begin_) { err(Error::err_stack_overflow); }
+		stack_begin_ -= size;
+		auto ptr { Stack_Ptr { stack_begin_ } };
+		ptr.set_value(value);
+	}
 
 	signed char pull_ch() {
 		auto value { Stack_Ptr { stack_begin_ }.get_ch() };
@@ -267,19 +332,10 @@ namespace {
 			err(Error::err_leave_stack_segment);
 		}
 		Stack_Ptr node { stack_begin_ };
-		if (*node.get() != ptr_type) { err(Error::err_no_pointer); }
-		int value { (node + 1).get_int() };
-		ptr_list.remove(static_cast<Ram_Ptr>(node + 1));
+		if (*node.get_raw() != ptr_type) { err(Error::err_no_pointer); }
+		int value { get_int_value((node + 1).get_raw()) };
 		stack_begin_ += ptr_size;
 		return Heap_Ptr { ram_begin_ + value };
-	}
-
-	void insert_ptr(Ram_Ptr ptr) {
-		auto greater { ptr_list.begin };
-		while (greater && greater < ptr) {
-			greater = get_ptr(greater + node_next_offset);
-		}
-		ptr_list.insert(ptr, greater);
 	}
 
 	void push_ptr(Heap_Ptr value) {
@@ -287,11 +343,8 @@ namespace {
 			err(Error::err_stack_overflow);
 		}
 		stack_begin_ -= ptr_size; Stack_Ptr ptr { stack_begin_ };
-		*ptr.get() = ptr_type;
+		*ptr.get_raw() = ptr_type;
 		set_ptr(ptr + 1, value);
-		set_ptr(ptr + 1 + int_size, Heap_Ptr { });
-		set_ptr(ptr + 1 + 2 * int_size, Heap_Ptr { });
-		insert_ptr(static_cast<Ram_Ptr>(ptr + 1));
 	}
 
 	void jump(int offset, signed char condition) {
@@ -312,7 +365,7 @@ namespace {
 	Heap_Ptr find_on_free_list(int size, bool tight_fit) {
 		auto current { free_list.end };
 		while (current) {
-			int cur_size { current.get_int() };
+			int cur_size { get_int_value(current.get_raw()) };
 			bool found {
 				tight_fit ?
 					cur_size == size || cur_size > 3 * size :
@@ -322,8 +375,8 @@ namespace {
 				int rest_size { cur_size - size };
 				if (rest_size >= heap_overhead) {
 					Heap_Ptr rest_block { current + size };
-					rest_block.set_int(rest_size);
-					current.set_int(size);
+					set_int_value(rest_block.get_raw(), rest_size);
+					set_int_value(current.get_raw(), size);
 					free_list.insert(rest_block, current);
 				}
 				free_list.remove(current);
@@ -349,7 +402,7 @@ namespace {
 			}
 			found = Heap_Ptr { heap_end_ };
 			heap_end_ += size;
-			found.set_int(size);
+			set_int_value(found.get_raw(), size);
 		}
 		alloc_list.insert(found, alloc_list.begin);
 		push_ptr(found + heap_overhead);
@@ -362,12 +415,12 @@ namespace {
 			greater = smaller;
 			smaller = get_ptr(smaller + node_next_offset);
 		}
-		int size { block.get_int() };
+		int size { get_int_value(block.get_raw()) };
 
 		if (smaller) {
-			int smaller_size { smaller.get_int() };
+			int smaller_size { get_int_value(smaller.get_raw()) };
 			if (smaller + smaller_size == block) {
-				smaller.set_int(smaller_size + size);
+				set_int_value(smaller.get_raw(), smaller_size + size);
 				block = smaller; size += smaller_size;
 				free_list.remove(block);
 			}
@@ -375,26 +428,26 @@ namespace {
 
 		if (greater) {
 			if (block + size == greater) {
-				block.set_int(size + greater.get_int());
+				set_int_value(block.get_raw(), size + get_int_value(greater.get_raw()));
 				auto old_greater { greater };
 				greater = get_ptr(greater + node_next_offset);
 				free_list.remove(old_greater);
 			}
 		}
 
-		if (block.get() + size == heap_end_) {
-			heap_end_ = block.get();
+		if (block.get_raw() + size == heap_end_) {
+			heap_end_ = block.get_raw();
 		} else { free_list.insert(block, greater); }
 	}
 
 	void free_block(Heap_Ptr block) {
 		block = block - heap_overhead;
 		alloc_list.remove(block);
-		int size { block.get_int() };
+		int size { get_int_value(block.get_raw()) };
 		if (size < std::max(node_size, heap_overhead)) {
 			err(Error::err_free_invalid_block);
 		}
-		if (block.get() + size > heap_end_) {
+		if (block.get_raw() + size > heap_end_) {
 			err(Error::err_free_invalid_block);
 		}
 		insert_into_free_list(block);
@@ -421,8 +474,14 @@ void vm::init(
 	heap_end_ = ram_begin;
 	free_list = List<Heap_Ptr> { };
 	alloc_list = List<Heap_Ptr> { };
-	ptr_list = List<Ram_Ptr> { };
 	pc_ = Code_Ptr { code_begin };
+}
+
+void vm::dump_stack() {
+	std::cout << "STACK\n";
+	for (auto i { stack_begin_}; i != ram_end_; ++i) {
+		std::cout << "\t" << (int) *i << "\n";
+	}
 }
 
 void vm::step() {
@@ -491,6 +550,12 @@ void vm::step() {
 				}
 				default: err(Error::err_dup_unknown_type);
 			} break;
+		}
+
+		case op_swap: {
+			auto a { pull_value() }; auto b { pull_value() };
+			push_value(a); push_value(b);
+			break;
 		}
 
 		#if CONFIG_HAS_CH
@@ -617,16 +682,6 @@ void vm::step() {
 				break;
 			}
 
-			case op_swap_int: {
-				int a { pull_int() }; int b { pull_int() };
-				push_int(a); push_int(b); break;
-			}
-
-			case op_swap_ptr: {
-				Heap_Ptr a { pull_ptr() }; Heap_Ptr b { pull_ptr() };
-				push_ptr(a); push_ptr(b); break;
-			}
-
 			case op_small_fetch_int:
 				fetch_int(pull_ch()); break;
 
@@ -698,4 +753,4 @@ const signed char* vm::stack_begin() { return stack_begin_; }
 const signed char* vm::heap_end() { return heap_end_; }
 const signed char* vm::ram_begin() { return ram_begin_; }
 const signed char* vm::ram_end() { return ram_end_; }
-const signed char* vm::pc() { return pc_.get(); }
+const signed char* vm::pc() { return pc_.get_raw(); }
