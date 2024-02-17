@@ -507,15 +507,15 @@ void vm::step() {
 			jump_with_stack_condition(value, false); break;
 		}
 		case op_jmp: {
-			int value { pc_.get_int() }; pc_ = pc_ + int_size;
+			int value { get_int_value(pc_.get_raw()) }; pc_ = pc_ + raw_int_size;
 			jump(value, true_lit); break;
 		}
 		case op_jmp_false: {
-			int value { pc_.get_int() }; pc_ = pc_ + int_size;
+			int value { get_int_value(pc_.get_raw()) }; pc_ = pc_ + raw_int_size;
 			jump_with_stack_condition(value, true); break;
 		}
 		case op_jmp_true: {
-			int value { pc_.get_int() }; pc_ = pc_ + int_size;
+			int value { get_int_value(pc_.get_raw()) }; pc_ = pc_ + raw_int_size;
 			jump_with_stack_condition(value, false); break;
 		}
 
