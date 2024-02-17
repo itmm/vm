@@ -7,9 +7,7 @@
 using namespace vm;
 
 namespace {
-	[[noreturn]] void err(Error::Code code) {
-		throw Error { code };
-	}
+	[[noreturn]] void err(Error::Code code) { throw Error { code }; }
 
 	const signed char* code_begin_;
 	const signed char* code_end_;
@@ -469,16 +467,36 @@ void vm::step() {
 		case op_free:
 			free_block(pull_ptr()); break;
 
+		case op_pull:
+			switch (Stack_Ptr { stack_begin_ }.get_byte()) {
+				case ch_type: pull_ch(); break;
+				case int_type: pull_int(); break;
+				case ptr_type: pull_ptr(); break;
+				default: err(Error::err_pull_unknown_type);
+			} break;
+
+		case op_dup: {
+			switch (Stack_Ptr { stack_begin_ }.get_byte()) {
+				case ch_type: {
+					auto value { pull_ch() };
+					push_ch(value); push_ch(value); break;
+				}
+				case int_type: {
+					auto value { pull_int() };
+					push_int(value); push_int(value); break;
+				}
+				case ptr_type: {
+					auto value { pull_ptr() };
+					push_ptr(value); push_ptr(value); break;
+				}
+				default: err(Error::err_dup_unknown_type);
+			} break;
+		}
+
 		#if CONFIG_HAS_CH
 			case op_push_ch:
 				push_ch(pc_.get_byte()); pc_ = pc_ + 1; break;
 
-			case op_pull_ch:
-				pull_ch(); break;
-
-			case op_dup_ch: {
-				auto ch { pull_ch() }; push_ch(ch); push_ch(ch); break;
-			}
 			case op_small_fetch_ch:
 				fetch_ch(pull_ch()); break;
 
@@ -534,9 +552,6 @@ void vm::step() {
 			#endif
 		#endif
 		#if CONFIG_HAS_INT
-			case op_pull_int:
-				pull_int(); break;
-
 			case op_add_int: {
 				int b { pull_int() }; int a { pull_int() };
 				if (a > 0 && b > 0 && std::numeric_limits<int>::max() - a < b) {
@@ -601,8 +616,6 @@ void vm::step() {
 				#endif
 				break;
 			}
-			case op_dup_int:
-				push_int(Stack_Ptr { stack_begin_ }.get_int()); break;
 
 			case op_swap_int: {
 				int a { pull_int() }; int b { pull_int() };

@@ -25,4 +25,6 @@ ERR(int_to_ch_underflow)
 ERR(no_char)
 ERR(no_integer)
 ERR(no_pointer)
+ERR(pull_unknown_type)
+ERR(dup_unknown_type)
 #undef ERR
