@@ -301,8 +301,8 @@ namespace {
 		ptr.set_ch(value);
 	}
 
-	void fetch_ch(int offset) {
-		push_ch(Stack_Ptr { stack_begin_ + offset }.get_ch());
+	void fetch(int offset) {
+		push_value(Stack_Ptr { stack_begin_ + offset }.get_value());
 	}
 
 	void store_ch(int offset) {
@@ -321,10 +321,6 @@ namespace {
 		}
 		stack_begin_ -= int_size; Stack_Ptr ptr { stack_begin_ };
 		ptr.set_int(value);
-	}
-
-	void fetch_int(int offset) {
-		push_int(Stack_Ptr { stack_begin_ + offset }.get_int());
 	}
 
 	void store_int(int offset) {
@@ -547,11 +543,8 @@ void vm::step() {
 			case op_push_ch:
 				push_ch(pc_.get_byte()); pc_ = pc_ + 1; break;
 
-			case op_small_fetch_ch:
-				fetch_ch(pull_ch()); break;
-
-			case op_fetch_ch:
-				fetch_ch(pull_int()); break;
+			case op_fetch:
+				fetch(int_value(pull_value())); break;
 
 			case op_small_store_ch:
 				store_ch(pull_ch()); break;
@@ -666,12 +659,6 @@ void vm::step() {
 				#endif
 				break;
 			}
-
-			case op_small_fetch_int:
-				fetch_int(pull_ch()); break;
-
-			case op_fetch_int:
-				fetch_int(pull_int()); break;
 
 			case op_small_store_int:
 				store_int(pull_ch()); break;
