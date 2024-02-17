@@ -47,6 +47,6 @@ TEST(sub_int_tests, two_bigs) {
 }
 
 TEST(sub_int_tests, underflow) {
-	signed char code[] { PUSH_SMALL_INT(5), PUSH_CH(0), op_sub_int };
-	EXPECT_ERROR(code, Error::err_no_integer);
+	signed char code[] { PUSH_SMALL_INT(5), op_sub_int };
+	EXPECT_ERROR(code, Error::err_leave_stack_segment);
 }

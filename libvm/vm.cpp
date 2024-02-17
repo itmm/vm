@@ -310,9 +310,9 @@ namespace {
 	}
 
 	int pull_int() {
-		int value { Stack_Ptr { stack_begin_ }.get_int() };
-		stack_begin_ += int_size;
-		return value;
+		auto value { Stack_Ptr { stack_begin_ }.get_value() };
+		stack_begin_ += value_size(value);
+		return int_value(value);
 	}
 
 	void push_int(int value) {

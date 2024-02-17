@@ -61,7 +61,7 @@ TEST(div_int_tests, no_ram) {
 
 TEST(div_int_tests, underflow) {
 	signed char code[] {
-		PUSH_SMALL_INT(5), PUSH_CH(0), op_div_int
+		PUSH_SMALL_INT(5), op_div_int
 	};
-	EXPECT_ERROR(code, Error::err_no_integer);
+	EXPECT_ERROR(code, Error::err_leave_stack_segment);
 }
