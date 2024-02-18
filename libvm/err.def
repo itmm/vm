@@ -30,4 +30,5 @@ ERR(pull_unknown_type)
 ERR(dup_unknown_type)
 ERR(unknown_type)
 ERR(int_overflow)
+ERR(unexpected)
 #undef ERR

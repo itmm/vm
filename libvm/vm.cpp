@@ -32,6 +32,12 @@ namespace {
 		} else { err(Error::err_no_integer); }
 	}
 
+	signed char to_ch(int value, Error::Code overflow, Error::Code underflow) {
+		if (value > std::numeric_limits<signed char>::max()) { err(overflow); }
+		if (value < std::numeric_limits<signed char>::min()) { err(underflow); }
+		return static_cast<signed char>(value);
+	}
+
 	template<typename T, T& B, T& E, Error::Code C>
 	class Const_Ptr {
 		public:
@@ -349,7 +355,9 @@ namespace {
 		if (condition) { pc_ = target; }
 	}
 
-	signed char negate(signed char ch) { return static_cast<signed char>(~ch); }
+	signed char negate(signed char ch) {
+		return to_ch(~ch, Error::err_unexpected, Error::err_unexpected);
+	}
 
 	void jump_with_stack_condition(int offset, bool invert) {
 		auto condition { pull_ch() };
@@ -484,14 +492,9 @@ namespace {
 	public:
 		Add_Operation() = default;
 		void perform_ch(signed char a, signed char b) override {
-			int value = static_cast<int>(a) + b;
-			if (value > std::numeric_limits<signed char>::max()) {
-				err(Error::err_add_overflow);
-			}
-			if (value < std::numeric_limits<signed char>::min()) {
-				err(Error::err_add_underflow);
-			}
-			push_ch(static_cast<signed char>(value));
+			push_ch(to_ch(
+				a + b, Error::err_add_overflow, Error::err_add_underflow
+			));
 		}
 		void perform_int(int a, int b) override {
 			if (a > 0 && b > 0 && std::numeric_limits<int>::max() - a < b) {
@@ -509,14 +512,9 @@ namespace {
 		Sub_Operation() = default;
 
 		void perform_ch(signed char a, signed char b) override {
-			int value = static_cast<int>(a) - b;
-			if (value > std::numeric_limits<signed char>::max()) {
-				err(Error::err_sub_overflow);
-			}
-			if (value < std::numeric_limits<signed char>::min()) {
-				err(Error::err_sub_underflow);
-			}
-			push_ch(static_cast<signed char>(value));
+			push_ch(to_ch(
+				a - b, Error::err_sub_overflow, Error::err_sub_underflow
+			));
 		}
 		void perform_int(int a, int b) override {
 			if (a > 0 && b < 0 && a > std::numeric_limits<int>::max() + b) {
@@ -534,14 +532,9 @@ namespace {
 		Mult_Operation() = default;
 
 		void perform_ch(signed char a, signed char b) override {
-			int value = static_cast<int>(a) * b;
-			if (value > std::numeric_limits<signed char>::max()) {
-				err(Error::err_mult_overflow);
-			}
-			if (value < std::numeric_limits<signed char>::min()) {
-				err(Error::err_mult_underflow);
-			}
-			push_ch(static_cast<signed char>(value));
+			push_ch(to_ch(
+				a * b, Error::err_mult_overflow, Error::err_mult_underflow
+			));
 		}
 		void perform_int(int a, int b) override {
 			if (a == 0x80000000 && b == -1) {
@@ -564,11 +557,9 @@ namespace {
 
 		void perform_ch(signed char a, signed char b) override {
 			if (b == 0) { err(Error::err_div_divide_by_0); }
-			int value = static_cast<int>(a) / b;
-			if (value > std::numeric_limits<signed char>::max()) {
-				err(Error::err_div_overflow);
-			}
-			push_ch(static_cast<signed char>(value));
+			push_ch(to_ch(
+				a / b, Error::err_div_overflow, Error::err_unexpected
+			));
 		}
 		void perform_int(int a, int b) override {
 			if (b == 0) { err(Error::err_div_divide_by_0); }
@@ -593,26 +584,30 @@ namespace {
 		void perform_ch(signed char a, signed char b) override {
 			if (b == 0) { err(Error::err_mod_divide_by_0); }
 			#if CONFIG_OBERON_MATH
-			int value = a % b;
-			if (value < 0) {
-				if (b > 0) { value += b; } else { value -= b; }
-			}
-			push_ch(static_cast<signed char>(value));
+				int value = a % b;
+				if (value < 0) {
+					if (b > 0) { value += b; } else { value -= b; }
+				}
+				push_ch(to_ch(
+					value, Error::err_unexpected, Error::err_unexpected
+				));
 			#else
-			push_ch(static_cast<signed char>(a % b));
+				push_ch(to_ch(
+					a % b, Error::err_unexpected, Error::err_unexpected
+				));
 			#endif
 		}
 
 		void perform_int(int a, int b) override {
 			if (b == 0) { err(Error::err_mod_divide_by_0); }
 			#if CONFIG_OBERON_MATH
-			int value { a % b };
-			if (value < 0) {
-				if (b > 0) { value += b; } else { value -= b; }
-			}
-			push_int(value);
+				int value { a % b };
+				if (value < 0) {
+					if (b > 0) { value += b; } else { value -= b; }
+				}
+				push_int(value);
 			#else
-			push_int(a % b);
+				push_int(a % b);
 			#endif
 		}
 	};
@@ -622,7 +617,7 @@ namespace {
 		And_Operation() = default;
 
 		void perform_ch(signed char a, signed char b) override {
-			push_ch(static_cast<signed char>(a & b));
+			push_ch(to_ch(a & b, Error::err_unexpected, Error::err_unexpected));
 		}
 
 		void perform_int(int a, int b) override { push_int(a & b); }
@@ -633,7 +628,7 @@ namespace {
 		Or_Operation() = default;
 
 		void perform_ch(signed char a, signed char b) override {
-			push_ch(static_cast<signed char>(a | b));
+			push_ch(to_ch(a | b, Error::err_unexpected, Error::err_unexpected));
 		}
 
 		void perform_int(int a, int b) override { push_int(a | b); }
@@ -644,7 +639,7 @@ namespace {
 		Xor_Operation() = default;
 
 		void perform_ch(signed char a, signed char b) override {
-			push_ch(static_cast<signed char>(a ^ b));
+			push_ch(to_ch(a ^ b, Error::err_unexpected, Error::err_unexpected));
 		}
 
 		void perform_int(int a, int b) override { push_int(a ^ b); }
@@ -793,17 +788,12 @@ void vm::step() {
 				case op_to_int: push_int(pull_int()); break;
 			#endif
 			#if CONFIG_HAS_OP_INT_TO_CH
-				case op_to_ch: {
-					int value { pull_int() };
-					if (value > std::numeric_limits<signed char>::max()) {
-						err(Error::err_to_ch_overflow);
-					}
-					if (value < std::numeric_limits<signed char>::min()) {
-						err(Error::err_to_ch_underflow);
-					}
-					push_ch(static_cast<signed char>(value));
+				case op_to_ch:
+					push_ch(to_ch(
+						pull_int(), Error::err_to_ch_overflow,
+						Error::err_to_ch_underflow
+					));
 					break;
-				}
 			#endif
 		#endif
 		default: err(Error::err_unknown_opcode);
