@@ -449,6 +449,175 @@ namespace {
 		}
 		insert_into_free_list(block);
 	}
+
+	class Poly_Operation {
+	public:
+		void operator()();
+		virtual ~Poly_Operation() = default;
+
+	protected:
+		Poly_Operation() = default;
+		virtual void perform_ch(signed char a, signed char b) {
+			err(Error::err_unknown_type);
+		}
+		virtual void perform_int(int a, int b) {
+			err(Error::err_unknown_type);
+		}
+	};
+
+	void Poly_Operation::operator()() {
+		auto b { pull_value() }; auto a { pull_value() };
+		const signed char* a_ch = std::get_if<signed char>(&a);
+		const signed char* b_ch = std::get_if<signed char>(&b);
+
+		if (a_ch && b_ch) { perform_ch(*a_ch, *b_ch); return; }
+
+		const int* a_int = std::get_if<int>(&a);
+		const int* b_int = std::get_if<int>(&b);
+
+		if ((a_int || a_ch) && (b_int || b_ch)) {
+			perform_int(a_int ? *a_int : *a_ch, b_int ? *b_int : *b_ch);
+			return;
+		}
+		err(Error::err_unknown_type);
+	}
+
+	class Add_Operation: public Poly_Operation {
+	public:
+		Add_Operation() = default;
+		void perform_ch(signed char a, signed char b) override {
+			int value = static_cast<int>(a) + b;
+			if (value > std::numeric_limits<signed char>::max()) {
+				err(Error::err_add_overflow);
+			}
+			if (value < std::numeric_limits<signed char>::min()) {
+				err(Error::err_add_underflow);
+			}
+			push_ch(static_cast<signed char>(value));
+		}
+		void perform_int(int a, int b) override {
+			if (a > 0 && b > 0 && std::numeric_limits<int>::max() - a < b) {
+				err(Error::err_add_overflow);
+			}
+			if (a < 0 && b < 0 && std::numeric_limits<int>::min() - a > b) {
+				err(Error::err_add_underflow);
+			}
+			push_int(a + b);
+		}
+	};
+
+	class Sub_Operation: public Poly_Operation {
+	public:
+		Sub_Operation() = default;
+
+		void perform_ch(signed char a, signed char b) override {
+			int value = static_cast<int>(a) - b;
+			if (value > std::numeric_limits<signed char>::max()) {
+				err(Error::err_sub_overflow);
+			}
+			if (value < std::numeric_limits<signed char>::min()) {
+				err(Error::err_sub_underflow);
+			}
+			push_ch(static_cast<signed char>(value));
+		}
+		void perform_int(int a, int b) override {
+			if (a > 0 && b < 0 && a > std::numeric_limits<int>::max() + b) {
+				err(Error::err_sub_overflow);
+			}
+			if (a < 0 && b > 0 && a < std::numeric_limits<int>::min() + b) {
+				err(Error::err_sub_underflow);
+			}
+			push_int(a - b);
+		}
+	};
+
+	class Mult_Operation: public Poly_Operation {
+	public:
+		Mult_Operation() = default;
+
+		void perform_ch(signed char a, signed char b) override {
+			int value = static_cast<int>(a) * b;
+			if (value > std::numeric_limits<signed char>::max()) {
+				err(Error::err_mult_overflow);
+			}
+			if (value < std::numeric_limits<signed char>::min()) {
+				err(Error::err_mult_underflow);
+			}
+			push_ch(static_cast<signed char>(value));
+		}
+		void perform_int(int a, int b) override {
+			if (a == 0x80000000 && b == -1) {
+				err(Error::err_mult_overflow);
+			}
+			int value { a * b };
+			if (b != 0 && value / b != a) {
+				if ((a < 0 && b > 0) || (a > 0 && b < 0)) {
+					err(Error::err_mult_underflow);
+				}
+				err(Error::err_mult_overflow);
+			}
+			push_int(value);
+		}
+	};
+
+	class Div_Operation: public Poly_Operation {
+	public:
+		Div_Operation() = default;
+
+		void perform_ch(signed char a, signed char b) override {
+			if (b == 0) { err(Error::err_div_divide_by_0); }
+			int value = static_cast<int>(a) / b;
+			if (value > std::numeric_limits<signed char>::max()) {
+				err(Error::err_div_overflow);
+			}
+			push_ch(static_cast<signed char>(value));
+		}
+		void perform_int(int a, int b) override {
+			if (b == 0) { err(Error::err_div_divide_by_0); }
+			if (a == 0x80000000 && b == -1) {
+				err(Error::err_div_overflow);
+			}
+			#if CONFIG_OBERON_MATH
+			int value { a / b };
+			int rem { a % b };
+			if (rem < 0) { value += b > 0 ? -1 : 1; }
+			push_int(value);
+			#else
+			push_int(a / b);
+			#endif
+		}
+	};
+
+	class Mod_Operation: public Poly_Operation {
+	public:
+		Mod_Operation() = default;
+
+		void perform_ch(signed char a, signed char b) override {
+			if (b == 0) { err(Error::err_mod_divide_by_0); }
+			#if CONFIG_OBERON_MATH
+			int value = a % b;
+			if (value < 0) {
+				if (b > 0) { value += b; } else { value -= b; }
+			}
+			push_ch(static_cast<signed char>(value));
+			#else
+			push_ch(static_cast<signed char>(a % b));
+			#endif
+		}
+
+		void perform_int(int a, int b) override {
+			if (b == 0) { err(Error::err_mod_divide_by_0); }
+			#if CONFIG_OBERON_MATH
+			int value { a % b };
+			if (value < 0) {
+				if (b > 0) { value += b; } else { value -= b; }
+			}
+			push_int(value);
+			#else
+			push_int(a % b);
+			#endif
+		}
+	};
 }
 
 void check_range(
@@ -583,72 +752,12 @@ void vm::step() {
 					std::cout << pull_ch(); break;
 			#endif
 		#endif
+		case op_add: { Add_Operation { }(); break; }
+		case op_sub: { Sub_Operation { }(); break; }
+		case op_mult: { Mult_Operation { }(); break; }
+		case op_div: { Div_Operation { }(); break; }
+		case op_mod: { Mod_Operation { }(); break; }
 		#if CONFIG_HAS_INT
-			case op_add_int: {
-				int b { pull_int() }; int a { pull_int() };
-				if (a > 0 && b > 0 && std::numeric_limits<int>::max() - a < b) {
-					err(Error::err_add_int_overflow);
-				}
-				if (a < 0 && b < 0 && std::numeric_limits<int>::min() - a > b) {
-					err(Error::err_add_int_underflow);
-				}
-				push_int(a + b);
-				break;
-			}
-			case op_sub_int: {
-				int b { pull_int() }; int a { pull_int() };
-				if (a > 0 && b < 0 && a > std::numeric_limits<int>::max() + b) {
-					err(Error::err_sub_int_overflow);
-				}
-				if (a < 0 && b > 0 && a < std::numeric_limits<int>::min() + b) {
-					err(Error::err_sub_int_underflow);
-				}
-				push_int(a - b);
-				break;
-			}
-			case op_mult_int: {
-				int b { pull_int() }; int a { pull_int() };
-				if (a == 0x80000000 && b == -1) {
-					err(Error::err_mult_int_overflow);
-				}
-				int value { a * b };
-				if (b != 0 && value / b != a) {
-					err(Error::err_mult_int_overflow);
-				}
-				push_int(value);
-				break;
-			}
-			case op_div_int: {
-				int b { pull_int() }; int a { pull_int() };
-				if (b == 0) { err(Error::err_div_int_divide_by_0); }
-				if (a == 0x80000000 && b == -1) {
-					err(Error::err_div_int_overflow);
-				}
-				#if CONFIG_OBERON_MATH
-					int value { a / b };
-					int rem { a % b };
-					if (rem < 0) { value += b > 0 ? -1 : 1; }
-					push_int(value);
-				#else
-					push_int(a / b);
-				#endif
-				break;
-			}
-			case op_mod_int: {
-				int b { pull_int() }; int a { pull_int() };
-				if (b == 0) { err(Error::err_mod_int_divide_by_0); }
-				#if CONFIG_OBERON_MATH
-					int value { a % b };
-					if (value < 0) {
-						if (b > 0) { value += b; } else { value -= b; }
-					}
-					push_int(value);
-				#else
-					push_int(a % b);
-				#endif
-				break;
-			}
-
 			case op_not_int:
 				push_int(~pull_int()); break;
 
@@ -668,17 +777,16 @@ void vm::step() {
 		#endif
 		#if CONFIG_HAS_CH && CONFIG_HAS_INT
 			#if CONFIG_HAS_OP_CH_TO_INT
-				case op_ch_to_int:
-					push_int(pull_ch()); break;
+				case op_to_int: push_int(pull_int()); break;
 			#endif
 			#if CONFIG_HAS_OP_INT_TO_CH
-				case op_int_to_ch: {
+				case op_to_ch: {
 					int value { pull_int() };
 					if (value > std::numeric_limits<signed char>::max()) {
-						err(Error::err_int_to_ch_overflow);
+						err(Error::err_to_ch_overflow);
 					}
 					if (value < std::numeric_limits<signed char>::min()) {
-						err(Error::err_int_to_ch_underflow);
+						err(Error::err_to_ch_underflow);
 					}
 					push_ch(static_cast<signed char>(value));
 					break;

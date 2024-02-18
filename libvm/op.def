@@ -35,12 +35,12 @@ OP(less)
 OP(dup)
 OP(pull)
 OP(swap)
+OP(add)
+OP(sub)
+OP(mult)
+OP(div)
+OP(mod)
 #if CONFIG_HAS_INT
-    OP(add_int)
-	OP(sub_int)
-	OP(mult_int)
-	OP(div_int)
-	OP(mod_int)
     OP(not_int)
     OP(and_int)
     OP(or_int)
@@ -51,10 +51,10 @@ OP(swap)
 #endif
 #if CONFIG_HAS_CH && CONFIG_HAS_INT
     #if CONFIG_HAS_OP_CH_TO_INT
-        OP(ch_to_int)
+        OP(to_int)
     #endif
     #if CONFIG_HAS_OP_INT_TO_CH
-        OP(int_to_ch)
+        OP(to_ch)
     #endif
 #endif
 #undef OP
