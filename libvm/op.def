@@ -8,9 +8,9 @@
 #if CONFIG_HAS_OP_BREAK
     OP(break)
 #endif
-OP(small_jmp)
-OP(small_jmp_true)
-OP(small_jmp_false)
+OP(near_jmp)
+OP(near_jmp_true)
+OP(near_jmp_false)
 OP(jmp)
 OP(jmp_true)
 OP(jmp_false)

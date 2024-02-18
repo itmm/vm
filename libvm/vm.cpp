@@ -490,15 +490,15 @@ void vm::step() {
 		#if CONFIG_HAS_OP_BREAK
 			case op_break: err(Error::err_break);
 		#endif
-		case op_small_jmp: {
+		case op_near_jmp: {
 			auto value { pc_.get_byte() }; pc_ = pc_ + 1;
 			jump(value, true_lit); break;
 		}
-		case op_small_jmp_false: {
+		case op_near_jmp_false: {
 			auto value { pc_.get_byte() }; pc_ = pc_ + 1;
 			jump_with_stack_condition(value, true); break;
 		}
-		case op_small_jmp_true: {
+		case op_near_jmp_true: {
 			auto value { pc_.get_byte() }; pc_ = pc_ + 1;
 			jump_with_stack_condition(value, false); break;
 		}
