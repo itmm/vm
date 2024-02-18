@@ -25,9 +25,9 @@ namespace {
 	}
 
 	int int_value(const Value& value) {
-		if (const signed char* ch = std::get_if<signed char>(&value)) {
+		if (auto ch = std::get_if<signed char>(&value)) {
 			return *ch;
-		} else if (const int* val = std::get_if<int>(&value)) {
+		} else if (auto val = std::get_if<int>(&value)) {
 			return *val;
 		} else { err(Error::err_no_integer); }
 	}
@@ -146,18 +146,10 @@ namespace {
 			explicit Ptr(signed char* ptr = nullptr):
 				Const_Ptr<signed char*, B, E, C> { ptr } { }
 
-			void set_ch(signed char value);
-			void set_int(int value);
 			void set_value(Value value);
 	};
 
-	template<signed char*& B, signed char*& E, Error::Code C>
-	void Ptr<B, E, C>::set_ch(signed char value) {
-		this->check(ch_size);
-		this->ptr_[0] = ch_type; this->ptr_[1] = value;
-	}
-
-	void set_int_value(signed char* ptr, int value) {
+	void set_int(signed char* ptr, int value) {
 		for (auto i { ptr + raw_int_size - 1 }; i >= ptr; --i) {
 			*i = static_cast<signed char>(value);
 			value >>= bits_per_byte;
@@ -166,25 +158,19 @@ namespace {
 	}
 
 	template<signed char*& B, signed char*& E, Error::Code C>
-	void Ptr<B, E, C>::set_int(int value) {
-		this->check(int_size);
-		this->ptr_[0] = int_type;
-		set_int_value(this->ptr_ + 1, value);
-	}
-
-	template<signed char*& B, signed char*& E, Error::Code C>
 	void Ptr<B, E, C>::set_value(Value value) {
-		if (const signed char* ch = std::get_if<signed char>(&value)) {
+		if (auto ch = std::get_if<signed char>(&value)) {
 			this->check(ch_size);
 			this->ptr_[0] = ch_type; this->ptr_[1] = *ch;
-		} else if (int* val = std::get_if<int>(&value)) {
+		} else if (auto val = std::get_if<int>(&value)) {
 			this->check(int_size);
-			this->ptr_[0] = int_type; set_int_value(this->ptr_ + 1, *val);
+			this->ptr_[0] = int_type;
+			set_int(this->ptr_ + 1, *val);
 		} else if (auto ptr = std::get_if<signed char*>(&value)) {
 			this->check(ptr_size);
 			this->ptr_[0] = ptr_type;
 			int v = *ptr ? static_cast<int>(*ptr - ram_begin_) : -1;
-			set_int_value(this->ptr_ + 1, v);
+			set_int(this->ptr_ + 1, v);
 		} else { err(Error::err_unknown_type); }
 	}
 
@@ -238,7 +224,7 @@ namespace {
 
 	template<typename P, typename Q> void set_ptr(P ptr, Q value) {
 		auto got { value.get_raw() };
-		set_int_value(ptr.get_raw(), got ? static_cast<int>(got - ram_begin_) : -1);
+		set_int(ptr.get_raw(), got ? static_cast<int>(got - ram_begin_) : -1);
 	}
 
 	constexpr int node_next_offset { int_size };
@@ -274,12 +260,12 @@ namespace {
 	List<Heap_Ptr> free_list;
 	List<Heap_Ptr> alloc_list;
 
-	Value pull_value() {
+	Value pull() {
 		auto value { Stack_Ptr { stack_begin_ }.get_value() };
 		stack_begin_ += value_size(value); return value;
 	}
 
-	void push_value(Value value) {
+	void push(Value value) {
 		auto size { value_size(value) };
 		if (heap_end_ + size > stack_begin_) { err(Error::err_stack_overflow); }
 		stack_begin_ -= size;
@@ -288,59 +274,28 @@ namespace {
 	}
 
 	signed char pull_ch() {
-		auto value { Stack_Ptr { stack_begin_ }.get_ch() };
-		stack_begin_ += ch_size; return value;
-	}
-
-	void push_ch(signed char value) {
-		if (heap_end_ + ch_size > stack_begin_) {
-			err(Error::err_stack_overflow);
-		}
-		stack_begin_ -= ch_size; Stack_Ptr ptr { stack_begin_ };
-		ptr.set_ch(value);
+		auto value { pull() };
+		auto ch = std::get_if<signed char>(&value);
+		if (!ch) { err(Error::err_no_char); }
+		return *ch;
 	}
 
 	void fetch(int offset) {
-		push_value(Stack_Ptr { stack_begin_ + offset }.get_value());
+		push(Stack_Ptr { stack_begin_ + offset }.get_value());
 	}
 
 	void store(int offset) {
-		auto value { pull_value() };
+		auto value { pull() };
 		Stack_Ptr { stack_begin_ + offset}.set_value(value);
 	}
 
-	int pull_int() {
-		auto value { Stack_Ptr { stack_begin_ }.get_value() };
-		stack_begin_ += value_size(value);
-		return int_value(value);
-	}
-
-	void push_int(int value) {
-		if (heap_end_ + int_size > stack_begin_) {
-			err(Error::err_stack_overflow);
-		}
-		stack_begin_ -= int_size; Stack_Ptr ptr { stack_begin_ };
-		ptr.set_int(value);
-	}
+	int pull_int() { return int_value(pull()); }
 
 	Heap_Ptr pull_ptr() {
-		if (stack_begin_ + ptr_size > ram_end_) {
-			err(Error::err_leave_stack_segment);
-		}
-		Stack_Ptr node { stack_begin_ };
-		if (*node.get_raw() != ptr_type) { err(Error::err_no_pointer); }
-		int value { get_int_value((node + 1).get_raw()) };
-		stack_begin_ += ptr_size;
-		return Heap_Ptr { ram_begin_ + value };
-	}
-
-	void push_ptr(Heap_Ptr value) {
-		if (heap_end_ + ptr_size > stack_begin_) {
-			err(Error::err_stack_overflow);
-		}
-		stack_begin_ -= ptr_size; Stack_Ptr ptr { stack_begin_ };
-		*ptr.get_raw() = ptr_type;
-		set_ptr(ptr + 1, value);
+		auto value { pull() };
+		auto ptr = std::get_if<signed char*>(&value);
+		if (!ptr) { err(Error::err_no_pointer); }
+		return Heap_Ptr { *ptr };
 	}
 
 	void jump(int offset, signed char condition) {
@@ -371,8 +326,8 @@ namespace {
 				int rest_size { cur_size - size };
 				if (rest_size >= heap_overhead) {
 					Heap_Ptr rest_block { current + size };
-					set_int_value(rest_block.get_raw(), rest_size);
-					set_int_value(current.get_raw(), size);
+					set_int(rest_block.get_raw(), rest_size);
+					set_int(current.get_raw(), size);
 					free_list.insert(rest_block, current);
 				}
 				free_list.remove(current);
@@ -398,10 +353,10 @@ namespace {
 			}
 			found = Heap_Ptr { heap_end_ };
 			heap_end_ += size;
-			set_int_value(found.get_raw(), size);
+			set_int(found.get_raw(), size);
 		}
 		alloc_list.insert(found, alloc_list.begin);
-		push_ptr(found + heap_overhead);
+		push((found + heap_overhead).get_raw());
 	}
 
 	inline void insert_into_free_list(Heap_Ptr block) {
@@ -416,7 +371,7 @@ namespace {
 		if (smaller) {
 			int smaller_size { get_int_value(smaller.get_raw()) };
 			if (smaller + smaller_size == block) {
-				set_int_value(smaller.get_raw(), smaller_size + size);
+				set_int(smaller.get_raw(), smaller_size + size);
 				block = smaller; size += smaller_size;
 				free_list.remove(block);
 			}
@@ -424,7 +379,7 @@ namespace {
 
 		if (greater) {
 			if (block + size == greater) {
-				set_int_value(block.get_raw(), size + get_int_value(greater.get_raw()));
+				set_int(block.get_raw(), size + get_int_value(greater.get_raw()));
 				auto old_greater { greater };
 				greater = get_ptr(greater + node_next_offset);
 				free_list.remove(old_greater);
@@ -465,14 +420,14 @@ namespace {
 	};
 
 	void Poly_Operation::operator()() {
-		auto b { pull_value() }; auto a { pull_value() };
-		const signed char* a_ch = std::get_if<signed char>(&a);
-		const signed char* b_ch = std::get_if<signed char>(&b);
+		auto b { pull() }; auto a { pull() };
+		auto a_ch = std::get_if<signed char>(&a);
+		auto b_ch = std::get_if<signed char>(&b);
 
 		if (a_ch && b_ch) { perform_ch(*a_ch, *b_ch); return; }
 
-		const int* a_int = std::get_if<int>(&a);
-		const int* b_int = std::get_if<int>(&b);
+		auto a_int = std::get_if<int>(&a);
+		auto b_int = std::get_if<int>(&b);
 
 		if ((a_int || a_ch) && (b_int || b_ch)) {
 			perform_int(a_int ? *a_int : *a_ch, b_int ? *b_int : *b_ch);
@@ -485,7 +440,7 @@ namespace {
 	public:
 		Add_Operation() = default;
 		void perform_ch(signed char a, signed char b) override {
-			push_ch(to_ch(
+			push(to_ch(
 				a + b, Error::err_add_overflow, Error::err_add_underflow
 			));
 		}
@@ -496,7 +451,7 @@ namespace {
 			if (a < 0 && b < 0 && std::numeric_limits<int>::min() - a > b) {
 				err(Error::err_add_underflow);
 			}
-			push_int(a + b);
+			push(a + b);
 		}
 	};
 
@@ -505,7 +460,7 @@ namespace {
 		Sub_Operation() = default;
 
 		void perform_ch(signed char a, signed char b) override {
-			push_ch(to_ch(
+			push(to_ch(
 				a - b, Error::err_sub_overflow, Error::err_sub_underflow
 			));
 		}
@@ -516,7 +471,7 @@ namespace {
 			if (a < 0 && b > 0 && a < std::numeric_limits<int>::min() + b) {
 				err(Error::err_sub_underflow);
 			}
-			push_int(a - b);
+			push(a - b);
 		}
 	};
 
@@ -525,7 +480,7 @@ namespace {
 		Mult_Operation() = default;
 
 		void perform_ch(signed char a, signed char b) override {
-			push_ch(to_ch(
+			push(to_ch(
 				a * b, Error::err_mult_overflow, Error::err_mult_underflow
 			));
 		}
@@ -538,7 +493,7 @@ namespace {
 				}
 				err(Error::err_mult_overflow);
 			}
-			push_int(value);
+			push(value);
 		}
 	};
 
@@ -548,7 +503,7 @@ namespace {
 
 		void perform_ch(signed char a, signed char b) override {
 			if (b == 0) { err(Error::err_div_divide_by_0); }
-			push_ch(to_ch(
+			push(to_ch(
 				a / b, Error::err_div_overflow, Error::err_unexpected
 			));
 		}
@@ -559,9 +514,9 @@ namespace {
 				int value { a / b };
 				int rem { a % b };
 				if (rem < 0) { value += b > 0 ? -1 : 1; }
-				push_int(value);
+			push(value);
 			#else
-				push_int(a / b);
+				push_value(a / b);
 			#endif
 		}
 	};
@@ -577,11 +532,11 @@ namespace {
 				if (value < 0) {
 					if (b > 0) { value += b; } else { value -= b; }
 				}
-				push_ch(to_ch(
-					value, Error::err_unexpected, Error::err_unexpected
-				));
+			push(to_ch(
+				value, Error::err_unexpected, Error::err_unexpected
+			));
 			#else
-				push_ch(to_ch(
+				push_value(to_ch(
 					a % b, Error::err_unexpected, Error::err_unexpected
 				));
 			#endif
@@ -594,9 +549,9 @@ namespace {
 				if (value < 0) {
 					if (b > 0) { value += b; } else { value -= b; }
 				}
-				push_int(value);
+			push(value);
 			#else
-				push_int(a % b);
+				push_value(a % b);
 			#endif
 		}
 	};
@@ -606,10 +561,10 @@ namespace {
 		And_Operation() = default;
 
 		void perform_ch(signed char a, signed char b) override {
-			push_ch(to_ch(a & b, Error::err_unexpected, Error::err_unexpected));
+			push(to_ch(a & b, Error::err_unexpected, Error::err_unexpected));
 		}
 
-		void perform_int(int a, int b) override { push_int(a & b); }
+		void perform_int(int a, int b) override { push(a & b); }
 	};
 
 	class Or_Operation: public Poly_Operation {
@@ -617,10 +572,10 @@ namespace {
 		Or_Operation() = default;
 
 		void perform_ch(signed char a, signed char b) override {
-			push_ch(to_ch(a | b, Error::err_unexpected, Error::err_unexpected));
+			push(to_ch(a | b, Error::err_unexpected, Error::err_unexpected));
 		}
 
-		void perform_int(int a, int b) override { push_int(a | b); }
+		void perform_int(int a, int b) override { push(a | b); }
 	};
 
 	class Xor_Operation: public Poly_Operation {
@@ -628,10 +583,10 @@ namespace {
 		Xor_Operation() = default;
 
 		void perform_ch(signed char a, signed char b) override {
-			push_ch(to_ch(a ^ b, Error::err_unexpected, Error::err_unexpected));
+			push(to_ch(a ^ b, Error::err_unexpected, Error::err_unexpected));
 		}
 
-		void perform_int(int a, int b) override { push_int(a ^ b); }
+		void perform_int(int a, int b) override { push(a ^ b); }
 	};
 
 }
@@ -702,16 +657,19 @@ void vm::step() {
 
 		case op_new: alloc_block(pull_int()); break;
 		case op_free: free_block(pull_ptr()); break;
-		case op_pull: pull_value(); break;
+		case op_pull:
+			pull(); break;
 
 		case op_dup: {
-			auto value { pull_value() };
-			push_value(value); push_value(value); break;
+			auto value { pull() };
+			push(value);
+			push(value); break;
 		}
 
 		case op_swap: {
-			auto a { pull_value() }; auto b { pull_value() };
-			push_value(a); push_value(b);
+			auto a { pull() }; auto b { pull() };
+			push(a);
+			push(b);
 			break;
 		}
 
@@ -721,30 +679,30 @@ void vm::step() {
 
 		case op_send: { // TODO: add unit-tests
 			Heap_Ptr ptr { ram_begin_ + pull_int() };
-			ptr.set_value(pull_value()); break;
+			ptr.set_value(pull()); break;
 		}
 
 		case op_receive: // TODO: add unit-tests
-			push_value(Heap_Ptr { ram_begin_ + pull_int() }.get_value()); break;
+			push(Heap_Ptr { ram_begin_ + pull_int() }.get_value()); break;
 
 		case op_equals: {
-			auto b { pull_value() }; auto a { pull_value() };
-			push_ch(a == b ? true_lit : false_lit);
+			auto b { pull() }; auto a { pull() };
+			push(a == b ? true_lit : false_lit);
 			break;
 		}
 
 		case op_less: {
-			auto b { pull_value() }; auto a { pull_value() };
-			push_ch(a < b ? true_lit : false_lit);
+			auto b { pull() }; auto a { pull() };
+			push(a < b ? true_lit : false_lit);
 			break;
 		}
 
 		case op_not: {
-			auto value { pull_value() };
-			const signed char* ch { std::get_if<signed char>(&value) };
-			if (ch) { push_ch(negate(*ch)); break; }
+			auto value { pull() };
+			auto ch { std::get_if<signed char>(&value) };
+			if (ch) { push(negate(*ch)); break; }
 			const int* val { std::get_if<int>(&value) };
-			if (val) { push_int(~*val); break; }
+			if (val) { push(~*val); break; }
 			err(Error::err_unknown_type);
 		}
 
@@ -753,7 +711,8 @@ void vm::step() {
 		case op_xor: { Xor_Operation { }(); break; }
 
 		#if CONFIG_HAS_CH
-			case op_push_ch: push_ch(pc_.get_byte()); pc_ = pc_ + 1; break;
+			case op_push_ch:
+				push(pc_.get_byte()); pc_ = pc_ + 1; break;
 
 			#if CONFIG_HAS_OP_WRITE_CH
 				case op_write_ch: std::cout << pull_ch(); break;
@@ -767,16 +726,18 @@ void vm::step() {
 		#if CONFIG_HAS_INT
 			#if CONFIG_HAS_OP_PUSH_INT
 				case op_push_int:
-					push_int(pc_.get_int()); pc_ = pc_ + int_size; break;
+					push(get_int_value(pc_.get_raw()));
+					pc_ = pc_ + raw_int_size; break;
 			#endif
 		#endif
 		#if CONFIG_HAS_CH && CONFIG_HAS_INT
 			#if CONFIG_HAS_OP_CH_TO_INT
-				case op_to_int: push_int(pull_int()); break;
+				case op_to_int:
+					push(pull_int()); break;
 			#endif
 			#if CONFIG_HAS_OP_INT_TO_CH
 				case op_to_ch:
-					push_ch(to_ch(
+					push(to_ch(
 						pull_int(), Error::err_to_ch_overflow,
 						Error::err_to_ch_underflow
 					));
