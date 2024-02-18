@@ -100,6 +100,7 @@ namespace {
 	Value Const_Ptr<T, B, E, C>::get_value() {
 		check(1); switch (*ptr_) {
 			case ch_type: check(ch_size); return Value { ptr_[1] };
+
 			case int_type:
 				check(int_size); return Value { get_int_value(ptr_ + 1) };
 
@@ -115,30 +116,22 @@ namespace {
 	template<typename T, T& B, T& E, Error::Code C>
 	Const_Ptr<T, B, E, C> operator+(
 		const Const_Ptr<T, B, E, C>& ptr, int offset
-	) {
-		return Const_Ptr<T, B, E, C> { ptr.get_raw() + offset };
-	}
+	) { return Const_Ptr<T, B, E, C> { ptr.get_raw() + offset }; }
 
 	template<typename T, T& B, T& E, Error::Code C>
 	Const_Ptr<T, B, E, C> operator-(
 		const Const_Ptr<T, B, E, C>& ptr, int offset
-	) {
-		return Const_Ptr<T, B, E, C> { ptr.get_raw() - offset };
-	}
+	) { return Const_Ptr<T, B, E, C> { ptr.get_raw() - offset }; }
 
 	template<typename T, T& B, T& E, Error::Code C>
 	bool operator==(
 		const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b
-	) {
-		return a.get_raw() == b.get_raw();
-	}
+	) { return a.get_raw() == b.get_raw(); }
 
 	template<typename T, T& B, T& E, Error::Code C>
 	bool operator<(
 		const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b
-	) {
-		return a.get_raw() < b.get_raw();
-	}
+	) { return a.get_raw() < b.get_raw(); }
 
 	using Code_Ptr = Const_Ptr<
 	    const signed char*, code_begin_, code_end_,
@@ -537,9 +530,7 @@ namespace {
 			));
 		}
 		void perform_int(int a, int b) override {
-			if (a == 0x80000000 && b == -1) {
-				err(Error::err_mult_overflow);
-			}
+			if (a == 0x80000000 && b == -1) { err(Error::err_mult_overflow); }
 			int value { a * b };
 			if (b != 0 && value / b != a) {
 				if ((a < 0 && b > 0) || (a > 0 && b < 0)) {
@@ -563,16 +554,14 @@ namespace {
 		}
 		void perform_int(int a, int b) override {
 			if (b == 0) { err(Error::err_div_divide_by_0); }
-			if (a == 0x80000000 && b == -1) {
-				err(Error::err_div_overflow);
-			}
+			if (a == 0x80000000 && b == -1) { err(Error::err_div_overflow); }
 			#if CONFIG_OBERON_MATH
-			int value { a / b };
-			int rem { a % b };
-			if (rem < 0) { value += b > 0 ? -1 : 1; }
-			push_int(value);
+				int value { a / b };
+				int rem { a % b };
+				if (rem < 0) { value += b > 0 ? -1 : 1; }
+				push_int(value);
 			#else
-			push_int(a / b);
+				push_int(a / b);
 			#endif
 		}
 	};
@@ -649,9 +638,7 @@ namespace {
 
 void check_range(
 	const signed char* begin, const signed char* end, Error::Code code
-) {
-	if (!begin || end < begin) { err(code); }
-}
+) { if (!begin || end < begin) { err(code); } }
 
 void vm::init(
 	signed char* ram_begin, signed char* ram_end,
@@ -699,15 +686,17 @@ void vm::step() {
 			jump_with_stack_condition(value, false); break;
 		}
 		case op_jmp: {
-			int value { get_int_value(pc_.get_raw()) }; pc_ = pc_ + raw_int_size;
-			jump(value, true_lit); break;
+			int value { get_int_value(pc_.get_raw()) };
+			pc_ = pc_ + raw_int_size; jump(value, true_lit); break;
 		}
 		case op_jmp_false: {
-			int value { get_int_value(pc_.get_raw()) }; pc_ = pc_ + raw_int_size;
+			int value { get_int_value(pc_.get_raw()) };
+			pc_ = pc_ + raw_int_size;
 			jump_with_stack_condition(value, true); break;
 		}
 		case op_jmp_true: {
-			int value { get_int_value(pc_.get_raw()) }; pc_ = pc_ + raw_int_size;
+			int value { get_int_value(pc_.get_raw()) };
+			pc_ = pc_ + raw_int_size;
 			jump_with_stack_condition(value, false); break;
 		}
 
@@ -735,9 +724,8 @@ void vm::step() {
 			ptr.set_value(pull_value()); break;
 		}
 
-		case op_receive: { // TODO: add unit-tests
+		case op_receive: // TODO: add unit-tests
 			push_value(Heap_Ptr { ram_begin_ + pull_int() }.get_value()); break;
-		}
 
 		case op_equals: {
 			auto b { pull_value() }; auto a { pull_value() };
@@ -768,8 +756,7 @@ void vm::step() {
 			case op_push_ch: push_ch(pc_.get_byte()); pc_ = pc_ + 1; break;
 
 			#if CONFIG_HAS_OP_WRITE_CH
-				case op_write_ch:
-					std::cout << pull_ch(); break;
+				case op_write_ch: std::cout << pull_ch(); break;
 			#endif
 		#endif
 		case op_add: { Add_Operation { }(); break; }
