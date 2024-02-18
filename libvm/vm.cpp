@@ -349,9 +349,7 @@ namespace {
 		if (condition) { pc_ = target; }
 	}
 
-	inline signed char negate(signed char ch) {
-		return static_cast<signed char>(~ch);
-	}
+	signed char negate(signed char ch) { return static_cast<signed char>(~ch); }
 
 	void jump_with_stack_condition(int offset, bool invert) {
 		auto condition { pull_ch() };
@@ -618,6 +616,40 @@ namespace {
 			#endif
 		}
 	};
+
+	class And_Operation: public Poly_Operation {
+	public:
+		And_Operation() = default;
+
+		void perform_ch(signed char a, signed char b) override {
+			push_ch(static_cast<signed char>(a & b));
+		}
+
+		void perform_int(int a, int b) override { push_int(a & b); }
+	};
+
+	class Or_Operation: public Poly_Operation {
+	public:
+		Or_Operation() = default;
+
+		void perform_ch(signed char a, signed char b) override {
+			push_ch(static_cast<signed char>(a | b));
+		}
+
+		void perform_int(int a, int b) override { push_int(a | b); }
+	};
+
+	class Xor_Operation: public Poly_Operation {
+	public:
+		Xor_Operation() = default;
+
+		void perform_ch(signed char a, signed char b) override {
+			push_ch(static_cast<signed char>(a ^ b));
+		}
+
+		void perform_int(int a, int b) override { push_int(a ^ b); }
+	};
+
 }
 
 void check_range(
@@ -724,29 +756,22 @@ void vm::step() {
 			break;
 		}
 
+		case op_not: {
+			auto value { pull_value() };
+			const signed char* ch { std::get_if<signed char>(&value) };
+			if (ch) { push_ch(negate(*ch)); break; }
+			const int* val { std::get_if<int>(&value) };
+			if (val) { push_int(~*val); break; }
+			err(Error::err_unknown_type);
+		}
+
+		case op_and: { And_Operation { }(); break; }
+		case op_or: { Or_Operation { }(); break; }
+		case op_xor: { Xor_Operation { }(); break; }
+
 		#if CONFIG_HAS_CH
 			case op_push_ch: push_ch(pc_.get_byte()); pc_ = pc_ + 1; break;
 
-			case op_not_ch: {
-				auto value { pull_ch() };
-				push_ch(negate(value));
-				break;
-			}
-			case op_and_ch: {
-				auto b { pull_ch() }; auto a { pull_ch() };
-				push_ch(static_cast<signed char>(a & b));
-				break;
-			}
-			case op_or_ch: {
-				auto b { pull_ch() }; auto a { pull_ch() };
-				push_ch(static_cast<signed char>(a | b));
-				break;
-			}
-			case op_xor_ch: {
-				auto b { pull_ch() }; auto a { pull_ch() };
-				push_ch(static_cast<signed char>(a ^ b));
-				break;
-			}
 			#if CONFIG_HAS_OP_WRITE_CH
 				case op_write_ch:
 					std::cout << pull_ch(); break;
@@ -758,18 +783,6 @@ void vm::step() {
 		case op_div: { Div_Operation { }(); break; }
 		case op_mod: { Mod_Operation { }(); break; }
 		#if CONFIG_HAS_INT
-			case op_not_int:
-				push_int(~pull_int()); break;
-
-			case op_and_int:
-				push_int(pull_int() & pull_int()); break;
-
-			case op_or_int:
-				push_int(pull_int() | pull_int()); break;
-
-			case op_xor_int:
-				push_int(pull_int() ^ pull_int()); break;
-
 			#if CONFIG_HAS_OP_PUSH_INT
 				case op_push_int:
 					push_int(pc_.get_int()); pc_ = pc_ + int_size; break;
