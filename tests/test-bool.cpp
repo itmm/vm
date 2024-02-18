@@ -6,13 +6,13 @@ using namespace vm;
 
 TEST(bool_tests, not_true_ch) {
 	signed char code[] { PUSH_CH(true_lit), op_not_ch };
-	signed char expected[] { false_lit };
+	signed char expected[] { RAW_CH(false_lit) };
 	EXPECT_LIMITED_STACK(code, ch_size, expected);
 }
 
 TEST(bool_tests, not_false_ch) {
 	signed char code[] { PUSH_CH(false_lit), op_not_ch };
-	signed char expected[] { true_lit };
+	signed char expected[] { RAW_CH(true_lit) };
 	EXPECT_LIMITED_STACK(code, ch_size, expected);
 }
 
@@ -40,25 +40,25 @@ TEST(bool_tests, not_underflow_int) {
 
 TEST(bool_tests, and00_ch) {
 	signed char code[] { PUSH_CH(false_lit), PUSH_CH(false_lit), op_and_ch };
-	signed char expected[] { false_lit };
+	signed char expected[] { RAW_CH(false_lit) };
 	EXPECT_LIMITED_STACK(code, 2 * ch_size, expected);
 }
 
 TEST(bool_tests, and01_ch) {
 	signed char code[] { PUSH_CH(true_lit), PUSH_CH(false_lit), op_and_ch };
-	signed char expected[] { false_lit };
+	signed char expected[] { RAW_CH(false_lit) };
 	EXPECT_LIMITED_STACK(code, 2 * ch_size, expected);
 }
 
 TEST(bool_tests, and10_ch) {
 	signed char code[] { PUSH_CH(false_lit), PUSH_CH(true_lit), op_and_ch };
-	signed char expected[] { false_lit };
+	signed char expected[] { RAW_CH(false_lit) };
 	EXPECT_LIMITED_STACK(code, 2 * ch_size, expected);
 }
 
 TEST(bool_tests, and11_ch) {
 	signed char code[] { PUSH_CH(true_lit), PUSH_CH(true_lit), op_and_ch };
-	signed char expected[] { true_lit };
+	signed char expected[] { RAW_CH(true_lit) };
 	EXPECT_LIMITED_STACK(code, 2 * ch_size, expected);
 }
 
@@ -106,25 +106,25 @@ TEST(bool_tests, and_underflow_int) {
 
 TEST(bool_tests, or00_ch) {
 	signed char code[] { PUSH_CH(false_lit), PUSH_CH(false_lit), op_or_ch };
-	signed char expected[] { false_lit };
+	signed char expected[] { RAW_CH(false_lit) };
 	EXPECT_LIMITED_STACK(code, 2 * ch_size, expected);
 }
 
 TEST(bool_tests, or01_ch) {
 	signed char code[] { PUSH_CH(true_lit), PUSH_CH(false_lit), op_or_ch };
-	signed char expected[] { true_lit };
+	signed char expected[] { RAW_CH(true_lit) };
 	EXPECT_LIMITED_STACK(code, 2 * ch_size, expected);
 }
 
 TEST(bool_tests, or10_ch) {
 	signed char code[] { PUSH_CH(false_lit), PUSH_CH(true_lit), op_or_ch };
-	signed char expected[] { true_lit };
+	signed char expected[] { RAW_CH(true_lit) };
 	EXPECT_LIMITED_STACK(code, 2 * ch_size, expected);
 }
 
 TEST(bool_tests, or11_ch) {
 	signed char code[] { PUSH_CH(true_lit), PUSH_CH(true_lit), op_or_ch };
-	signed char expected[] { true_lit };
+	signed char expected[] { RAW_CH(true_lit) };
 	EXPECT_LIMITED_STACK(code, 2 * ch_size, expected);
 }
 
@@ -172,25 +172,25 @@ TEST(bool_tests, or_underflow_int) {
 
 TEST(bool_tests, xor00_ch) {
 	signed char code[] { PUSH_CH(false_lit), PUSH_CH(false_lit), op_xor_ch };
-	signed char expected[] { false_lit };
+	signed char expected[] { RAW_CH(false_lit) };
 	EXPECT_LIMITED_STACK(code, 2 * ch_size, expected);
 }
 
 TEST(bool_tests, xor01_ch) {
 	signed char code[] { PUSH_CH(true_lit), PUSH_CH(false_lit), op_xor_ch };
-	signed char expected[] { true_lit };
+	signed char expected[] { RAW_CH(true_lit) };
 	EXPECT_LIMITED_STACK(code, 2 * ch_size, expected);
 }
 
 TEST(bool_tests, xor10_ch) {
 	signed char code[] { PUSH_CH(false_lit), PUSH_CH(true_lit), op_xor_ch };
-	signed char expected[] { true_lit };
+	signed char expected[] { RAW_CH(true_lit) };
 	EXPECT_LIMITED_STACK(code, 2 * ch_size, expected);
 }
 
 TEST(bool_tests, xor11_ch) {
 	signed char code[] { PUSH_CH(true_lit), PUSH_CH(true_lit), op_xor_ch };
-	signed char expected[] { false_lit };
+	signed char expected[] { RAW_CH(false_lit) };
 	EXPECT_LIMITED_STACK(code, 2 * ch_size, expected);
 }
 

@@ -530,48 +530,52 @@ void vm::step() {
 			break;
 		}
 
+		case op_fetch: fetch(pull_int()); break;
+
+		case op_store: store(pull_int()); break;
+
+		case op_send: { // TODO: add unit-tests
+			Heap_Ptr ptr { ram_begin_ + pull_int() };
+			ptr.set_value(pull_value()); break;
+		}
+
+		case op_receive: { // TODO: add unit-tests
+			push_value(Heap_Ptr { ram_begin_ + pull_int() }.get_value()); break;
+		}
+
+		case op_equals: {
+			auto b { pull_value() }; auto a { pull_value() };
+			push_ch(a == b ? true_lit : false_lit);
+			break;
+		}
+
+		case op_less: {
+			auto b { pull_value() }; auto a { pull_value() };
+			push_ch(a < b ? true_lit : false_lit);
+			break;
+		}
+
 		#if CONFIG_HAS_CH
 			case op_push_ch: push_ch(pc_.get_byte()); pc_ = pc_ + 1; break;
 
-			case op_fetch: fetch(pull_int()); break;
-
-			case op_store: store(pull_int()); break;
-
-			case op_send_ch: { // TODO: add unit-tests
-				Heap_Ptr ptr { ram_begin_ + pull_int() };
-				ptr.set_ch(pull_ch()); break;
-			}
-			case op_receive_ch: { // TODO: add unit-tests
-				push_ch(Heap_Ptr { ram_begin_ + pull_int() }.get_ch()); break;
-			}
-			case op_equals_ch: {
-				auto b { pull_ch() }; auto a { pull_ch() };
-				*--stack_begin_ = a == b ? true_lit : false_lit;
-				break;
-			}
-			case op_less_ch: {
-				auto b { pull_ch() }; auto a { pull_ch() };
-				*--stack_begin_ = a < b ? true_lit : false_lit;
-				break;
-			}
 			case op_not_ch: {
 				auto value { pull_ch() };
-				*--stack_begin_ = negate(value);
+				push_ch(negate(value));
 				break;
 			}
 			case op_and_ch: {
 				auto b { pull_ch() }; auto a { pull_ch() };
-				*--stack_begin_ = static_cast<signed char>(a & b);
+				push_ch(static_cast<signed char>(a & b));
 				break;
 			}
 			case op_or_ch: {
 				auto b { pull_ch() }; auto a { pull_ch() };
-				*--stack_begin_ = static_cast<signed char>(a | b);
+				push_ch(static_cast<signed char>(a | b));
 				break;
 			}
 			case op_xor_ch: {
 				auto b { pull_ch() }; auto a { pull_ch() };
-				*--stack_begin_ = static_cast<signed char>(a ^ b);
+				push_ch(static_cast<signed char>(a ^ b));
 				break;
 			}
 			#if CONFIG_HAS_OP_WRITE_CH
@@ -645,21 +649,6 @@ void vm::step() {
 				break;
 			}
 
-			case op_send_int: { // TODO: add unit-tests
-				int offset { pull_int() };
-				Heap_Ptr { ram_begin_ + offset }.set_int(pull_int()); break;
-			}
-			case op_receive_int: // TODO: add unit-tests
-				push_int(Heap_Ptr { ram_begin_ + pull_int() }.get_int()); break;
-
-			case op_equals_int: {
-				int b { pull_int() }; int a { pull_int() };
-				*--stack_begin_ = a == b ? true_lit : false_lit; break;
-			}
-			case op_less_int: {
-				int b { pull_int() }; int a { pull_int() };
-				*--stack_begin_ = a < b ? true_lit : false_lit; break;
-			}
 			case op_not_int:
 				push_int(~pull_int()); break;
 
