@@ -305,8 +305,9 @@ namespace {
 		push_value(Stack_Ptr { stack_begin_ + offset }.get_value());
 	}
 
-	void store_ch(int offset) {
-		auto ch { pull_ch() }; Stack_Ptr { stack_begin_ + offset}.set_ch(ch);
+	void store(int offset) {
+		auto value { pull_value() };
+		Stack_Ptr { stack_begin_ + offset}.set_value(value);
 	}
 
 	int pull_int() {
@@ -321,11 +322,6 @@ namespace {
 		}
 		stack_begin_ -= int_size; Stack_Ptr ptr { stack_begin_ };
 		ptr.set_int(value);
-	}
-
-	void store_int(int offset) {
-		auto value { pull_int() };
-		Stack_Ptr { stack_begin_ + offset }.set_int(value);
 	}
 
 	Heap_Ptr pull_ptr() {
@@ -539,11 +535,7 @@ void vm::step() {
 
 			case op_fetch: fetch(pull_int()); break;
 
-			case op_small_store_ch:
-				store_ch(pull_ch()); break;
-
-			case op_store_ch:
-				store_ch(pull_int()); break;
+			case op_store: store(pull_int()); break;
 
 			case op_send_ch: { // TODO: add unit-tests
 				Heap_Ptr ptr { ram_begin_ + pull_int() };
@@ -652,12 +644,6 @@ void vm::step() {
 				#endif
 				break;
 			}
-
-			case op_small_store_int:
-				store_int(pull_ch()); break;
-
-			case op_store_int:
-				store_int(pull_int()); break;
 
 			case op_send_int: { // TODO: add unit-tests
 				int offset { pull_int() };
