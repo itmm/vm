@@ -31,4 +31,5 @@ ERR(dup_unknown_type)
 ERR(unknown_type)
 ERR(int_overflow)
 ERR(unexpected)
+ERR(null_access)
 #undef ERR

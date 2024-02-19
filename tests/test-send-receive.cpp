@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "vm-tests.h"
+#include "ptr.h"
 
 using namespace vm;
 
@@ -10,5 +11,5 @@ TEST(send_receive_tests, simple) {
 	};
 	signed char expected[] { RAW_CH(44), RAW_PTR(heap_overhead) };
 	EXPECT_LIMITED_STACK(code, 10 + heap_overhead + ptr_size + 2 * ch_size, expected);
-	EXPECT_EQ(heap_end() + ch_size, stack_begin());
+	EXPECT_EQ(heap_end + ch_size, stack_begin);
 }

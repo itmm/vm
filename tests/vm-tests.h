@@ -1,6 +1,7 @@
 #pragma once
 
 #include "asm.h"
+#include "err.h"
 
 void expect_stack(
 	const signed char* code_begin, int code_size,

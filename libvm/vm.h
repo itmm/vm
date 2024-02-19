@@ -1,7 +1,5 @@
 #pragma once
 
-#include <exception>
-
 namespace vm {
 	constexpr signed char ch_type { 'c' };
 	constexpr signed char int_type { 'i' };
@@ -19,18 +17,6 @@ namespace vm {
 	static_assert(true_lit != false_lit);
 	constexpr int heap_overhead { node_size };
 
-	class Error: public std::exception {
-	public:
-		enum Code {
-			#define ERR(C) err_##C,
-			#include "err.def"
-		};
-
-		explicit Error(Code code): code { code } { }
-
-		const Code code;
-	};
-
 	enum OpCode {
 		#define OP(O) op_##O,
 		#include "op.def"
@@ -42,10 +28,6 @@ namespace vm {
 	);
 
 	void step();
-
-	const signed char* stack_begin();
-	const signed char* heap_end();
-	const signed char* ram_begin();
 
 	[[maybe_unused]] void dump_stack();
 }

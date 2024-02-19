@@ -1,5 +1,6 @@
 #include "vm-tests.h"
 #include "errmsgs.h"
+#include "ptr.h"
 
 #include "gtest/gtest.h"
 
@@ -20,9 +21,9 @@ void expect_stack(
 	}
 	//vm::dump_stack();
 	if (expected_begin) {
-		EXPECT_EQ(vm::stack_begin() + expected_size, ram + ram_size);
+		EXPECT_EQ(vm::stack_begin + expected_size, ram + ram_size);
 		for (int i { 0 }; i < expected_size; ++i) {
-			EXPECT_EQ(vm::stack_begin()[i], expected_begin[i]);
+			EXPECT_EQ(vm::stack_begin[i], expected_begin[i]);
 		}
 	}
 }
