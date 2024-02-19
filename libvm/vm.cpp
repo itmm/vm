@@ -28,7 +28,7 @@ namespace {
 	}
 
 	signed char negate(signed char ch) {
-		return to_ch(~ch, Error::unexpected, Error::unexpected);
+		return to_ch(~ch, Err::unexpected, Err::unexpected);
 	}
 
 	void jump_with_stack_condition(int offset, bool invert) {
@@ -73,7 +73,7 @@ namespace {
 		auto found { find_on_free_list(size) };
 		if (!found) {
 			if (heap_end + size > stack_begin) {
-				err(Error::heap_overflow);
+				err(Err::heap_overflow);
 			}
 			found = Heap_Ptr { heap_end };
 			heap_end += size;
@@ -88,10 +88,10 @@ namespace {
 		Accessor::alloc_list.remove(block);
 		int size { Accessor::get_int_value(block) };
 		if (size < std::max(node_size, heap_overhead)) {
-			err(Error::free_invalid_block);
+			err(Err::free_invalid_block);
 		}
 		if (Heap_Ptr { heap_end } < block + size) {
-			err(Error::free_invalid_block);
+			err(Err::free_invalid_block);
 		}
 		Accessor::insert_into_free_list(block);
 	}
@@ -104,10 +104,10 @@ namespace {
 	protected:
 		Poly_Operation() = default;
 		virtual void perform_ch(signed char a, signed char b) {
-			err(Error::unknown_type);
+			err(Err::unknown_type);
 		}
 		virtual void perform_int(int a, int b) {
-			err(Error::unknown_type);
+			err(Err::unknown_type);
 		}
 	};
 
@@ -125,7 +125,7 @@ namespace {
 			perform_int(a_int ? *a_int : *a_ch, b_int ? *b_int : *b_ch);
 			return;
 		}
-		err(Error::unknown_type);
+		err(Err::unknown_type);
 	}
 
 	class Add_Operation: public Poly_Operation {
@@ -133,15 +133,15 @@ namespace {
 		Add_Operation() = default;
 		void perform_ch(signed char a, signed char b) override {
 			Accessor::push(to_ch(
-				a + b, Error::add_overflow, Error::add_underflow
+				a + b, Err::add_overflow, Err::add_underflow
 			));
 		}
 		void perform_int(int a, int b) override {
 			if (a > 0 && b > 0 && std::numeric_limits<int>::max() - a < b) {
-				err(Error::add_overflow);
+				err(Err::add_overflow);
 			}
 			if (a < 0 && b < 0 && std::numeric_limits<int>::min() - a > b) {
-				err(Error::add_underflow);
+				err(Err::add_underflow);
 			}
 			Accessor::push(a + b);
 		}
@@ -153,15 +153,15 @@ namespace {
 
 		void perform_ch(signed char a, signed char b) override {
 			Accessor::push(to_ch(
-				a - b, Error::sub_overflow, Error::sub_underflow
+				a - b, Err::sub_overflow, Err::sub_underflow
 			));
 		}
 		void perform_int(int a, int b) override {
 			if (a > 0 && b < 0 && a > std::numeric_limits<int>::max() + b) {
-				err(Error::sub_overflow);
+				err(Err::sub_overflow);
 			}
 			if (a < 0 && b > 0 && a < std::numeric_limits<int>::min() + b) {
-				err(Error::sub_underflow);
+				err(Err::sub_underflow);
 			}
 			Accessor::push(a - b);
 		}
@@ -173,17 +173,17 @@ namespace {
 
 		void perform_ch(signed char a, signed char b) override {
 			Accessor::push(to_ch(
-				a * b, Error::mult_overflow, Error::mult_underflow
+				a * b, Err::mult_overflow, Err::mult_underflow
 			));
 		}
 		void perform_int(int a, int b) override {
-			if (a == 0x80000000 && b == -1) { err(Error::mult_overflow); }
+			if (a == 0x80000000 && b == -1) { err(Err::mult_overflow); }
 			int value { a * b };
 			if (b != 0 && value / b != a) {
 				if ((a < 0 && b > 0) || (a > 0 && b < 0)) {
-					err(Error::mult_underflow);
+					err(Err::mult_underflow);
 				}
-				err(Error::mult_overflow);
+				err(Err::mult_overflow);
 			}
 			Accessor::push(value);
 		}
@@ -194,14 +194,14 @@ namespace {
 		Div_Operation() = default;
 
 		void perform_ch(signed char a, signed char b) override {
-			if (b == 0) { err(Error::div_divide_by_0); }
+			if (b == 0) { err(Err::div_divide_by_0); }
 			Accessor::push(to_ch(
-				a / b, Error::div_overflow, Error::unexpected
+				a / b, Err::div_overflow, Err::unexpected
 			));
 		}
 		void perform_int(int a, int b) override {
-			if (b == 0) { err(Error::div_divide_by_0); }
-			if (a == 0x80000000 && b == -1) { err(Error::div_overflow); }
+			if (b == 0) { err(Err::div_divide_by_0); }
+			if (a == 0x80000000 && b == -1) { err(Err::div_overflow); }
 			#if CONFIG_OBERON_MATH
 				int value { a / b };
 				int rem { a % b };
@@ -218,24 +218,24 @@ namespace {
 		Mod_Operation() = default;
 
 		void perform_ch(signed char a, signed char b) override {
-			if (b == 0) { err(Error::mod_divide_by_0); }
+			if (b == 0) { err(Err::mod_divide_by_0); }
 			#if CONFIG_OBERON_MATH
 				int value = a % b;
 				if (value < 0) {
 					if (b > 0) { value += b; } else { value -= b; }
 				}
 				Accessor::push(to_ch(
-					value, Error::unexpected, Error::unexpected
+					value, Err::unexpected, Err::unexpected
 				));
 			#else
 				Accessor::push_value(to_ch(
-					a % b, Error::unexpected, Error::unexpected
+					a % b, Err::unexpected, Err::unexpected
 				));
 			#endif
 		}
 
 		void perform_int(int a, int b) override {
-			if (b == 0) { err(Error::mod_divide_by_0); }
+			if (b == 0) { err(Err::mod_divide_by_0); }
 			#if CONFIG_OBERON_MATH
 				int value { a % b };
 				if (value < 0) {
@@ -253,7 +253,7 @@ namespace {
 		And_Operation() = default;
 
 		void perform_ch(signed char a, signed char b) override {
-			Accessor::push(to_ch(a & b, Error::unexpected, Error::unexpected));
+			Accessor::push(to_ch(a & b, Err::unexpected, Err::unexpected));
 		}
 
 		void perform_int(int a, int b) override { Accessor::push(a & b); }
@@ -264,7 +264,7 @@ namespace {
 		Or_Operation() = default;
 
 		void perform_ch(signed char a, signed char b) override {
-			Accessor::push(to_ch(a | b, Error::unexpected, Error::unexpected));
+			Accessor::push(to_ch(a | b, Err::unexpected, Err::unexpected));
 		}
 
 		void perform_int(int a, int b) override { Accessor::push(a | b); }
@@ -275,7 +275,7 @@ namespace {
 		Xor_Operation() = default;
 
 		void perform_ch(signed char a, signed char b) override {
-			Accessor::push(to_ch(a ^ b, Error::unexpected, Error::unexpected));
+			Accessor::push(to_ch(a ^ b, Err::unexpected, Err::unexpected));
 		}
 
 		void perform_int(int a, int b) override { Accessor::push(a ^ b); }
@@ -284,17 +284,17 @@ namespace {
 }
 
 void check_range(
-	const signed char* begin, const signed char* end, Error::Code code
+	const signed char* begin, const signed char* end, Err::Code code
 ) { if (!begin || end < begin) { err(code); } }
 
 void vm::init(
 	signed char* ram_begin_, signed char* ram_end_,
 	const signed char* code_begin_, const signed char* code_end_
 ) {
-	check_range(ram_begin_, ram_end_, Error::invalid_ram);
+	check_range(ram_begin_, ram_end_, Err::invalid_ram);
 	ram_begin = ram_begin_; ram_end = ram_end_;
 
-	check_range(code_begin_, code_end_, Error::invalid_code);
+	check_range(code_begin_, code_end_, Err::invalid_code);
 	code_begin = code_begin_; code_end = code_end_;
 
 	stack_begin = ram_end;
@@ -318,7 +318,7 @@ void vm::step() {
 			case op_nop: break;
 		#endif
 		#if CONFIG_HAS_OP_BREAK
-			case op_break: err(Error::got_break);
+			case op_break: err(Err::got_break);
 		#endif
 		case op_near_jmp: {
 			auto value { Accessor::get_byte(pc) }; pc = pc + 1;
@@ -392,7 +392,7 @@ void vm::step() {
 			if (ch) { Accessor::push(negate(*ch)); break; }
 			const int* val { std::get_if<int>(&value) };
 			if (val) { Accessor::push(~*val); break; }
-			err(Error::unknown_type);
+			err(Err::unknown_type);
 		}
 
 		case op_and: { And_Operation { }(); break; }
@@ -427,12 +427,12 @@ void vm::step() {
 			#if CONFIG_HAS_OP_INT_TO_CH
 				case op_to_ch:
 					Accessor::push(to_ch(
-						Accessor::pull_int(), Error::to_ch_overflow,
-						Error::to_ch_underflow
+						Accessor::pull_int(), Err::to_ch_overflow,
+						Err::to_ch_underflow
 					));
 					break;
 			#endif
 		#endif
-		default: err(Error::unknown_opcode);
+		default: err(Err::unknown_opcode);
 	}
 }

@@ -11,6 +11,6 @@ namespace vm {
 
 	int int_value(const Value& value);
 
-	signed char to_ch(int value, Error::Code overflow, Error::Code underflow);
+	signed char to_ch(int value, Err::Code overflow, Err::Code underflow);
 
 }

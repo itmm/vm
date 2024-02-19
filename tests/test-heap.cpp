@@ -48,6 +48,6 @@ TEST(heap_tests, fragmentation) {
 	};
 	EXPECT_LIMITED_STACK_ERROR(
 		code, 10 + heap_overhead + 12 + heap_overhead + 2 * int_size,
-		Error::heap_overflow
+		Err::heap_overflow
 	);
 }

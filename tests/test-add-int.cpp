@@ -24,7 +24,7 @@ TEST(add_int_tests, big_ok_a) {
 
 TEST(add_int_tests, big_overflow_a) {
 	signed char code[] { PUSH_INT(0x7ffffffd), PUSH_SMALL_INT(3), op_add };
-	EXPECT_ERROR(code, Error::add_overflow);
+	EXPECT_ERROR(code, Err::add_overflow);
 }
 
 TEST(add_int_tests, big_ok_b) {
@@ -35,7 +35,7 @@ TEST(add_int_tests, big_ok_b) {
 
 TEST(add_int_tests, big_overflow_b) {
 	signed char code[] { PUSH_SMALL_INT(3), PUSH_INT(0x7ffffffd), op_add };
-	EXPECT_ERROR(code, Error::add_overflow);
+	EXPECT_ERROR(code, Err::add_overflow);
 }
 
 TEST(add_int_tests, two_bigs) {
@@ -51,5 +51,5 @@ TEST(add_int_tests, no_ram) {
 
 TEST(add_int_tests, underflow) {
 	signed char code[] { PUSH_SMALL_INT(5), op_add };
-	EXPECT_ERROR(code, Error::leave_stack_segment);
+	EXPECT_ERROR(code, Err::leave_stack_segment);
 }

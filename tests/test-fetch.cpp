@@ -22,7 +22,7 @@ TEST(fetch_tests, small_fetch_ch) {
 
 TEST(fetch_tests, ch_out_of_range) {
 	signed char code[] { PUSH_CH(10), PUSH_SMALL_INT(ch_size), op_fetch };
-	EXPECT_ERROR(code, Error::leave_stack_segment);
+	EXPECT_ERROR(code, Err::leave_stack_segment);
 }
 
 TEST(fetch_tests, fetch_int) {
@@ -45,5 +45,5 @@ TEST(fetch_tests, small_fetch_int) {
 
 TEST(fetch_tests, int_out_of_range) {
 	signed char code[] { PUSH_SMALL_INT(10), PUSH_SMALL_INT(int_size), op_fetch };
-	EXPECT_ERROR(code, Error::leave_stack_segment);
+	EXPECT_ERROR(code, Err::leave_stack_segment);
 }

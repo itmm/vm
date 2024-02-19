@@ -2,4 +2,4 @@
 
 using namespace vm;
 
-[[noreturn]] void vm::err(Error::Code code) { throw Error { code }; }
+[[noreturn]] void vm::err(Err::Code code) { throw Err { code }; }

@@ -46,12 +46,12 @@ TEST(div_int_tests, big_neg_a) {
 
 TEST(div_int_tests, overflow) {
 	signed char code[] { PUSH_INT(0x80000000), PUSH_SMALL_INT(-1), op_div };
-	EXPECT_ERROR(code, Error::div_overflow);
+	EXPECT_ERROR(code, Err::div_overflow);
 }
 
 TEST(div_int_tests, div_by_0) {
 	signed char code[] { PUSH_SMALL_INT(10), PUSH_SMALL_INT(0), op_div };
-	EXPECT_ERROR(code, Error::div_divide_by_0);
+	EXPECT_ERROR(code, Err::div_divide_by_0);
 }
 
 TEST(div_int_tests, no_ram) {
@@ -61,5 +61,5 @@ TEST(div_int_tests, no_ram) {
 
 TEST(div_int_tests, underflow) {
 	signed char code[] { PUSH_SMALL_INT(5), op_div };
-	EXPECT_ERROR(code, Error::leave_stack_segment);
+	EXPECT_ERROR(code, Err::leave_stack_segment);
 }

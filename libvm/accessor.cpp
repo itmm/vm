@@ -13,7 +13,7 @@ Value Accessor::pull() {
 signed char Accessor::pull_ch() {
 	auto value { pull() };
 	auto ch = std::get_if<signed char>(&value);
-	if (!ch) { err(Error::no_char); }
+	if (!ch) { err(Err::no_char); }
 	return *ch;
 }
 
@@ -23,13 +23,13 @@ int Accessor::pull_int() { return int_value(pull()); }
 Heap_Ptr Accessor::pull_ptr() {
 	auto value { pull() };
 	auto ptr = std::get_if<Heap_Ptr>(&value);
-	if (!ptr) { err(Error::no_pointer); }
+	if (!ptr) { err(Err::no_pointer); }
 	return *ptr;
 }
 
 void Accessor::push(Value value) {
 	auto size { value_size(value) };
-	if (heap_end + size > stack_begin) { err(Error::stack_overflow); }
+	if (heap_end + size > stack_begin) { err(Err::stack_overflow); }
 	stack_begin -= size;
 	auto ptr { Stack_Ptr { stack_begin } };
 	set_value(ptr, value);

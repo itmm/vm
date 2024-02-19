@@ -52,10 +52,10 @@ TEST(mod_int_tests, overflow) {
 
 TEST(mod_int_tests, div_by_0) {
 	signed char code[] { PUSH_SMALL_INT(10), PUSH_SMALL_INT(0), op_mod };
-	EXPECT_ERROR(code, Error::mod_divide_by_0);
+	EXPECT_ERROR(code, Err::mod_divide_by_0);
 }
 
 TEST(mod_int_tests, underflow) {
 	signed char code[] { PUSH_SMALL_INT(5), op_mod };
-	EXPECT_ERROR(code, Error::leave_stack_segment);
+	EXPECT_ERROR(code, Err::leave_stack_segment);
 }

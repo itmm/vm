@@ -8,7 +8,7 @@
 namespace vm {
 	class Accessor {
 		public:
-			template<typename T, T& B, T& E, Error::Code C>
+			template<typename T, T& B, T& E, Err::Code C>
 			static int get_int_value(const Const_Ptr<T, B, E, C>& ptr) {
 				int value { 0 };
 				for (auto i { ptr.ptr_ }, e { ptr.ptr_ + raw_int_size }; i < e; ++i) {
@@ -17,21 +17,21 @@ namespace vm {
 				return value;
 			}
 
-			template<signed char*& B, signed char*& E, Error::Code C>
+			template<signed char*& B, signed char*& E, Err::Code C>
 			static void set_int(Ptr<B, E, C> ptr, int value) {
 				for (auto i { ptr.ptr_ + raw_int_size - 1 }; i >= ptr.ptr_; --i) {
 					*i = static_cast<signed char>(value);
 					value >>= bits_per_byte;
 				}
-				if (value != 0 && value != -1) { err(Error::int_overflow); }
+				if (value != 0 && value != -1) { err(Err::int_overflow); }
 			}
 
-			template<typename T, T& B, T& E, Error::Code C>
+			template<typename T, T& B, T& E, Err::Code C>
 			static signed char get_byte(const Const_Ptr<T, B, E, C>& ptr) {
 				ptr.check(1); return *ptr.ptr_;
 			}
 
-			template<typename T, T& B, T& E, Error::Code C>
+			template<typename T, T& B, T& E, Err::Code C>
 			static Value get_value(const Const_Ptr<T, B, E, C>& ptr) {
 				ptr.check(1); switch (*ptr.ptr_) {
 					case ch_type:
@@ -48,11 +48,11 @@ namespace vm {
 							offset >= 0 ? ram_begin + offset : nullptr
 						} };
 					}
-					default: err(Error::unknown_type);
+					default: err(Err::unknown_type);
 				}
 			}
 
-			template<signed char*& B, signed char*& E, Error::Code C>
+			template<signed char*& B, signed char*& E, Err::Code C>
 			static void set_value(Ptr<B, E, C> ptr, const Value& value) {
 				if (auto ch = std::get_if<signed char>(&value)) {
 					ptr.check(ch_size);
@@ -66,11 +66,11 @@ namespace vm {
 					ptr.ptr_[0] = ptr_type;
 					int v = *pt ? static_cast<int>(pt->ptr_ - ram_begin) : -1;
 					set_int(ptr + 1, v);
-				} else { err(Error::unknown_type); }
+				} else { err(Err::unknown_type); }
 			}
 
 			template<typename P> static Heap_Ptr get_ptr(const P& ptr) {
-				if (!ptr) { err(Error::null_access); }
+				if (!ptr) { err(Err::null_access); }
 				int value { get_int_value(ptr) };
 				return Heap_Ptr { value >= 0 ? ram_begin + value : nullptr };
 			}
@@ -79,7 +79,7 @@ namespace vm {
 				P ptr, const Heap_Ptr& value
 			) {
 				auto got { value.ptr_ };
-				if (!ptr) { err(Error::null_access); }
+				if (!ptr) { err(Err::null_access); }
 				set_int(ptr, got ? static_cast<int>(got - ram_begin) : -1);
 			}
 

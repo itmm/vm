@@ -12,7 +12,7 @@ int vm::value_size(const Value& value) {
 		return int_size;
 	} else if (std::get_if<Heap_Ptr>(&value)) {
 		return ptr_size;
-	} else { err(Error::unknown_type); }
+	} else { err(Err::unknown_type); }
 }
 
 int vm::int_value(const Value& value) {
@@ -20,10 +20,10 @@ int vm::int_value(const Value& value) {
 		return *ch;
 	} else if (auto val = std::get_if<int>(&value)) {
 		return *val;
-	} else { err(Error::no_integer); }
+	} else { err(Err::no_integer); }
 }
 
-signed char vm::to_ch(int value, Error::Code overflow, Error::Code underflow) {
+signed char vm::to_ch(int value, Err::Code overflow, Err::Code underflow) {
 	if (value > std::numeric_limits<signed char>::max()) { err(overflow); }
 	if (value < std::numeric_limits<signed char>::min()) { err(underflow); }
 	return static_cast<signed char>(value);

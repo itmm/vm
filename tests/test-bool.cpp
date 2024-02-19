@@ -18,7 +18,7 @@ TEST(bool_tests, not_false_ch) {
 
 TEST(bool_tests, not_underflow_ch) {
 	signed char code[] { op_not };
-	EXPECT_ERROR(code, Error::leave_stack_segment);
+	EXPECT_ERROR(code, Err::leave_stack_segment);
 }
 
 TEST(bool_tests, not_true_int) {
@@ -59,7 +59,7 @@ TEST(bool_tests, and11_ch) {
 
 TEST(bool_tests, and_underflow_ch) {
 	signed char code[] { PUSH_CH(true_lit), op_and };
-	EXPECT_ERROR(code, Error::leave_stack_segment);
+	EXPECT_ERROR(code, Err::leave_stack_segment);
 }
 
 TEST(bool_tests, and00_int) {
@@ -96,7 +96,7 @@ TEST(bool_tests, and11_int) {
 
 TEST(bool_tests, and_underflow_int) {
 	signed char code[] { PUSH_SMALL_INT(true_lit), op_and };
-	EXPECT_ERROR(code, Error::leave_stack_segment);
+	EXPECT_ERROR(code, Err::leave_stack_segment);
 }
 
 TEST(bool_tests, or00_ch) {
@@ -125,7 +125,7 @@ TEST(bool_tests, or11_ch) {
 
 TEST(bool_tests, or_underflow_ch) {
 	signed char code[] { PUSH_CH(true_lit), op_or };
-	EXPECT_ERROR(code, Error::leave_stack_segment);
+	EXPECT_ERROR(code, Err::leave_stack_segment);
 }
 
 TEST(bool_tests, or00_int) {
@@ -162,7 +162,7 @@ TEST(bool_tests, or11_int) {
 
 TEST(bool_tests, or_underflow_int) {
 	signed char code[] { PUSH_SMALL_INT(true_lit), op_or };
-	EXPECT_ERROR(code, Error::leave_stack_segment);
+	EXPECT_ERROR(code, Err::leave_stack_segment);
 }
 
 TEST(bool_tests, xor00_ch) {
@@ -191,7 +191,7 @@ TEST(bool_tests, xor11_ch) {
 
 TEST(bool_tests, xor_underflow_ch) {
 	signed char code[] { PUSH_CH(true_lit), op_xor };
-	EXPECT_ERROR(code, Error::leave_stack_segment);
+	EXPECT_ERROR(code, Err::leave_stack_segment);
 }
 
 TEST(bool_tests, xor00_int) {
@@ -228,5 +228,5 @@ TEST(bool_tests, xor11_int) {
 
 TEST(bool_tests, xor_underflow_int) {
 	signed char code[] { PUSH_SMALL_INT(true_lit), op_xor };
-	EXPECT_ERROR(code, Error::leave_stack_segment);
+	EXPECT_ERROR(code, Err::leave_stack_segment);
 }

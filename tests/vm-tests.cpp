@@ -6,14 +6,14 @@
 
 void expect_stack(
 	const signed char* code_begin, int code_size,
-	vm::Error::Code expected_error, int ram_size,
+	vm::Err::Code expected_error, int ram_size,
 	const signed char* expected_begin, int expected_size
 ) {
 	signed char ram[ram_size];
 	try {
 		vm::init(ram, ram + sizeof(ram), code_begin, code_begin + code_size);
 		for (;;) { vm::step(); }
-	} catch(const vm::Error& err) {
+	} catch(const vm::Err& err) {
 		if (err.code != expected_error) {
 			std::cerr << "unexpected error: " << err_msgs[err.code] << "\n";
 		}

@@ -12,7 +12,7 @@ TEST(pull_tests, pull_ch) {
 
 TEST(pull_tests, underflow_ch) {
 	signed char code[] { op_pull };
-	EXPECT_ERROR(code, Error::leave_stack_segment);
+	EXPECT_ERROR(code, Err::leave_stack_segment);
 }
 
 TEST(pull_tests, pull_int) {

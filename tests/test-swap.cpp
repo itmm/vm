@@ -12,5 +12,5 @@ TEST(swap_tests, simple) {
 
 TEST(swap_tests, overflow) {
 	signed char code[] { PUSH_SMALL_INT(1), op_swap };
-	EXPECT_ERROR(code, Error::leave_stack_segment);
+	EXPECT_ERROR(code, Err::leave_stack_segment);
 }
