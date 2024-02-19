@@ -18,7 +18,7 @@ TEST(equals_tests, not_equals_ch) {
 
 TEST(equals_tests, underflow_ch) {
 	signed char code[] { PUSH_CH(4), op_equals };
-	EXPECT_ERROR(code, Error::err_leave_stack_segment);
+	EXPECT_ERROR(code, Error::leave_stack_segment);
 }
 
 TEST(equals_tests, equals_int) {
@@ -35,5 +35,5 @@ TEST(equals_tests, not_equals_int) {
 
 TEST(equals_tests, empty_int) {
 	signed char code[] { PUSH_SMALL_INT(1), op_equals };
-	EXPECT_ERROR(code, Error::err_leave_stack_segment);
+	EXPECT_ERROR(code, Error::leave_stack_segment);
 }

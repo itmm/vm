@@ -6,7 +6,7 @@ namespace vm {
 	class Error: public std::exception {
 		public:
 			enum Code {
-				#define ERR(C) err_##C,
+				#define ERR(C) C,
 				#include "err.def"
 			};
 

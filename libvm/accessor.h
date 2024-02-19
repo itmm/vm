@@ -23,7 +23,7 @@ namespace vm {
 					*i = static_cast<signed char>(value);
 					value >>= bits_per_byte;
 				}
-				if (value != 0 && value != -1) { err(Error::err_int_overflow); }
+				if (value != 0 && value != -1) { err(Error::int_overflow); }
 			}
 
 			template<typename T, T& B, T& E, Error::Code C>
@@ -48,7 +48,7 @@ namespace vm {
 							offset >= 0 ? ram_begin + offset : nullptr
 						} };
 					}
-					default: err(Error::err_unknown_type);
+					default: err(Error::unknown_type);
 				}
 			}
 
@@ -66,11 +66,11 @@ namespace vm {
 					ptr.ptr_[0] = ptr_type;
 					int v = *pt ? static_cast<int>(pt->ptr_ - ram_begin) : -1;
 					set_int(ptr + 1, v);
-				} else { err(Error::err_unknown_type); }
+				} else { err(Error::unknown_type); }
 			}
 
 			template<typename P> static Heap_Ptr get_ptr(const P& ptr) {
-				if (!ptr) { err(Error::err_null_access); }
+				if (!ptr) { err(Error::null_access); }
 				int value { get_int_value(ptr) };
 				return Heap_Ptr { value >= 0 ? ram_begin + value : nullptr };
 			}
@@ -79,7 +79,7 @@ namespace vm {
 				P ptr, const Heap_Ptr& value
 			) {
 				auto got { value.ptr_ };
-				if (!ptr) { err(Error::err_null_access); }
+				if (!ptr) { err(Error::null_access); }
 				set_int(ptr, got ? static_cast<int>(got - ram_begin) : -1);
 			}
 

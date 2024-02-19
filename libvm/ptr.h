@@ -81,7 +81,7 @@ namespace vm {
 
 	using Code_Ptr = Const_Ptr<
 		const signed char*, code_begin, code_end,
-		Error::err_leave_code_segment
+		Error::leave_code_segment
 	>;
 
 	extern Code_Ptr pc;
@@ -116,7 +116,7 @@ namespace vm {
 		return Ptr<B, E, C>(ptr.ptr_ - offset);
 	}
 
-	using Ram_Ptr = Ptr<ram_begin, ram_end, Error::err_leave_ram_segment>;
+	using Ram_Ptr = Ptr<ram_begin, ram_end, Error::leave_ram_segment>;
 
 	template<signed char*& B, signed char*& E, Error::Code C> class Casting_Ptr;
 
@@ -161,10 +161,10 @@ namespace vm {
 	) { return Casting_Ptr<B, E, C>(ptr.ptr_ - offset); }
 
 	using Heap_Ptr = Casting_Ptr<
-		ram_begin, heap_end, Error::err_leave_heap_segment
+		ram_begin, heap_end, Error::leave_heap_segment
 	>;
 
 	using Stack_Ptr = Casting_Ptr<
-		stack_begin, ram_end, Error::err_leave_stack_segment
+		stack_begin, ram_end, Error::leave_stack_segment
 	>;
 }

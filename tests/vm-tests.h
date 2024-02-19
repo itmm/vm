@@ -10,12 +10,12 @@ void expect_stack(
 );
 
 #define EXPECT_STACK(CODE, EXPECTED) expect_stack( \
-	CODE, sizeof(CODE), vm::Error::err_leave_code_segment, \
+	CODE, sizeof(CODE), vm::Error::leave_code_segment, \
 	1024, EXPECTED, sizeof(EXPECTED) \
 )
 
 #define EXPECT_LIMITED_STACK(CODE, RAM, EXPECTED) expect_stack( \
-	CODE, sizeof(CODE), vm::Error::err_leave_code_segment, \
+	CODE, sizeof(CODE), vm::Error::leave_code_segment, \
 	RAM, EXPECTED, sizeof(EXPECTED) \
 )
 
@@ -28,5 +28,5 @@ void expect_stack(
 )
 
 #define EXPECT_STACK_OVERFLOW(CODE, RAM) expect_stack( \
-	CODE, sizeof(CODE), vm::Error::err_stack_overflow, RAM, nullptr, 0 \
+	CODE, sizeof(CODE), vm::Error::stack_overflow, RAM, nullptr, 0 \
 )

@@ -24,12 +24,12 @@ TEST(mult_int_tests, big_ok_a) {
 
 TEST(mult_int_tests, overflow) {
 	signed char code[] { PUSH_INT(0x80000000), PUSH_SMALL_INT(-1), op_mult };
-	EXPECT_ERROR(code, Error::err_mult_overflow);
+	EXPECT_ERROR(code, Error::mult_overflow);
 }
 
 TEST(mult_int_tests, big_overflow_a) {
 	signed char code[] { PUSH_INT(0x7fffffff), PUSH_SMALL_INT(2), op_mult };
-	EXPECT_ERROR(code, Error::err_mult_overflow);
+	EXPECT_ERROR(code, Error::mult_overflow);
 }
 
 TEST(mult_int_tests, big_ok_b) {
@@ -40,12 +40,12 @@ TEST(mult_int_tests, big_ok_b) {
 
 TEST(mult_int_tests, big_overflow_b) {
 	signed char code[] { PUSH_SMALL_INT(2), PUSH_INT(0x7fffffff), op_mult };
-	EXPECT_ERROR(code, Error::err_mult_overflow);
+	EXPECT_ERROR(code, Error::mult_overflow);
 }
 
 TEST(mult_int_tests, two_bigs_overflow) {
 	signed char code[] { PUSH_INT(0x8000), PUSH_INT(0x10000), op_mult };
-	EXPECT_ERROR(code, Error::err_mult_overflow);
+	EXPECT_ERROR(code, Error::mult_overflow);
 }
 
 TEST(mult_int_tests, max_neg) {
@@ -56,5 +56,5 @@ TEST(mult_int_tests, max_neg) {
 
 TEST(mult_int_tests, underflow) {
 	signed char code[] { PUSH_SMALL_INT(5), op_mult };
-	EXPECT_ERROR(code, Error::err_leave_stack_segment);
+	EXPECT_ERROR(code, Error::leave_stack_segment);
 }

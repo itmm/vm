@@ -12,7 +12,7 @@ TEST(dup_tests, dup_ch) {
 
 TEST(dup_tests, empty_ch) {
 	signed char code[] { op_dup };
-	EXPECT_ERROR(code, Error::err_leave_stack_segment);
+	EXPECT_ERROR(code, Error::leave_stack_segment);
 }
 
 TEST(dup_tests, ch_no_ram) {
@@ -28,7 +28,7 @@ TEST(dup_tests, dup_int) {
 
 TEST(dup_tests, empty_int) {
 	signed char code[] { op_dup };
-	EXPECT_ERROR(code, Error::err_leave_stack_segment);
+	EXPECT_ERROR(code, Error::leave_stack_segment);
 }
 
 TEST(dup_tests, int_no_ram) {

@@ -12,7 +12,7 @@ int vm::value_size(const Value& value) {
 		return int_size;
 	} else if (std::get_if<Heap_Ptr>(&value)) {
 		return ptr_size;
-	} else { err(Error::err_unknown_type); }
+	} else { err(Error::unknown_type); }
 }
 
 int vm::int_value(const Value& value) {
@@ -20,7 +20,7 @@ int vm::int_value(const Value& value) {
 		return *ch;
 	} else if (auto val = std::get_if<int>(&value)) {
 		return *val;
-	} else { err(Error::err_no_integer); }
+	} else { err(Error::no_integer); }
 }
 
 signed char vm::to_ch(int value, Error::Code overflow, Error::Code underflow) {
