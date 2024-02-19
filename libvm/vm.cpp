@@ -5,6 +5,7 @@
 #include "list.h"
 #include "ptr.h"
 #include "value.h"
+#include "ops/poly.h"
 
 #include <iostream>
 #include <limits>
@@ -96,39 +97,7 @@ namespace {
 		Accessor::insert_into_free_list(block);
 	}
 
-	class Poly_Operation {
-	public:
-		void operator()();
-		virtual ~Poly_Operation() = default;
-
-	protected:
-		Poly_Operation() = default;
-		virtual void perform_ch(signed char a, signed char b) {
-			err(Err::unknown_type);
-		}
-		virtual void perform_int(int a, int b) {
-			err(Err::unknown_type);
-		}
-	};
-
-	void Poly_Operation::operator()() {
-		auto b { Accessor::pull() }; auto a { Accessor::pull() };
-		auto a_ch = std::get_if<signed char>(&a);
-		auto b_ch = std::get_if<signed char>(&b);
-
-		if (a_ch && b_ch) { perform_ch(*a_ch, *b_ch); return; }
-
-		auto a_int = std::get_if<int>(&a);
-		auto b_int = std::get_if<int>(&b);
-
-		if ((a_int || a_ch) && (b_int || b_ch)) {
-			perform_int(a_int ? *a_int : *a_ch, b_int ? *b_int : *b_ch);
-			return;
-		}
-		err(Err::unknown_type);
-	}
-
-	class Add_Operation: public Poly_Operation {
+	class Add_Operation: public ops::Poly {
 	public:
 		Add_Operation() = default;
 		void perform_ch(signed char a, signed char b) override {
@@ -147,7 +116,7 @@ namespace {
 		}
 	};
 
-	class Sub_Operation: public Poly_Operation {
+	class Sub_Operation: public ops::Poly {
 	public:
 		Sub_Operation() = default;
 
@@ -167,7 +136,7 @@ namespace {
 		}
 	};
 
-	class Mult_Operation: public Poly_Operation {
+	class Mult_Operation: public ops::Poly {
 	public:
 		Mult_Operation() = default;
 
@@ -189,7 +158,7 @@ namespace {
 		}
 	};
 
-	class Div_Operation: public Poly_Operation {
+	class Div_Operation: public ops::Poly {
 	public:
 		Div_Operation() = default;
 
@@ -213,7 +182,7 @@ namespace {
 		}
 	};
 
-	class Mod_Operation: public Poly_Operation {
+	class Mod_Operation: public ops::Poly {
 	public:
 		Mod_Operation() = default;
 
@@ -248,7 +217,7 @@ namespace {
 		}
 	};
 
-	class And_Operation: public Poly_Operation {
+	class And_Operation: public ops::Poly {
 	public:
 		And_Operation() = default;
 
@@ -259,7 +228,7 @@ namespace {
 		void perform_int(int a, int b) override { Accessor::push(a & b); }
 	};
 
-	class Or_Operation: public Poly_Operation {
+	class Or_Operation: public ops::Poly {
 	public:
 		Or_Operation() = default;
 
@@ -270,7 +239,7 @@ namespace {
 		void perform_int(int a, int b) override { Accessor::push(a | b); }
 	};
 
-	class Xor_Operation: public Poly_Operation {
+	class Xor_Operation: public ops::Poly {
 	public:
 		Xor_Operation() = default;
 

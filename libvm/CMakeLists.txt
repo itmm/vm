@@ -5,6 +5,10 @@ add_library(libvm
     ptr.cpp
     value.cpp
     vm.cpp
+        ops/poly.cpp
+        ops/poly.h
 )
+
+add_subdirectory(ops)
 
 target_include_directories(libvm INTERFACE .)
