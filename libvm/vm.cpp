@@ -5,10 +5,12 @@
 #include "list.h"
 #include "ptr.h"
 #include "value.h"
-#include "ops/poly.h"
+#include "ops/add.h"
+#include "ops/and.h"
+#include "ops/or.h"
+#include "ops/sub.h"
 
 #include <iostream>
-#include <limits>
 #include <set>
 
 using namespace vm;
@@ -97,45 +99,6 @@ namespace {
 		Accessor::insert_into_free_list(block);
 	}
 
-	class Add_Operation: public ops::Poly {
-	public:
-		Add_Operation() = default;
-		void perform_ch(signed char a, signed char b) override {
-			Accessor::push(to_ch(
-				a + b, Err::add_overflow, Err::add_underflow
-			));
-		}
-		void perform_int(int a, int b) override {
-			if (a > 0 && b > 0 && std::numeric_limits<int>::max() - a < b) {
-				err(Err::add_overflow);
-			}
-			if (a < 0 && b < 0 && std::numeric_limits<int>::min() - a > b) {
-				err(Err::add_underflow);
-			}
-			Accessor::push(a + b);
-		}
-	};
-
-	class Sub_Operation: public ops::Poly {
-	public:
-		Sub_Operation() = default;
-
-		void perform_ch(signed char a, signed char b) override {
-			Accessor::push(to_ch(
-				a - b, Err::sub_overflow, Err::sub_underflow
-			));
-		}
-		void perform_int(int a, int b) override {
-			if (a > 0 && b < 0 && a > std::numeric_limits<int>::max() + b) {
-				err(Err::sub_overflow);
-			}
-			if (a < 0 && b > 0 && a < std::numeric_limits<int>::min() + b) {
-				err(Err::sub_underflow);
-			}
-			Accessor::push(a - b);
-		}
-	};
-
 	class Mult_Operation: public ops::Poly {
 	public:
 		Mult_Operation() = default;
@@ -215,28 +178,6 @@ namespace {
 				Accessor::push(a % b);
 			#endif
 		}
-	};
-
-	class And_Operation: public ops::Poly {
-	public:
-		And_Operation() = default;
-
-		void perform_ch(signed char a, signed char b) override {
-			Accessor::push(to_ch(a & b, Err::unexpected, Err::unexpected));
-		}
-
-		void perform_int(int a, int b) override { Accessor::push(a & b); }
-	};
-
-	class Or_Operation: public ops::Poly {
-	public:
-		Or_Operation() = default;
-
-		void perform_ch(signed char a, signed char b) override {
-			Accessor::push(to_ch(a | b, Err::unexpected, Err::unexpected));
-		}
-
-		void perform_int(int a, int b) override { Accessor::push(a | b); }
 	};
 
 	class Xor_Operation: public ops::Poly {
@@ -364,8 +305,8 @@ void vm::step() {
 			err(Err::unknown_type);
 		}
 
-		case op_and: { And_Operation { }(); break; }
-		case op_or: { Or_Operation { }(); break; }
+		case op_and: { vm::ops::And { }(); break; }
+		case op_or: { vm::ops::Or { }(); break; }
 		case op_xor: { Xor_Operation { }(); break; }
 
 		#if CONFIG_HAS_CH
@@ -376,8 +317,8 @@ void vm::step() {
 				case op_write_ch: std::cout << Accessor::pull_ch(); break;
 			#endif
 		#endif
-		case op_add: { Add_Operation { }(); break; }
-		case op_sub: { Sub_Operation { }(); break; }
+		case op_add: { vm::ops::Add { }(); break; }
+		case op_sub: { vm::ops::Sub { }(); break; }
 		case op_mult: { Mult_Operation { }(); break; }
 		case op_div: { Div_Operation { }(); break; }
 		case op_mod: { Mod_Operation { }(); break; }
