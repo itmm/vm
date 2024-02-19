@@ -3,6 +3,7 @@
 #include <iostream>
 #include <limits>
 #include <set>
+#include <variant>
 
 using namespace vm;
 
@@ -38,7 +39,7 @@ namespace {
 		return static_cast<signed char>(value);
 	}
 
-	template<typename T, T& B, T& E, Error::Code C>
+	template<typename T, T&, T&, Error::Code>
 	class Const_Ptr {
 		public:
 			explicit Const_Ptr(T ptr = nullptr): ptr_ { ptr } {
@@ -47,8 +48,6 @@ namespace {
 
 			[[nodiscard]] signed char get_byte();
 			[[nodiscard]] Value get_value();
-			[[nodiscard]] signed char get_ch();
-			[[nodiscard]] int get_int() const;
 
 			[[nodiscard]] T get_raw() const { return ptr_; }
 
@@ -70,25 +69,12 @@ namespace {
 		check(1); return *ptr_;
 	}
 
-	template<typename T, T& B, T& E, Error::Code C>
-	signed char Const_Ptr<T, B, E, C>::get_ch() {
-		check(ch_size); if (*ptr_ != ch_type) { err(Error::err_no_char); }
-		return ptr_[1];
-	}
-
 	template<typename T> int get_int_value(T* ptr) {
 		int value { 0 };
 		for (auto i { ptr }, e { ptr + raw_int_size }; i < e; ++i) {
 			value = (value << bits_per_byte) + (*i & byte_mask);
 		}
 		return value;
-	}
-
-	template<typename T, T& B, T& E, Error::Code C>
-	int Const_Ptr<T, B, E, C>::get_int() const {
-		check(int_size);
-		if (*ptr_ != int_type) { err(Error::err_no_integer); }
-		return get_int_value(ptr_ + 1);
 	}
 
 	signed char* ram_begin_;
@@ -187,33 +173,36 @@ namespace {
 	using Ram_Ptr = Ptr<ram_begin_, ram_end_, Error::err_leave_ram_segment>;
 
 	template<signed char*& B, signed char*& E, Error::Code C>
-	class Castable_Ptr : public Ptr<B, E, C> {
+	class Casting_Ptr : public Ptr<B, E, C> {
 		public:
-			explicit Castable_Ptr(signed char* ptr = nullptr):
+			explicit Casting_Ptr(signed char* ptr = nullptr):
 				Ptr<B, E, C> { ptr } { }
 
-			explicit Castable_Ptr(const Ram_Ptr ptr):
-				Castable_Ptr { ptr.get_raw() }
+			[[maybe_unused]] explicit Casting_Ptr(const Ram_Ptr ptr):
+				Casting_Ptr { ptr.get_raw() }
 			{ }
 
 			explicit operator Ram_Ptr() { return Ram_Ptr { this->get_raw() }; }
 	};
 
 	template<signed char*& B, signed char*& E, Error::Code C>
-	Castable_Ptr<B, E, C> operator+(const Castable_Ptr<B, E, C>& ptr, int offset) {
-		return Castable_Ptr<B, E, C>(ptr.get_raw() + offset);
+	Casting_Ptr<B, E, C> operator+(const Casting_Ptr<B, E, C>& ptr, int offset) {
+		return Casting_Ptr<B, E, C>(ptr.get_raw() + offset);
 	}
 
 	template<signed char*& B, signed char*& E, Error::Code C>
-	Castable_Ptr<B, E, C> operator-(
-		const Castable_Ptr<B, E, C>& ptr, int offset
-	) { return Castable_Ptr<B, E, C>(ptr.get_raw() - offset); }
+	Casting_Ptr<B, E, C> operator-(
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "ConstantParameter"
+		const Casting_Ptr<B, E, C>& ptr, int offset
+#pragma clang diagnostic pop
+	) { return Casting_Ptr<B, E, C>(ptr.get_raw() - offset); }
 
-	using Heap_Ptr = Castable_Ptr<
+	using Heap_Ptr = Casting_Ptr<
 		ram_begin_, heap_end_, Error::err_leave_heap_segment
 	>;
 
-	using Stack_Ptr = Castable_Ptr<
+	using Stack_Ptr = Casting_Ptr<
 		stack_begin_, ram_end_, Error::err_leave_stack_segment
 	>;
 
@@ -612,7 +601,7 @@ void vm::init(
 	pc_ = Code_Ptr { code_begin };
 }
 
-void vm::dump_stack() {
+[[maybe_unused]] void vm::dump_stack() {
 	std::cout << "STACK\n";
 	for (auto i { stack_begin_}; i != ram_end_; ++i) {
 		std::cout << "\t" << (int) *i << "\n";
@@ -751,5 +740,3 @@ void vm::step() {
 const signed char* vm::stack_begin() { return stack_begin_; }
 const signed char* vm::heap_end() { return heap_end_; }
 const signed char* vm::ram_begin() { return ram_begin_; }
-const signed char* vm::ram_end() { return ram_end_; }
-const signed char* vm::pc() { return pc_.get_raw(); }
