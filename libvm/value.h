@@ -5,7 +5,7 @@
 #include "ptr.h"
 
 namespace vm {
-	using Value = std::variant<signed char, int, signed char*>;
+	using Value = std::variant<signed char, int, Heap_Ptr>;
 
 	int value_size(const Value& value);
 

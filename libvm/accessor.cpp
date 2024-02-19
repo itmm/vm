@@ -22,9 +22,9 @@ int Accessor::pull_int() { return int_value(pull()); }
 
 Heap_Ptr Accessor::pull_ptr() {
 	auto value { pull() };
-	auto ptr = std::get_if<signed char*>(&value);
+	auto ptr = std::get_if<Heap_Ptr>(&value);
 	if (!ptr) { err(Error::err_no_pointer); }
-	return Heap_Ptr { *ptr };
+	return *ptr;
 }
 
 void Accessor::push(Value value) {
@@ -34,8 +34,6 @@ void Accessor::push(Value value) {
 	auto ptr { Stack_Ptr { stack_begin } };
 	set_value(ptr, value);
 }
-
-void Accessor::push(Heap_Ptr ptr) { push(ptr.ptr_); }
 
 void Accessor::insert_into_free_list(Heap_Ptr block) {
 	Heap_Ptr greater { };

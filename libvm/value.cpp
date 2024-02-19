@@ -10,7 +10,7 @@ int vm::value_size(const Value& value) {
 		return ch_size;
 	} else if (std::get_if<int>(&value)) {
 		return int_size;
-	} else if (std::get_if<signed char*>(&value)) {
+	} else if (std::get_if<Heap_Ptr>(&value)) {
 		return ptr_size;
 	} else { err(Error::err_unknown_type); }
 }

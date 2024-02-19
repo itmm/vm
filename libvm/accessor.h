@@ -44,9 +44,9 @@ namespace vm {
 					case ptr_type: {
 						ptr.check(ptr_size);
 						int offset { get_int_value(ptr + 1) };
-						return Value {
+						return Value { Heap_Ptr {
 							offset >= 0 ? ram_begin + offset : nullptr
-						};
+						} };
 					}
 					default: err(Error::err_unknown_type);
 				}
@@ -61,10 +61,10 @@ namespace vm {
 					ptr.check(int_size);
 					ptr.ptr_[0] = int_type;
 					set_int(ptr + 1, *val);
-				} else if (auto pt = std::get_if<signed char*>(&value)) {
+				} else if (auto pt = std::get_if<Heap_Ptr>(&value)) {
 					ptr.check(ptr_size);
 					ptr.ptr_[0] = ptr_type;
-					int v = *pt ? static_cast<int>(*pt - ram_begin) : -1;
+					int v = *pt ? static_cast<int>(pt->ptr_ - ram_begin) : -1;
 					set_int(ptr + 1, v);
 				} else { err(Error::err_unknown_type); }
 			}
@@ -92,7 +92,6 @@ namespace vm {
 			static Heap_Ptr pull_ptr();
 
 			static void push(Value value);
-			static void push(Heap_Ptr value);
 			static void insert_into_free_list(Heap_Ptr block);
 	};
 }
