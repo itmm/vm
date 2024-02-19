@@ -666,12 +666,12 @@ void vm::step() {
 
 		case op_store: store(pull_int()); break;
 
-		case op_send: { // TODO: add unit-tests
+		case op_send: {
 			Heap_Ptr ptr { ram_begin_ + pull_int() };
 			ptr.set_value(pull()); break;
 		}
 
-		case op_receive: // TODO: add unit-tests
+		case op_receive:
 			push(Heap_Ptr { ram_begin_ + pull_int() }.get_value()); break;
 
 		case op_equals: {

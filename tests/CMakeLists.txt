@@ -14,10 +14,11 @@ add_executable(Tests
 	test-mod-int.cpp
 	test-mult-int.cpp
 	test-pull.cpp
+	test-push-pull.cpp
+	test-send-receive.cpp
 	test-store.cpp
 	test-sub-int.cpp
 	test-swap.cpp
-	test-push-pull.cpp
 	vm-tests.cpp
 )
 
