@@ -1,6 +1,5 @@
 #pragma once
 
-#include "list.h"
 #include "ptr.h"
 #include "value.h"
 #include "vm.h"
@@ -28,9 +27,6 @@ namespace vm {
 			template<typename P> static void set_ptr(
 				P ptr, const Heap_Ptr& value
 			);
-
-			static List free_list;
-			static List alloc_list;
 
 			static Value pull();
 			static signed char pull_ch();

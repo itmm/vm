@@ -2,9 +2,6 @@
 
 using namespace vm;
 
-List Acc::free_list;
-List Acc::alloc_list;
-
 template<typename T, T& B, T& E, Err::Code C>
 int Acc::get_int_value(const Const_Ptr<T, B, E, C>& ptr) {
 	int value { 0 };

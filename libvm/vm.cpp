@@ -16,7 +16,6 @@
 #include "ops/xor.h"
 
 #include <iostream>
-#include <set>
 
 using namespace vm;
 
@@ -44,63 +43,6 @@ namespace {
 		if (invert) { condition = negate(condition); }
 		jump(offset, condition);
 	}
-
-	Heap_Ptr find_on_free_list(int size, bool tight_fit) {
-		auto current { Acc::free_list.end };
-		while (current) {
-			int cur_size { Acc::get_int_value(current) };
-			bool found {
-				tight_fit ?
-					cur_size == size || cur_size > 3 * size :
-					cur_size >= size
-			};
-			if (found) {
-				int rest_size { cur_size - size };
-				if (rest_size >= heap_overhead) {
-					Heap_Ptr rest_block { current + size };
-					Acc::set_int(rest_block, rest_size);
-					Acc::set_int(current, size);
-					Acc::free_list.insert(rest_block, current);
-				}
-				Acc::free_list.remove(current);
-				return current;
-			}
-			current = Acc::get_ptr(current + node_prev_offset);
-		}
-		return Heap_Ptr { };
-	}
-
-	inline Heap_Ptr find_on_free_list(int size) {
-		auto got { find_on_free_list(size, true) };
-		if (! got) { got = find_on_free_list(size, false); }
-		return got;
-	}
-
-	void alloc_block(int size) {
-		size = std::max(size + heap_overhead, node_size);
-		auto found { find_on_free_list(size) };
-		if (!found) {
-			if (heap_end + size > stack_begin) { err(Err::heap_overflow); }
-			found = Heap_Ptr { heap_end };
-			heap_end += size;
-			Acc::set_int(found, size);
-		}
-		Acc::alloc_list.insert(found, Acc::alloc_list.begin);
-		Acc::push(found + heap_overhead);
-	}
-
-	void free_block(Heap_Ptr block) {
-		block = block - heap_overhead;
-		Acc::alloc_list.remove(block);
-		int size { Acc::get_int_value(block) };
-		if (size < std::max(node_size, heap_overhead)) {
-			err(Err::free_invalid_block);
-		}
-		if (Heap_Ptr { heap_end } < block + size) {
-			err(Err::free_invalid_block);
-		}
-		Heap::insert_into_free_list(block);
-	}
 }
 
 void check_range(
@@ -119,8 +61,8 @@ void vm::init(
 
 	stack_begin = ram_end;
 	heap_end = ram_begin;
-	Acc::free_list = List { };
-	Acc::alloc_list = List { };
+	Heap::free_list = List { };
+	Heap::alloc_list = List { };
 	pc = Code_Ptr { code_begin };
 }
 
@@ -167,8 +109,8 @@ void vm::step() {
 			jump_with_stack_condition(value, false); break;
 		}
 
-		case op_new: alloc_block(Acc::pull_int()); break;
-		case op_free: free_block(Acc::pull_ptr()); break;
+		case op_new: Heap::alloc_block(Acc::pull_int()); break;
+		case op_free: Heap::free_block(Acc::pull_ptr()); break;
 		case op_pull: Acc::pull(); break;
 
 		case op_dup: {
