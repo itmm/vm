@@ -16,8 +16,9 @@ add_executable(Tests
 	test-push-pull.cpp
 	test-send-receive.cpp
 	test-store.cpp
-	test-sub-int.cpp
+	test-sub.cpp
 	test-swap.cpp
+	test-to-ch.cpp
 	test-to-int.cpp
 	vm-tests.cpp
 )
