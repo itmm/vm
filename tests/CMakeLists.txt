@@ -1,24 +1,24 @@
 find_package(GTest REQUIRED)
 
 add_executable(Tests
-	test-add-int.cpp
+	test-add.cpp
 	test-bool.cpp
-	test-ch-to-int.cpp
-	test-div-int.cpp
+	test-div.cpp
 	test-dup.cpp
 	test-equals.cpp
 	test-fetch.cpp
 	test-heap.cpp
 	test-jmp.cpp
 	test-less.cpp
-	test-mod-int.cpp
-	test-mult-int.cpp
+	test-mod.cpp
+	test-mult.cpp
 	test-pull.cpp
 	test-push-pull.cpp
 	test-send-receive.cpp
 	test-store.cpp
 	test-sub-int.cpp
 	test-swap.cpp
+	test-to-int.cpp
 	vm-tests.cpp
 )
 
