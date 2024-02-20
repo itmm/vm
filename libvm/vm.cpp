@@ -7,6 +7,8 @@
 #include "value.h"
 #include "ops/add.h"
 #include "ops/and.h"
+#include "ops/div.h"
+#include "ops/mult.h"
 #include "ops/or.h"
 #include "ops/sub.h"
 #include "ops/xor.h"
@@ -99,52 +101,6 @@ namespace {
 		}
 		Accessor::insert_into_free_list(block);
 	}
-
-	class Mult_Operation: public ops::Poly {
-	public:
-		Mult_Operation() = default;
-
-		void perform_ch(signed char a, signed char b) override {
-			Accessor::push(to_ch(
-				a * b, Err::mult_overflow, Err::mult_underflow
-			));
-		}
-		void perform_int(int a, int b) override {
-			if (a == 0x80000000 && b == -1) { err(Err::mult_overflow); }
-			int value { a * b };
-			if (b != 0 && value / b != a) {
-				if ((a < 0 && b > 0) || (a > 0 && b < 0)) {
-					err(Err::mult_underflow);
-				}
-				err(Err::mult_overflow);
-			}
-			Accessor::push(value);
-		}
-	};
-
-	class Div_Operation: public ops::Poly {
-	public:
-		Div_Operation() = default;
-
-		void perform_ch(signed char a, signed char b) override {
-			if (b == 0) { err(Err::div_divide_by_0); }
-			Accessor::push(to_ch(
-				a / b, Err::div_overflow, Err::unexpected
-			));
-		}
-		void perform_int(int a, int b) override {
-			if (b == 0) { err(Err::div_divide_by_0); }
-			if (a == 0x80000000 && b == -1) { err(Err::div_overflow); }
-			#if CONFIG_OBERON_MATH
-				int value { a / b };
-				int rem { a % b };
-				if (rem < 0) { value += b > 0 ? -1 : 1; }
-				Accessor::push(value);
-			#else
-				Accessor::push_value(a / b);
-			#endif
-		}
-	};
 
 	class Mod_Operation: public ops::Poly {
 	public:
@@ -308,8 +264,8 @@ void vm::step() {
 		#endif
 		case op_add: { vm::ops::Add { }(); break; }
 		case op_sub: { vm::ops::Sub { }(); break; }
-		case op_mult: { Mult_Operation { }(); break; }
-		case op_div: { Div_Operation { }(); break; }
+		case op_mult: { vm::ops::Mult { }(); break; }
+		case op_div: { vm::ops::Div { }(); break; }
 		case op_mod: { Mod_Operation { }(); break; }
 		#if CONFIG_HAS_INT
 			#if CONFIG_HAS_OP_PUSH_INT

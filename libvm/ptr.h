@@ -15,22 +15,17 @@ namespace vm {
 	template<typename T, T& B, T& E, Err::Code C> class Const_Ptr;
 
 	template<typename T, T& B, T& E, Err::Code C>
-	inline Const_Ptr<T, B, E, C> operator+(
+	Const_Ptr<T, B, E, C> operator+(
 		const Const_Ptr<T, B, E, C>& ptr, int offset
 	);
 
 	template<typename T, T& B, T& E, Err::Code C>
-	inline Const_Ptr<T, B, E, C> operator-(
-		const Const_Ptr<T, B, E, C>& ptr, int offset
-	);
-
-	template<typename T, T& B, T& E, Err::Code C>
-	inline bool operator==(
+	bool operator==(
 		const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b
 	);
 
 	template<typename T, T& B, T& E, Err::Code C>
-	inline bool operator<(
+	bool operator<(
 		const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b
 	);
 
@@ -45,7 +40,6 @@ namespace vm {
 		protected:
 			friend class Accessor;
 			friend Const_Ptr<T, B, E, C> operator+<>(const Const_Ptr<T, B, E, C>& ptr, int offset);
-			friend Const_Ptr<T, B, E, C> operator-<>(const Const_Ptr<T, B, E, C>& ptr, int offset);
 			friend bool operator==<>(const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b);
 			friend bool operator< <>(const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b);
 
@@ -53,31 +47,6 @@ namespace vm {
 
 			void check(int size) const;
 	};
-
-	template<typename T, T& B, T& E, Err::Code C>
-	inline void Const_Ptr<T, B, E, C>::check(int size) const {
-		if (ptr_ < B || ptr_ + size > E) { err(C); }
-	}
-
-	template<typename T, T& B, T& E, Err::Code C>
-	inline Const_Ptr<T, B, E, C> operator+(
-		const Const_Ptr<T, B, E, C>& ptr, int offset
-	) { return Const_Ptr<T, B, E, C> { ptr.ptr_ + offset }; }
-
-	template<typename T, T& B, T& E, Err::Code C>
-	inline Const_Ptr<T, B, E, C> operator-(
-		const Const_Ptr<T, B, E, C>& ptr, int offset
-	) { return Const_Ptr<T, B, E, C> { ptr.ptr_ - offset }; }
-
-	template<typename T, T& B, T& E, Err::Code C>
-	inline bool operator==(
-		const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b
-	) { return a.ptr_ == b.ptr_; }
-
-	template<typename T, T& B, T& E, Err::Code C>
-	inline bool operator<(
-		const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b
-	) { return a.ptr_ < b.ptr_; }
 
 	using Code_Ptr = Const_Ptr<
 		const signed char*, code_begin, code_end,
@@ -104,6 +73,9 @@ namespace vm {
 
 			explicit Ptr(signed char* ptr = nullptr):
 				Const_Ptr<signed char*, B, E, C> { ptr } { }
+
+		protected:
+			[[nodiscard]] signed char* ptr() const { return this->ptr_; }
 	};
 
 	template<signed char*& B, signed char*& E, Err::Code C>
@@ -140,10 +112,6 @@ namespace vm {
 
 			explicit Casting_Ptr(signed char* ptr = nullptr):
 				Ptr<B, E, C> { ptr } { }
-
-			[[maybe_unused]] explicit Casting_Ptr(const Ram_Ptr ptr):
-				Casting_Ptr { ptr.ptr_ }
-			{ }
 
 			explicit operator Ram_Ptr() const { return Ram_Ptr { this->ptr_ }; }
 	};
