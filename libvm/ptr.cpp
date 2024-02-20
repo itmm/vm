@@ -34,21 +34,27 @@ bool vm::operator<(
 	const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b
 ) { return a.ptr_ < b.ptr_; }
 
+// instantiate templates:
+
 template class vm::Const_Ptr<
 	const signed char*, code_begin, code_end,
 	Err::leave_code_segment
 >;
 
-template Const_Ptr<const signed char*, code_begin, code_end, Err::leave_code_segment>
+template Const_Ptr<
+    const signed char*, code_begin, code_end, Err::leave_code_segment
+>
 vm::operator+(
-	const Const_Ptr<const signed char*, code_begin, code_end, Err::leave_code_segment>&,
-	int
+	const Const_Ptr<
+	    const signed char*, code_begin, code_end, Err::leave_code_segment
+	>&, int
 );
 
 template Const_Ptr<signed char*, ram_begin, heap_end, Err::leave_heap_segment>
 vm::operator+(
-	const Const_Ptr<signed char*, ram_begin, heap_end, Err::leave_heap_segment>&,
-	int
+	const Const_Ptr<
+	    signed char*, ram_begin, heap_end, Err::leave_heap_segment
+	>&, int
 );
 
 template Ptr<ram_begin, heap_end, Err::leave_heap_segment>
@@ -63,14 +69,13 @@ vm::operator+(
 
 template Const_Ptr<signed char*, stack_begin, ram_end, Err::leave_stack_segment>
 vm::operator+(
-	const Const_Ptr<signed char*, stack_begin, ram_end, Err::leave_stack_segment>&,
-	int
+	const Const_Ptr<
+	    signed char*, stack_begin, ram_end, Err::leave_stack_segment
+	>&, int
 );
 
 template Ptr<stack_begin, ram_end, Err::leave_stack_segment>
-vm::operator+(
-	const Ptr<stack_begin, ram_end, Err::leave_stack_segment>&, int
-);
+vm::operator+(const Ptr<stack_begin, ram_end, Err::leave_stack_segment>&, int);
 
 template Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>
 vm::operator-(
@@ -78,12 +83,16 @@ vm::operator-(
 );
 
 template bool vm::operator==(
-	const Const_Ptr<signed char*, ram_begin, heap_end, Err::leave_heap_segment>&,
+	const Const_Ptr<
+	    signed char*, ram_begin, heap_end, Err::leave_heap_segment
+	>&,
 	const Const_Ptr<signed char*, ram_begin, heap_end, Err::leave_heap_segment>&
 );
 
 template bool vm::operator<(
-	const Const_Ptr<signed char*, ram_begin, heap_end, Err::leave_heap_segment>&,
+	const Const_Ptr<
+	    signed char*, ram_begin, heap_end, Err::leave_heap_segment
+	>&,
 	const Const_Ptr<signed char*, ram_begin, heap_end, Err::leave_heap_segment>&
 );
 
