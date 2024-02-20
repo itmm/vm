@@ -49,21 +49,21 @@ Value Acc::get_value(const Const_Ptr<T, B, E, C>& ptr) {
 	}
 }
 
+static void set_ptr_type(signed char* ptr, signed char type) {
+	if (*ptr && *ptr != type) { err(Err::change_type); }
+	*ptr = type;
+}
+
 template<signed char*& B, signed char*& E, Err::Code C>
 void Acc::set_value(Ptr<B, E, C> ptr, const Value& value) {
 	if (auto ch = std::get_if<signed char>(&value)) {
-		ptr.check(ch_size);
-		if (ptr.ptr_[0] && ptr.ptr_[0] != ch_type) { err(Err::change_type); }
-		ptr.ptr_[0] = ch_type; ptr.ptr_[1] = *ch;
+		ptr.check(ch_size); set_ptr_type(ptr.ptr_, ch_type);
+		ptr.ptr_[1] = *ch;
 	} else if (auto val = std::get_if<int>(&value)) {
-		ptr.check(int_size);
-		if (ptr.ptr_[0] && ptr.ptr_[0] != int_type) { err(Err::change_type); }
-		ptr.ptr_[0] = int_type;
+		ptr.check(int_size); set_ptr_type(ptr.ptr_, int_type);
 		set_int(ptr + 1, *val);
 	} else if (auto pt = std::get_if<Heap_Ptr>(&value)) {
-		ptr.check(ptr_size);
-		if (ptr.ptr_[0] && ptr.ptr_[0] != ptr_type) { err(Err::change_type); }
-		ptr.ptr_[0] = ptr_type;
+		ptr.check(ptr_size); set_ptr_type(ptr.ptr_, ptr_type);
 		int v = *pt ? static_cast<int>(pt->ptr_ - ram_begin) : -1;
 		set_int(ptr + 1, v);
 	} else { err(Err::unknown_type); }
