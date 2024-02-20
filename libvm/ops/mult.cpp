@@ -4,7 +4,7 @@
 using namespace vm;
 
 void vm::ops::Mult::perform_ch(signed char a, signed char b) {
-	Accessor::push(to_ch(a * b, Err::mult_overflow, Err::mult_underflow));
+	Acc::push(to_ch(a * b, Err::mult_overflow, Err::mult_underflow));
 }
 
 void vm::ops::Mult::perform_int(int a, int b) {
@@ -16,5 +16,5 @@ void vm::ops::Mult::perform_int(int a, int b) {
 		}
 		err(Err::mult_overflow);
 	}
-	Accessor::push(value);
+	Acc::push(value);
 }

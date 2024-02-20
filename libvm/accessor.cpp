@@ -2,32 +2,32 @@
 
 using namespace vm;
 
-List Accessor::free_list;
-List Accessor::alloc_list;
+List Acc::free_list;
+List Acc::alloc_list;
 
-Value Accessor::pull() {
+Value Acc::pull() {
 	auto value { get_value(Stack_Ptr { stack_begin }) };
 	stack_begin += value_size(value); return value;
 }
 
-signed char Accessor::pull_ch() {
+signed char Acc::pull_ch() {
 	auto value { pull() };
 	auto ch = std::get_if<signed char>(&value);
 	if (!ch) { err(Err::no_char); }
 	return *ch;
 }
 
-int Accessor::pull_int() { return int_value(pull()); }
+int Acc::pull_int() { return int_value(pull()); }
 
 
-Heap_Ptr Accessor::pull_ptr() {
+Heap_Ptr Acc::pull_ptr() {
 	auto value { pull() };
 	auto ptr = std::get_if<Heap_Ptr>(&value);
 	if (!ptr) { err(Err::no_pointer); }
 	return *ptr;
 }
 
-void Accessor::push(Value value) {
+void Acc::push(Value value) {
 	auto size { value_size(value) };
 	if (heap_end + size > stack_begin) { err(Err::stack_overflow); }
 	stack_begin -= size;
@@ -35,35 +35,35 @@ void Accessor::push(Value value) {
 	set_value(ptr, value);
 }
 
-void Accessor::insert_into_free_list(Heap_Ptr block) {
+void Acc::insert_into_free_list(Heap_Ptr block) {
 	Heap_Ptr greater { };
-	Heap_Ptr smaller { Accessor::free_list.begin };
+	Heap_Ptr smaller { Acc::free_list.begin };
 	while (smaller && block < smaller) {
 		greater = smaller;
-		smaller = Accessor::get_ptr(smaller + node_next_offset);
+		smaller = Acc::get_ptr(smaller + node_next_offset);
 	}
-	int size { Accessor::get_int_value(block) };
+	int size { Acc::get_int_value(block) };
 
 	if (smaller) {
-		int smaller_size { Accessor::get_int_value(smaller) };
+		int smaller_size { Acc::get_int_value(smaller) };
 		if (smaller + smaller_size == block) {
-			Accessor::set_int(smaller, smaller_size + size);
+			Acc::set_int(smaller, smaller_size + size);
 			block = smaller; size += smaller_size;
-			Accessor::free_list.remove(block);
+			Acc::free_list.remove(block);
 		}
 	}
 
 	if (greater) {
 		if (block + size == greater) {
-			Accessor::set_int(block, size + Accessor::get_int_value(greater));
+			Acc::set_int(block, size + Acc::get_int_value(greater));
 			auto old_greater { greater };
-			greater = Accessor::get_ptr(greater + node_next_offset);
-			Accessor::free_list.remove(old_greater);
+			greater = Acc::get_ptr(greater + node_next_offset);
+			Acc::free_list.remove(old_greater);
 		}
 	}
 
 	if (block.ptr_ + size == heap_end) {
 		heap_end = block.ptr_;
-	} else { Accessor::free_list.insert(block, greater); }
+	} else { Acc::free_list.insert(block, greater); }
 }
 

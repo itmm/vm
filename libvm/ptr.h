@@ -10,7 +10,7 @@ namespace vm {
 	extern signed char* stack_begin;
 	extern signed char* ram_end;
 
-	class Accessor;
+	class Acc;
 
 	template<typename P> P operator+(const P& ptr, int offset);
 	template<typename P> P operator-(const P& ptr, int offset);
@@ -36,11 +36,15 @@ namespace vm {
 			explicit operator bool() const { return ptr_; }
 
 		protected:
-			friend class Accessor;
+			friend class Acc;
 			template<typename P> friend P operator+(const P& ptr, int offset);
 			template<typename P> friend P operator-(const P& ptr, int offset);
-			friend bool operator==<>(const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b);
-			friend bool operator< <>(const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b);
+			friend bool operator==<>(
+				const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b
+			);
+			friend bool operator< <>(
+				const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b
+			);
 
 			T ptr_;
 
@@ -48,8 +52,7 @@ namespace vm {
 	};
 
 	using Code_Ptr = Const_Ptr<
-		const signed char*, code_begin, code_end,
-		Err::leave_code_segment
+		const signed char*, code_begin, code_end, Err::leave_code_segment
 	>;
 
 	extern Code_Ptr pc;
@@ -75,9 +78,7 @@ namespace vm {
 			explicit operator Ram_Ptr() const { return Ram_Ptr { this->ptr_ }; }
 	};
 
-	using Heap_Ptr = Casting_Ptr<
-		ram_begin, heap_end, Err::leave_heap_segment
-	>;
+	using Heap_Ptr = Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>;
 
 	using Stack_Ptr = Casting_Ptr<
 		stack_begin, ram_end, Err::leave_stack_segment

@@ -20,12 +20,12 @@ using namespace vm;
 
 namespace {
 	void fetch(int offset) {
-		Accessor::push(Accessor::get_value(Stack_Ptr { stack_begin + offset }));
+		Acc::push(Acc::get_value(Stack_Ptr { stack_begin + offset }));
 	}
 
 	void store(int offset) {
-		auto value { Accessor::pull() };
-		Accessor::set_value(Stack_Ptr { stack_begin + offset }, value);
+		auto value { Acc::pull() };
+		Acc::set_value(Stack_Ptr { stack_begin + offset }, value);
 	}
 
 	void jump(int offset, signed char condition) {
@@ -38,15 +38,15 @@ namespace {
 	}
 
 	void jump_with_stack_condition(int offset, bool invert) {
-		auto condition { Accessor::pull_ch() };
+		auto condition { Acc::pull_ch() };
 		if (invert) { condition = negate(condition); }
 		jump(offset, condition);
 	}
 
 	Heap_Ptr find_on_free_list(int size, bool tight_fit) {
-		auto current { Accessor::free_list.end };
+		auto current { Acc::free_list.end };
 		while (current) {
-			int cur_size { Accessor::get_int_value(current) };
+			int cur_size { Acc::get_int_value(current) };
 			bool found {
 				tight_fit ?
 					cur_size == size || cur_size > 3 * size :
@@ -56,14 +56,14 @@ namespace {
 				int rest_size { cur_size - size };
 				if (rest_size >= heap_overhead) {
 					Heap_Ptr rest_block { current + size };
-					Accessor::set_int(rest_block, rest_size);
-					Accessor::set_int(current, size);
-					Accessor::free_list.insert(rest_block, current);
+					Acc::set_int(rest_block, rest_size);
+					Acc::set_int(current, size);
+					Acc::free_list.insert(rest_block, current);
 				}
-				Accessor::free_list.remove(current);
+				Acc::free_list.remove(current);
 				return current;
 			}
-			current = Accessor::get_ptr(current + node_prev_offset);
+			current = Acc::get_ptr(current + node_prev_offset);
 		}
 		return Heap_Ptr { };
 	}
@@ -78,28 +78,26 @@ namespace {
 		size = std::max(size + heap_overhead, node_size);
 		auto found { find_on_free_list(size) };
 		if (!found) {
-			if (heap_end + size > stack_begin) {
-				err(Err::heap_overflow);
-			}
+			if (heap_end + size > stack_begin) { err(Err::heap_overflow); }
 			found = Heap_Ptr { heap_end };
 			heap_end += size;
-			Accessor::set_int(found, size);
+			Acc::set_int(found, size);
 		}
-		Accessor::alloc_list.insert(found, Accessor::alloc_list.begin);
-		Accessor::push(found + heap_overhead);
+		Acc::alloc_list.insert(found, Acc::alloc_list.begin);
+		Acc::push(found + heap_overhead);
 	}
 
 	void free_block(Heap_Ptr block) {
 		block = block - heap_overhead;
-		Accessor::alloc_list.remove(block);
-		int size { Accessor::get_int_value(block) };
+		Acc::alloc_list.remove(block);
+		int size { Acc::get_int_value(block) };
 		if (size < std::max(node_size, heap_overhead)) {
 			err(Err::free_invalid_block);
 		}
 		if (Heap_Ptr { heap_end } < block + size) {
 			err(Err::free_invalid_block);
 		}
-		Accessor::insert_into_free_list(block);
+		Acc::insert_into_free_list(block);
 	}
 
 	class Mod_Operation: public ops::Poly {
@@ -113,13 +111,9 @@ namespace {
 				if (value < 0) {
 					if (b > 0) { value += b; } else { value -= b; }
 				}
-				Accessor::push(to_ch(
-					value, Err::unexpected, Err::unexpected
-				));
+				Acc::push(to_ch(value, Err::unexpected, Err::unexpected));
 			#else
-				Accessor::push_value(to_ch(
-					a % b, Err::unexpected, Err::unexpected
-				));
+				Acc::push_value(to_ch(a % b, Err::unexpected, Err::unexpected));
 			#endif
 		}
 
@@ -130,9 +124,9 @@ namespace {
 				if (value < 0) {
 					if (b > 0) { value += b; } else { value -= b; }
 				}
-				Accessor::push(value);
+				Acc::push(value);
 			#else
-				Accessor::push(a % b);
+				Acc::push(a % b);
 			#endif
 		}
 	};
@@ -154,8 +148,8 @@ void vm::init(
 
 	stack_begin = ram_end;
 	heap_end = ram_begin;
-	Accessor::free_list = List { };
-	Accessor::alloc_list = List { };
+	Acc::free_list = List { };
+	Acc::alloc_list = List { };
 	pc = Code_Ptr { code_begin };
 }
 
@@ -167,7 +161,7 @@ void vm::init(
 }
 
 void vm::step() {
-	signed char op { Accessor::get_byte(pc) }; pc = pc + 1;
+	signed char op { Acc::get_byte(pc) }; pc = pc + 1;
 	switch (op) {
 		#if CONFIG_HAS_OP_NOP
 			case op_nop: break;
@@ -176,77 +170,76 @@ void vm::step() {
 			case op_break: err(Err::got_break);
 		#endif
 		case op_near_jmp: {
-			auto value { Accessor::get_byte(pc) }; pc = pc + 1;
+			auto value { Acc::get_byte(pc) }; pc = pc + 1;
 			jump(value, true_lit); break;
 		}
 		case op_near_jmp_false: {
-			auto value { Accessor::get_byte(pc) }; pc = pc + 1;
+			auto value { Acc::get_byte(pc) }; pc = pc + 1;
 			jump_with_stack_condition(value, true); break;
 		}
 		case op_near_jmp_true: {
-			auto value { Accessor::get_byte(pc) }; pc = pc + 1;
+			auto value { Acc::get_byte(pc) }; pc = pc + 1;
 			jump_with_stack_condition(value, false); break;
 		}
 		case op_jmp: {
-			int value { Accessor::get_int_value(pc) };
+			int value { Acc::get_int_value(pc) };
 			pc = pc + raw_int_size; jump(value, true_lit); break;
 		}
 		case op_jmp_false: {
-			int value { Accessor::get_int_value(pc) };
+			int value { Acc::get_int_value(pc) };
 			pc = pc + raw_int_size;
 			jump_with_stack_condition(value, true); break;
 		}
 		case op_jmp_true: {
-			int value { Accessor::get_int_value(pc) };
+			int value { Acc::get_int_value(pc) };
 			pc = pc + raw_int_size;
 			jump_with_stack_condition(value, false); break;
 		}
 
-		case op_new: alloc_block(Accessor::pull_int()); break;
-		case op_free: free_block(Accessor::pull_ptr()); break;
-		case op_pull: Accessor::pull(); break;
+		case op_new: alloc_block(Acc::pull_int()); break;
+		case op_free: free_block(Acc::pull_ptr()); break;
+		case op_pull: Acc::pull(); break;
 
 		case op_dup: {
-			auto value { Accessor::pull() };
-			Accessor::push(value); Accessor::push(value); break;
+			auto value { Acc::pull() };
+			Acc::push(value); Acc::push(value); break;
 		}
 
 		case op_swap: {
-			auto a { Accessor::pull() }; auto b { Accessor::pull() };
-			Accessor::push(a); Accessor::push(b); break;
+			auto a { Acc::pull() }; auto b { Acc::pull() };
+			Acc::push(a); Acc::push(b); break;
 		}
 
-		case op_fetch: fetch(Accessor::pull_int()); break;
+		case op_fetch: fetch(Acc::pull_int()); break;
 
-		case op_store: store(Accessor::pull_int()); break;
+		case op_store: store(Acc::pull_int()); break;
 
 		case op_send: {
-			Heap_Ptr ptr { ram_begin + Accessor::pull_int() };
-			Accessor::set_value(ptr, Accessor::pull()); break;
+			Heap_Ptr ptr { ram_begin + Acc::pull_int() };
+			Acc::set_value(ptr, Acc::pull()); break;
 		}
 
 		case op_receive:
-			Accessor::push(Accessor::get_value(
-				Heap_Ptr { ram_begin + Accessor::pull_int() }
-			)); break;
+			Acc::push(Acc::get_value(Heap_Ptr { ram_begin + Acc::pull_int() }));
+			break;
 
 		case op_equals: {
-			auto b { Accessor::pull() }; auto a { Accessor::pull() };
-			Accessor::push(a == b ? true_lit : false_lit);
+			auto b { Acc::pull() }; auto a { Acc::pull() };
+			Acc::push(a == b ? true_lit : false_lit);
 			break;
 		}
 
 		case op_less: {
-			auto b { Accessor::pull() }; auto a { Accessor::pull() };
-			Accessor::push(a < b ? true_lit : false_lit); break;
+			auto b { Acc::pull() }; auto a { Acc::pull() };
+			Acc::push(a < b ? true_lit : false_lit); break;
 		}
 
 		case op_not: {
-			auto value { Accessor::pull() };
+			auto value { Acc::pull() };
 			auto ch { std::get_if<signed char>(&value) };
-			if (ch) { Accessor::push(negate(*ch)); break; }
+			if (ch) { Acc::push(negate(*ch)); break; }
 			const int* val { std::get_if<int>(&value) };
-			if (val) { Accessor::push(~*val); break; }
+			if (val) { Acc::push(~*val); break; }
 			err(Err::unknown_type);
 		}
 
@@ -256,10 +249,10 @@ void vm::step() {
 
 		#if CONFIG_HAS_CH
 			case op_push_ch:
-				Accessor::push(Accessor::get_byte(pc)); pc = pc + 1; break;
+				Acc::push(Acc::get_byte(pc)); pc = pc + 1; break;
 
 			#if CONFIG_HAS_OP_WRITE_CH
-				case op_write_ch: std::cout << Accessor::pull_ch(); break;
+				case op_write_ch: std::cout << Acc::pull_ch(); break;
 			#endif
 		#endif
 		case op_add: { vm::ops::Add { }(); break; }
@@ -270,19 +263,18 @@ void vm::step() {
 		#if CONFIG_HAS_INT
 			#if CONFIG_HAS_OP_PUSH_INT
 				case op_push_int:
-					Accessor::push(Accessor::get_int_value(pc));
+					Acc::push(Acc::get_int_value(pc));
 					pc = pc + raw_int_size; break;
 			#endif
 		#endif
 		#if CONFIG_HAS_CH && CONFIG_HAS_INT
 			#if CONFIG_HAS_OP_CH_TO_INT
-				case op_to_int:
-					Accessor::push(Accessor::pull_int()); break;
+				case op_to_int: Acc::push(Acc::pull_int()); break;
 			#endif
 			#if CONFIG_HAS_OP_INT_TO_CH
 				case op_to_ch:
-					Accessor::push(to_ch(
-						Accessor::pull_int(), Err::to_ch_overflow,
+					Acc::push(to_ch(
+						Acc::pull_int(), Err::to_ch_overflow,
 						Err::to_ch_underflow
 					));
 					break;

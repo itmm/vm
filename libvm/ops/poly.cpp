@@ -4,7 +4,7 @@
 using namespace vm;
 
 void ops::Poly::operator()() {
-	auto b { Accessor::pull() }; auto a { Accessor::pull() };
+	auto b { Acc::pull() }; auto a { Acc::pull() };
 	auto a_ch = std::get_if<signed char>(&a);
 	auto b_ch = std::get_if<signed char>(&b);
 
