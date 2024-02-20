@@ -10,8 +10,6 @@ namespace vm {
 	extern signed char* stack_begin;
 	extern signed char* ram_end;
 
-	class Acc;
-
 	template<typename P> P operator+(const P& ptr, int offset);
 	template<typename P> P operator-(const P& ptr, int offset);
 
@@ -27,6 +25,9 @@ namespace vm {
 		const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b
 	);
 
+	class Acc;
+	class heap;
+
 	template<typename T, T& B, T& E, Err::Code C> class Const_Ptr {
 		public:
 			explicit Const_Ptr(T ptr = nullptr): ptr_ { ptr } {
@@ -37,6 +38,7 @@ namespace vm {
 
 		protected:
 			friend class Acc;
+			friend class Heap;
 			template<typename P> friend P operator+(const P& ptr, int offset);
 			template<typename P> friend P operator-(const P& ptr, int offset);
 			friend bool operator==<>(

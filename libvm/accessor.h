@@ -38,6 +38,5 @@ namespace vm {
 			static Heap_Ptr pull_ptr();
 
 			static void push(Value value);
-			static void insert_into_free_list(Heap_Ptr block);
 	};
 }

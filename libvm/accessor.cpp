@@ -111,38 +111,6 @@ void Acc::push(Value value) {
 	set_value(ptr, value);
 }
 
-void Acc::insert_into_free_list(Heap_Ptr block) {
-	Heap_Ptr greater { };
-	Heap_Ptr smaller { Acc::free_list.begin };
-	while (smaller && block < smaller) {
-		greater = smaller;
-		smaller = Acc::get_ptr(smaller + node_next_offset);
-	}
-	int size { Acc::get_int_value(block) };
-
-	if (smaller) {
-		int smaller_size { Acc::get_int_value(smaller) };
-		if (smaller + smaller_size == block) {
-			Acc::set_int(smaller, smaller_size + size);
-			block = smaller; size += smaller_size;
-			Acc::free_list.remove(block);
-		}
-	}
-
-	if (greater) {
-		if (block + size == greater) {
-			Acc::set_int(block, size + Acc::get_int_value(greater));
-			auto old_greater { greater };
-			greater = Acc::get_ptr(greater + node_next_offset);
-			Acc::free_list.remove(old_greater);
-		}
-	}
-
-	if (block.ptr_ + size == heap_end) {
-		heap_end = block.ptr_;
-	} else { Acc::free_list.insert(block, greater); }
-}
-
 // instantiate templates:
 
 template int Acc::get_int_value(
@@ -165,6 +133,10 @@ template Value Acc::get_value(
 
 template void Acc::set_value(
 	Ptr<ram_begin, heap_end, Err::leave_heap_segment> ptr, const Value& value
+);
+
+template Heap_Ptr Acc::get_ptr(
+	const Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>& ptr
 );
 
 template void Acc::set_ptr(

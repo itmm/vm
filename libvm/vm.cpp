@@ -2,6 +2,7 @@
 
 #include "accessor.h"
 #include "err.h"
+#include "heap.h"
 #include "list.h"
 #include "ptr.h"
 #include "value.h"
@@ -97,7 +98,7 @@ namespace {
 		if (Heap_Ptr { heap_end } < block + size) {
 			err(Err::free_invalid_block);
 		}
-		Acc::insert_into_free_list(block);
+		Heap::insert_into_free_list(block);
 	}
 
 	class Mod_Operation: public ops::Poly {
