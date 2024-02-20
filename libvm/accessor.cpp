@@ -8,7 +8,7 @@ int Acc::get_int_value(const Const_Ptr<T, B, E, C>& ptr) {
 	for (
 		auto i { ptr.ptr_ }, e { ptr.ptr_ + raw_int_size };
 		i < e; ++i
-		) { value = (value << bits_per_byte) + (*i & byte_mask); }
+	) { value = (value << bits_per_byte) + (*i & byte_mask); }
 	return value;
 }
 
@@ -16,7 +16,7 @@ template<signed char*& B, signed char*& E, Err::Code C>
 void Acc::set_int(Ptr<B, E, C> ptr, int value) {
 	for (
 		auto i { ptr.ptr_ + raw_int_size - 1 }; i >= ptr.ptr_; --i
-		) {
+	) {
 		*i = static_cast<signed char>(value);
 		value >>= bits_per_byte;
 	}
