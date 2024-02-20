@@ -4,4 +4,5 @@ target_sources(libvm PRIVATE
 	or.cpp
     poly.cpp
 	sub.cpp
+	xor.cpp
 )

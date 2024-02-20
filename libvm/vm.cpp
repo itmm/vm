@@ -9,6 +9,7 @@
 #include "ops/and.h"
 #include "ops/or.h"
 #include "ops/sub.h"
+#include "ops/xor.h"
 
 #include <iostream>
 #include <set>
@@ -179,18 +180,6 @@ namespace {
 			#endif
 		}
 	};
-
-	class Xor_Operation: public ops::Poly {
-	public:
-		Xor_Operation() = default;
-
-		void perform_ch(signed char a, signed char b) override {
-			Accessor::push(to_ch(a ^ b, Err::unexpected, Err::unexpected));
-		}
-
-		void perform_int(int a, int b) override { Accessor::push(a ^ b); }
-	};
-
 }
 
 void check_range(
@@ -307,7 +296,7 @@ void vm::step() {
 
 		case op_and: { vm::ops::And { }(); break; }
 		case op_or: { vm::ops::Or { }(); break; }
-		case op_xor: { Xor_Operation { }(); break; }
+		case op_xor: { vm::ops::Xor { }(); break; }
 
 		#if CONFIG_HAS_CH
 			case op_push_ch:
