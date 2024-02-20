@@ -9,6 +9,7 @@
 #include "ops/add.h"
 #include "ops/and.h"
 #include "ops/div.h"
+#include "ops/mod.h"
 #include "ops/mult.h"
 #include "ops/or.h"
 #include "ops/sub.h"
@@ -100,37 +101,6 @@ namespace {
 		}
 		Heap::insert_into_free_list(block);
 	}
-
-	class Mod_Operation: public ops::Poly {
-	public:
-		Mod_Operation() = default;
-
-		void perform_ch(signed char a, signed char b) override {
-			if (b == 0) { err(Err::mod_divide_by_0); }
-			#if CONFIG_OBERON_MATH
-				int value = a % b;
-				if (value < 0) {
-					if (b > 0) { value += b; } else { value -= b; }
-				}
-				Acc::push(to_ch(value, Err::unexpected, Err::unexpected));
-			#else
-				Acc::push_value(to_ch(a % b, Err::unexpected, Err::unexpected));
-			#endif
-		}
-
-		void perform_int(int a, int b) override {
-			if (b == 0) { err(Err::mod_divide_by_0); }
-			#if CONFIG_OBERON_MATH
-				int value { a % b };
-				if (value < 0) {
-					if (b > 0) { value += b; } else { value -= b; }
-				}
-				Acc::push(value);
-			#else
-				Acc::push(a % b);
-			#endif
-		}
-	};
 }
 
 void check_range(
@@ -260,7 +230,7 @@ void vm::step() {
 		case op_sub: { vm::ops::Sub { }(); break; }
 		case op_mult: { vm::ops::Mult { }(); break; }
 		case op_div: { vm::ops::Div { }(); break; }
-		case op_mod: { Mod_Operation { }(); break; }
+		case op_mod: { vm::ops::Mod { }(); break; }
 		#if CONFIG_HAS_INT
 			#if CONFIG_HAS_OP_PUSH_INT
 				case op_push_int:
