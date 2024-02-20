@@ -80,6 +80,7 @@ void Heap::alloc_block(int size) {
 		Acc::set_int(found, size);
 	}
 	alloc_list.insert(found, alloc_list.begin);
+	std::memset((found + heap_overhead).ptr_, 0, size - heap_overhead);
 	Acc::push(found + heap_overhead);
 }
 
