@@ -16,14 +16,12 @@ void Const_Ptr<T, B, E, C>::check(int size) const {
 	if (ptr_ < B || ptr_ + size > E) { err(C); }
 }
 
-template<typename T, T& B, T& E, Err::Code C>
-Const_Ptr<T, B, E, C> vm::operator+(const Const_Ptr<T, B, E, C>& ptr, int offset) {
-	return Const_Ptr<T, B, E, C> { ptr.ptr_ + offset };
+template<typename P> P vm::operator+(const P& ptr, int offset) {
+	return P { ptr.ptr_ + offset };
 }
 
-template<typename T, T& B, T& E, Err::Code C>
-Const_Ptr<T, B, E, C> vm::operator-(const Const_Ptr<T, B, E, C>& ptr, int offset) {
-	return Const_Ptr<T, B, E, C> { ptr.ptr_ - offset };
+template<typename P> P vm::operator-(const P& ptr, int offset) {
+	return P { ptr.ptr_ - offset };
 }
 
 template<typename T, T& B, T& E, Err::Code C>
@@ -53,10 +51,30 @@ vm::operator+(
 	int
 );
 
+template Ptr<ram_begin, heap_end, Err::leave_heap_segment>
+vm::operator+(
+	const Ptr<ram_begin, heap_end, Err::leave_heap_segment>&, int
+);
+
+template Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>
+vm::operator+(
+	const Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>&, int
+);
+
 template Const_Ptr<signed char*, stack_begin, ram_end, Err::leave_stack_segment>
 vm::operator+(
 	const Const_Ptr<signed char*, stack_begin, ram_end, Err::leave_stack_segment>&,
 	int
+);
+
+template Ptr<stack_begin, ram_end, Err::leave_stack_segment>
+vm::operator+(
+	const Ptr<stack_begin, ram_end, Err::leave_stack_segment>&, int
+);
+
+template Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>
+vm::operator-(
+	const Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>&, int
 );
 
 template bool vm::operator==(
