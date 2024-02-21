@@ -70,31 +70,7 @@ void vm::dump_stack() {
 	Stack_Ptr current { stack_begin };
 	Stack_Ptr end { ram_end };
 	std::cout << "stack[" << ram_end - stack_begin << "] {\n";
-	while (current < end) {
-		auto value { Acc::get_value(current) };
-		if (auto ch { std::get_if<signed char>(&value) }) {
-			std::cout << "  " << current.offset() <<
-				": char == " << static_cast<int>(*ch) << "\n";
-			current = current + ch_size;
-		} else if (auto val { std::get_if<int>(&value) }) {
-			std::cout << "  " << current.offset() <<
-				": int == " << *val << "\n";
-			current = current + int_size;
-		} else if (auto ptr { std::get_if<Heap_Ptr>(&value) }) {
-			std::cout << "  " << current.offset() <<
-				": ptr == " << ptr->offset() <<
-				" (" << (*ptr ? (ptr->offset() - heap_overhead) : -1) << ")\n";
-			current = current + ptr_size;
-		} else {
-			std::cout << "  ! UNKNOWN TYPE AT " << current.offset() << "\n";
-			break;
-		}
-	}
-	if (!(current == end)) {
-		std::cout << "  ! INVALID STACK END " <<
-			current.offset()<< " != " <<
-			end.offset() << "\n";
-	}
+	Heap::dump_block(Stack_Ptr { stack_begin }, Stack_Ptr { ram_end }, "  ");
 	std::cout << "}\n";
 }
 

@@ -15,6 +15,8 @@ namespace vm {
 			static void alloc_block(int size);
 			static void free_block(Heap_Ptr block);
 
+			template<typename P> static void dump_block(P begin, P end, const char* indent);
+
 			static void dump_heap();
 	};
 }

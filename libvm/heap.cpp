@@ -100,24 +100,60 @@ void Heap::free_block(Heap_Ptr block) {
 	Heap::insert_into_free_list(block);
 }
 
+template<typename P> void Heap::dump_block(P begin, P end, const char* indent) {
+	P current { begin };
+	while (current < end) {
+		vm::Value value;
+		try { value = Acc::get_value(current); }
+		catch (const Err& err) {
+			std::cout << indent << "! NO VALID VALUE AT " <<
+				current.offset() << "\n";
+			break;
+		}
+		if (auto ch { std::get_if<signed char>(&value) }) {
+			std::cout << indent << current.offset() <<
+				": char == " << static_cast<int>(*ch) << "\n";
+			current = current + ch_size;
+		} else if (auto val { std::get_if<int>(&value) }) {
+			std::cout << indent << current.offset() <<
+				": int == " << *val << "\n";
+			current = current + int_size;
+		} else if (auto ptr { std::get_if<Heap_Ptr>(&value) }) {
+			std::cout << indent << current.offset() <<
+				": ptr == " << ptr->offset() <<
+				" (" << (*ptr ? (ptr->offset() - heap_overhead) : -1) << ")\n";
+			current = current + ptr_size;
+		} else {
+			std::cout << indent << "! UNKNOWN TYPE AT " << current.offset() << "\n";
+			break;
+		}
+	}
+	if (!(current == end)) {
+		std::cout << indent << "! INVALID END " << current.offset()<< " != " <<
+			end.offset() << "\n";
+	}
+}
+
 void Heap::dump_heap() {
 	Heap_Ptr current { ram_begin };
 	Heap_Ptr end { heap_end };
 	Heap_Ptr next_allocated { alloc_list.begin };
 	Heap_Ptr next_freed { free_list.begin };
 	std::cout << "heap[" << heap_end - ram_begin << "] {\n";
-	for (; current < end; current = current + Acc::get_int_value(current)) {
+	while (current < end) {
+		auto size { Acc::get_int_value(current) };
 		if (current == next_allocated) {
-			std::cout << "  " << current.offset() <<
-				": block[" << Acc::get_int_value(current) << "]\n";
+			std::cout << "  " << current.offset() << ": block[" << size << "] {\n";
+			dump_block(current + heap_overhead, current + size, "    ");
+			std::cout << "  }\n";
 			next_allocated = Acc::get_ptr(next_allocated + node_next_offset);
 		} else if (current == next_freed) {
-			std::cout << "  " << current.offset() <<
-				": free[" << Acc::get_int_value(current) << " ]\n";
+			std::cout << "  " << current.offset() << ": free[" << size << " ]\n";
 			next_freed = Acc::get_ptr(next_freed + node_next_offset);
 		} else {
 			std::cout << "  ! INVALID BLOCK AT " << current.offset() << "\n";
 		}
+		current = current + size;
 	}
 	if (!(current == end)) {
 		std::cout << "  ! INVALID HEAP END " <<
@@ -125,3 +161,11 @@ void Heap::dump_heap() {
 	}
 	std::cout << "}\n";
 }
+
+// instantiate templates
+
+template void Heap::dump_block(
+	Casting_Ptr<stack_begin, ram_end, Err::leave_stack_segment> begin,
+	Casting_Ptr<stack_begin, ram_end, Err::leave_stack_segment> end,
+	const char* indent
+);
