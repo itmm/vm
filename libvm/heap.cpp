@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <cstring>
+
 #include "accessor.h"
 #include "heap.h"
 

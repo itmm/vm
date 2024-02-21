@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "accessor.h"
 
 using namespace vm;
