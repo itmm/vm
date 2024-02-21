@@ -14,5 +14,7 @@ namespace vm {
 			static Heap_Ptr find_on_free_list(int size);
 			static void alloc_block(int size);
 			static void free_block(Heap_Ptr block);
+
+			static void dump_heap();
 	};
 }

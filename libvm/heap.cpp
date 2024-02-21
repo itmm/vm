@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cstring>
+#include <iostream>
 
 #include "accessor.h"
 #include "heap.h"
@@ -97,4 +98,28 @@ void Heap::free_block(Heap_Ptr block) {
 		err(Err::free_invalid_block);
 	}
 	Heap::insert_into_free_list(block);
+}
+
+void Heap::dump_heap() {
+	Heap_Ptr current { ram_begin };
+	Heap_Ptr end { heap_end };
+	Heap_Ptr next_allocated { alloc_list.begin };
+	Heap_Ptr next_freed { free_list.begin };
+	std::cout << "heap[" << heap_end - ram_begin << "] {\n";
+	for (; current < end; current = current + Acc::get_int_value(current)) {
+		if (current == next_allocated) {
+			std::cout << "  " << current.ptr_ - ram_begin << ": block[" << Acc::get_int_value(current) << "]\n";
+			next_allocated = Acc::get_ptr(next_allocated + node_next_offset);
+		} else if (current == next_freed) {
+			std::cout << "  " << current.ptr_ - ram_begin << ": free[" << Acc::get_int_value(current) << " ]\n";
+			next_freed = Acc::get_ptr(next_freed + node_next_offset);
+		} else {
+			std::cout << "  ! INVALID BLOCK AT " << current.offset() << "\n";
+		}
+	}
+	if (!(current == end)) {
+		std::cout << "  ! INVALID HEAP END " <<
+			current.offset() << " != " << end.offset() << "\n";
+	}
+	std::cout << "}\n";
 }

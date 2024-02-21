@@ -36,6 +36,8 @@ namespace vm {
 
 			explicit operator bool() const { return ptr_; }
 
+			[[nodiscard]] int offset() const { return ptr_ ? ptr_ - B : -1; }
+
 		protected:
 			friend class Acc;
 			friend class Heap;

@@ -3,6 +3,24 @@
 #include "asm.h"
 #include "err.h"
 
+extern bool dump_heap;
+extern bool dump_free;
+extern bool dump_stack;
+
+class Enable_Dump {
+		bool old_heap, old_free, old_stack;
+
+	public:
+		Enable_Dump(bool heap, bool free, bool stack):
+			old_heap { dump_heap }, old_free { dump_free },
+			old_stack { dump_stack }
+		{ dump_heap = heap; dump_free = free; dump_stack = stack; }
+
+		~Enable_Dump() {
+			dump_stack = old_stack; dump_free = old_free; dump_heap = old_heap;
+		}
+};
+
 void expect_stack(
 	const signed char* code_begin, int code_size,
 	vm::Err::Code expected_error, int ram_size,

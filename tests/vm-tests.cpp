@@ -1,8 +1,12 @@
-#include "vm-tests.h"
-#include "errmsgs.h"
-#include "ptr.h"
-
 #include "gtest/gtest.h"
+
+#include "errmsgs.h"
+#include "heap.h"
+#include "vm-tests.h"
+
+bool dump_heap { false };
+bool dump_free { false };
+bool dump_stack { false };
 
 void expect_stack(
 	const signed char* code_begin, int code_size,
@@ -19,7 +23,9 @@ void expect_stack(
 		}
 		EXPECT_EQ(err.code, expected_error);
 	}
-	//vm::dump_stack();
+	if (dump_heap) { vm::Heap::dump_heap(); }
+	if (dump_free) { std::cout << "free[" << vm::stack_begin - vm::heap_end << "]\n"; }
+	if (dump_stack) { vm::dump_stack(); }
 	if (expected_begin) {
 		EXPECT_EQ(vm::stack_begin + expected_size, ram + ram_size);
 		for (int i { 0 }; i < expected_size; ++i) {

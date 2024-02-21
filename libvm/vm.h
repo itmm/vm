@@ -29,5 +29,5 @@ namespace vm {
 
 	void step();
 
-	[[maybe_unused]] void dump_stack();
+	void dump_stack();
 }

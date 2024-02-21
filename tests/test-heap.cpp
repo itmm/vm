@@ -36,6 +36,7 @@ TEST(heap_tests, free_list) {
 		RAW_PTR(heap_overhead), RAW_PTR(2 * heap_overhead + 10)
 	};
 	auto stack_size { sizeof(expected) };
+	Enable_Dump enable_dump { true, true, true };
 	EXPECT_LIMITED_STACK(code, heap_size + stack_size, expected);
 	EXPECT_EQ(heap_end, stack_begin);
 }
