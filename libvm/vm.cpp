@@ -75,6 +75,7 @@ void vm::dump_stack() {
 }
 
 void vm::step() {
+	// dump_stack();
 	signed char op { Acc::get_byte(pc) }; pc = pc + 1;
 	switch (op) {
 		#if CONFIG_HAS_OP_NOP
@@ -129,14 +130,17 @@ void vm::step() {
 		case op_store: store(Acc::pull_int()); break;
 
 		case op_send: {
-			Heap_Ptr ptr { ram_begin + Acc::pull_int() };
+			Heap_Ptr ptr { Acc::pull_ptr() };
+			ptr = ptr + Acc::pull_int();
 			Acc::set_value(ptr, Acc::pull()); break;
 		}
 
-		case op_receive:
-			Acc::push(Acc::get_value(Heap_Ptr { ram_begin + Acc::pull_int() }));
+		case op_receive: {
+			Heap_Ptr ptr { Acc::pull_ptr() };
+			ptr = ptr + Acc::pull_int();
+			Acc::push(Acc::get_value(ptr));
 			break;
-
+		}
 		case op_equals: {
 			auto b { Acc::pull() }; auto a { Acc::pull() };
 			Acc::push(a == b ? true_lit : false_lit);

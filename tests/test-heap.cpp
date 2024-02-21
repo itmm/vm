@@ -28,9 +28,10 @@ TEST(heap_tests, simple_alloc_and_free) {
 
 TEST(heap_tests, free_list) {
 	signed char code[] {
-		PUSH_CH(10), op_new, PUSH_CH(10), op_new,
+		PUSH_CH(2 * int_size), op_new,
+		PUSH_CH(10), op_new,
 		op_swap, op_free, PUSH_CH(10), op_new
-	};
+	}; // TODO: make heap dump pass
 	int heap_size { 2 * (10 + heap_overhead) };
 	signed char expected[] {
 		RAW_PTR(heap_overhead), RAW_PTR(2 * heap_overhead + 10)
