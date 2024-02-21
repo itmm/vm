@@ -108,11 +108,11 @@ void Heap::dump_heap() {
 	std::cout << "heap[" << heap_end - ram_begin << "] {\n";
 	for (; current < end; current = current + Acc::get_int_value(current)) {
 		if (current == next_allocated) {
-			std::cout << "  " << current.ptr_ - ram_begin <<
+			std::cout << "  " << current.offset() <<
 				": block[" << Acc::get_int_value(current) << "]\n";
 			next_allocated = Acc::get_ptr(next_allocated + node_next_offset);
 		} else if (current == next_freed) {
-			std::cout << "  " << current.ptr_ - ram_begin <<
+			std::cout << "  " << current.offset() <<
 				": free[" << Acc::get_int_value(current) << " ]\n";
 			next_freed = Acc::get_ptr(next_freed + node_next_offset);
 		} else {
