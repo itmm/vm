@@ -180,7 +180,7 @@ void Heap::dump_heap() {
 }
 
 void Heap::collect_garbage() {
-	std::set<int> used;
+	std::set<int> used; // TODO: use in Heap list instead of set
 	{
 		Stack_Ptr current { stack_begin };
 		Stack_Ptr end { ram_end };
@@ -192,7 +192,7 @@ void Heap::collect_garbage() {
 			current = current + value_size(value);
 		}
 	}
-
+	// TODO: add block pointers
 	{
 		Heap_Ptr current { alloc_list.begin };
 		while (current) {
