@@ -179,47 +179,51 @@ void Heap::dump_heap() {
 	std::cout << "}\n";
 }
 
+template<typename P>
+static void add_pointers(
+	P begin, P end, std::set<int>& used, std::set<int>& processed
+) {
+	P current { begin };
+	while (current < end) {
+		auto value { Acc::get_value(current) };
+		if (auto ptr = std::get_if<Heap_Ptr>(&value)) {
+			if (
+				processed.find(ptr->offset() - heap_overhead) == processed.end()
+			) {
+				used.insert(ptr->offset() - heap_overhead);
+			}
+		}
+		current = current + value_size(value);
+	}
+}
+
 void Heap::collect_garbage() {
 	std::set<int> used; // TODO: use in Heap list instead of set
 	std::set<int> processed;
-	{
-		Stack_Ptr current { stack_begin };
-		Stack_Ptr end { ram_end };
-		while (current < end) {
-			auto value { Acc::get_value(current) };
-			if (auto ptr = std::get_if<Heap_Ptr>(&value)) {
-				used.insert(ptr->offset() - heap_overhead);
-			}
-			current = current + value_size(value);
-		}
-	}
+
+	add_pointers(
+		Stack_Ptr { stack_begin }, Stack_Ptr { ram_end }, used, processed
+	);
 
 	while (!used.empty()) {
 		int offset { *used.begin() }; used.erase(used.begin());
 		processed.insert(offset);
 		Heap_Ptr current { ram_begin + offset + heap_overhead };
-		Heap_Ptr end { ram_begin + offset + Acc::get_int_value(Heap_Ptr { ram_begin + offset }) };
-		while (current < end) {
-			auto value { Acc::get_value(current) };
-			if (auto ptr = std::get_if<Heap_Ptr>(&value)) {
-				if (processed.find(ptr->offset() - heap_overhead) == processed.end()) {
-					used.insert(ptr->offset() - heap_overhead);
-				}
-			}
-			current = current + value_size(value);
-		}
-	}
-	{
-		Heap_Ptr current { alloc_list.begin };
-		while (current) {
-			auto next { Acc::get_ptr(current + node_next_offset) };
-			if (processed.find(current.offset()) == processed.end()) {
-				free_block(current + heap_overhead);
-			}
-			current = next;
-		}
+		Heap_Ptr end {
+			ram_begin + offset +
+				Acc::get_int_value(Heap_Ptr { ram_begin + offset })
+		};
+		add_pointers(current, end, used, processed);
 	}
 
+	Heap_Ptr current { alloc_list.begin };
+	while (current) {
+		auto next { Acc::get_ptr(current + node_next_offset) };
+		if (processed.find(current.offset()) == processed.end()) {
+			free_block(current + heap_overhead);
+		}
+		current = next;
+	}
 }
 
 // instantiate templates

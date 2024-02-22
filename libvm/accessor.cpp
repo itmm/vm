@@ -129,7 +129,13 @@ template signed char Acc::get_byte(
 
 template Value Acc::get_value(
 	const Const_Ptr<
-	    signed char*, ram_begin, heap_end, Err::leave_heap_segment
+		signed char*, ram_begin, heap_end, Err::leave_heap_segment
+	>& ptr
+);
+
+template Value Acc::get_value(
+	const Const_Ptr<
+	    signed char*, stack_begin, ram_end, Err::leave_stack_segment
 	>& ptr
 );
 
