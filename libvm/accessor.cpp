@@ -97,7 +97,6 @@ signed char Acc::pull_ch() {
 
 int Acc::pull_int() { return int_value(pull()); }
 
-
 Heap_Ptr Acc::pull_ptr() {
 	auto value { pull() };
 	auto ptr = std::get_if<Heap_Ptr>(&value);

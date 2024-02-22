@@ -53,11 +53,17 @@ TEST(heap_tests, free_list) {
 
 TEST(heap_tests, fragmentation) {
 	signed char code[] {
-		PUSH_CH(10), op_new, PUSH_CH(10), op_new,
-		op_swap, op_free, PUSH_CH(12), op_new
+		PUSH_CH(ch_size), op_new,
+			op_dup, PUSH_CH(10), op_swap, PUSH_CH(0), op_swap, op_send,
+		PUSH_CH(ch_size), op_new,
+			op_dup, PUSH_CH(20), op_swap, PUSH_CH(0), op_swap, op_send,
+		op_swap, op_free, PUSH_CH(2 * int_size), op_new
 	};
+	// Enable_Dump enable_dump { true, true, true };
 	EXPECT_LIMITED_STACK_ERROR(
-		code, 10 + heap_overhead + 12 + heap_overhead + 2 * int_size,
+		code,
+		ch_size + heap_overhead + int_size + heap_overhead +
+			3 * ptr_size + 2 * ch_size,
 		Err::heap_overflow
 	);
 }
