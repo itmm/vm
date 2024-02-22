@@ -4,8 +4,8 @@
 #include "vm.h"
 
 namespace vm {
-	constexpr int node_next_offset { int_size };
-	constexpr int node_prev_offset { 2 * int_size };
+	constexpr int node_next_offset { raw_int_size };
+	constexpr int node_prev_offset { 2 * raw_int_size };
 
 	struct List {
 		Heap_Ptr begin { };

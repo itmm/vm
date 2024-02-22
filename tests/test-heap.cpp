@@ -27,19 +27,27 @@ TEST(heap_tests, simple_alloc_and_free) {
 }
 
 TEST(heap_tests, free_list) {
+	int block_size { 2 * int_size };
 	signed char code[] {
-		PUSH_CH(2 * int_size), op_new,
-		PUSH_CH(10), op_new,
-		op_swap, op_free, PUSH_CH(10), op_new
-	}; // TODO: make heap dump pass
-	int heap_size { 2 * (10 + heap_overhead) };
+		PUSH_CH(block_size), op_new, PUSH_CH(block_size), op_new,
+			op_dup, PUSH_SMALL_INT(21), op_swap, PUSH_CH(0), op_swap, op_send,
+			op_dup, PUSH_SMALL_INT(22), op_swap,
+				PUSH_CH(int_size), op_swap, op_send,
+		op_swap, op_free, PUSH_CH(block_size), op_new,
+			op_dup, PUSH_SMALL_INT(31), op_swap, PUSH_CH(0), op_swap, op_send,
+			op_dup, PUSH_SMALL_INT(32), op_swap,
+				PUSH_CH(int_size), op_swap, op_send,
+	};
+	int heap_size { 2 * (block_size + heap_overhead) };
 	signed char expected[] {
-		RAW_PTR(heap_overhead), RAW_PTR(2 * heap_overhead + 10)
+		RAW_PTR(heap_overhead), RAW_PTR(2 * heap_overhead + block_size)
 	};
 	auto stack_size { sizeof(expected) };
 	Enable_Dump enable_dump { true, true, true };
-	EXPECT_LIMITED_STACK(code, heap_size + stack_size, expected);
-	EXPECT_EQ(heap_end, stack_begin);
+	EXPECT_LIMITED_STACK(
+		code, heap_size + stack_size + ptr_size + int_size + ch_size, expected
+	);
+	EXPECT_EQ(heap_end + 2 * int_size + ch_size, stack_begin);
 }
 
 

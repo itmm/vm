@@ -53,7 +53,7 @@ Heap_Ptr Heap::find_on_free_list(int size, bool tight_fit) {
 		};
 		if (found) {
 			int rest_size { cur_size - size };
-			if (rest_size >= heap_overhead) {
+			if (rest_size > heap_overhead) {
 				Heap_Ptr rest_block { current + size };
 				Acc::set_int(rest_block, rest_size);
 				Acc::set_int(current, size);
@@ -81,8 +81,15 @@ void Heap::alloc_block(int size) {
 		found = Heap_Ptr { heap_end };
 		heap_end += size;
 		Acc::set_int(found, size);
+	} else { size = Acc::get_int_value(found); }
+
+	auto smaller = alloc_list.end;
+	auto greater = Heap_Ptr { };
+	while (found < smaller) {
+		greater = smaller; smaller = Acc::get_ptr(smaller + node_prev_offset);
 	}
-	alloc_list.insert(found, alloc_list.begin);
+	alloc_list.insert(found, greater);
+
 	std::memset((found + heap_overhead).ptr_, 0, size - heap_overhead);
 	Acc::push(found + heap_overhead);
 }
