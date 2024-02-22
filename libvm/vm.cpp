@@ -198,6 +198,9 @@ void vm::step() {
 					break;
 			#endif
 		#endif
+
+		case op_collect_garbage: Heap::collect_garbage(); break;
+
 		default: err(Err::unknown_opcode);
 	}
 }

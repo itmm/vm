@@ -7,11 +7,11 @@ extern bool dump_heap;
 extern bool dump_free;
 extern bool dump_stack;
 
-class Enable_Dump {
+class [[maybe_unused]] Enable_Dump {
 		bool old_heap, old_free, old_stack;
 
 	public:
-		Enable_Dump(bool heap, bool free, bool stack):
+		[[maybe_unused]] Enable_Dump(bool heap, bool free, bool stack):
 			old_heap { dump_heap }, old_free { dump_free },
 			old_stack { dump_stack }
 		{ dump_heap = heap; dump_free = free; dump_stack = stack; }

@@ -14,7 +14,7 @@ TEST(send_receive_tests, simple) {
 			op_dup, PUSH_CH(0), op_swap, op_receive
 	};
 	signed char expected[] { RAW_INT(44), RAW_PTR(heap_overhead) };
-	Enable_Dump enable_dump { true, true, true };
+	//Enable_Dump enable_dump { true, true, true };
 	EXPECT_LIMITED_STACK(code, block_size + heap_overhead + 2 * ptr_size + int_size + ch_size, expected);
 	EXPECT_EQ(heap_end + int_size + ch_size, stack_begin);
 }

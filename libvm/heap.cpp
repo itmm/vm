@@ -1,9 +1,11 @@
 #include <algorithm>
 #include <cstring>
 #include <iostream>
+#include <set>
 
 #include "accessor.h"
 #include "heap.h"
+#include "value.h"
 
 using namespace vm;
 
@@ -73,11 +75,18 @@ Heap_Ptr Heap::find_on_free_list(int size) {
 	return got;
 }
 
-void Heap::alloc_block(int size) {
-	size = std::max(size + heap_overhead, node_size);
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "misc-no-recursion"
+void Heap::alloc_block(int orig_size, bool run_gc) {
+	int size = std::max(orig_size + heap_overhead, node_size);
 	auto found { find_on_free_list(size) };
 	if (!found) {
-		if (heap_end + size > stack_begin) { err(Err::heap_overflow); }
+		if (heap_end + size > stack_begin) {
+			if (run_gc) {
+				collect_garbage(); alloc_block(orig_size, false); return;
+			}
+			err(Err::heap_overflow);
+		}
 		found = Heap_Ptr { heap_end };
 		heap_end += size;
 		Acc::set_int(found, size);
@@ -93,6 +102,7 @@ void Heap::alloc_block(int size) {
 	std::memset((found + heap_overhead).ptr_, 0, size - heap_overhead);
 	Acc::push(found + heap_overhead);
 }
+#pragma clang diagnostic pop
 
 void Heap::free_block(Heap_Ptr block) {
 	block = block - heap_overhead;
@@ -155,7 +165,7 @@ void Heap::dump_heap() {
 			std::cout << "  }\n";
 			next_allocated = Acc::get_ptr(next_allocated + node_next_offset);
 		} else if (current == next_freed) {
-			std::cout << "  " << current.offset() << ": free[" << size << " ]\n";
+			std::cout << "  " << current.offset() << ": free[" << size << "]\n";
 			next_freed = Acc::get_ptr(next_freed + node_next_offset);
 		} else {
 			std::cout << "  ! INVALID BLOCK AT " << current.offset() << "\n";
@@ -167,6 +177,33 @@ void Heap::dump_heap() {
 			current.offset() << " != " << end.offset() << "\n";
 	}
 	std::cout << "}\n";
+}
+
+void Heap::collect_garbage() {
+	std::set<int> used;
+	{
+		Stack_Ptr current { stack_begin };
+		Stack_Ptr end { ram_end };
+		while (current < end) {
+			auto value { Acc::get_value(current) };
+			if (auto ptr = std::get_if<Heap_Ptr>(&value)) {
+				used.insert(ptr->offset());
+			}
+			current = current + value_size(value);
+		}
+	}
+
+	{
+		Heap_Ptr current { alloc_list.begin };
+		while (current) {
+			auto next { Acc::get_ptr(current + node_next_offset) };
+			if (used.find(current.offset() + heap_overhead) == used.end()) {
+				free_block(current + heap_overhead);
+			}
+			current = next;
+		}
+	}
+
 }
 
 // instantiate templates
