@@ -14,7 +14,7 @@ TEST(collect_garbage_tests, simple) {
 		op_swap, op_free, op_pull, op_collect_garbage
 	};
 	signed char expected[] { };
-	// Enable_Dump enable_dump { true, true, true };
+	Enable_Dump enable_dump { true, true, true };
 	EXPECT_LIMITED_STACK(code, 2 * raw_block_size + 2 * ptr_size, expected);
 	EXPECT_EQ(heap_end, ram_begin);
 }

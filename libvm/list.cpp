@@ -8,8 +8,7 @@ void vm::List::insert(Heap_Ptr node) {
 	Heap_Ptr smaller { end };
 	Heap_Ptr greater;
 	while (node < smaller) {
-		greater = smaller;
-		smaller = Acc::get_ptr(smaller + node_prev_offset);
+		greater = smaller; smaller = Acc::get_ptr(smaller + node_prev_offset);
 	}
 
 	Acc::set_ptr(node + node_next_offset, greater);
@@ -27,4 +26,12 @@ void List::remove(Heap_Ptr node) {
 	else { end = prev; }
 	if (prev) { Acc::set_ptr(prev + node_next_offset, next); }
 	else { begin = next; }
+}
+
+bool List::contains(Heap_Ptr node) const {
+	auto current { begin };
+	while (current && current < node) {
+		current = Acc::get_ptr(current + node_next_offset);
+	}
+	return current == node;
 }

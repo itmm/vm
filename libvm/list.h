@@ -13,6 +13,8 @@ namespace vm {
 
 		void insert(Heap_Ptr node);
 		void remove(Heap_Ptr node);
+		[[nodiscard]] bool contains(Heap_Ptr node) const;
+		[[nodiscard]] bool empty() const { return !begin; }
 	};
 
 }
