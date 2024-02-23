@@ -144,27 +144,35 @@ void Heap::dump_heap() {
 	Heap_Ptr end { heap_end };
 	Heap_Ptr next_allocated { alloc_list.begin };
 	Heap_Ptr next_freed { free_list.begin };
-	std::cout << "heap[" << heap_end - ram_begin << "] {\n";
-	while (current < end) {
-		auto size { Acc::get_int_value(current) };
-		if (current == next_allocated) {
-			std::cout << "  " << current.offset() << ": block[" << size << "] {\n";
-			dump_block(current + heap_overhead, current + size, "    ");
-			std::cout << "  }\n";
-			next_allocated = Acc::get_ptr(next_allocated + node_next_offset);
-		} else if (current == next_freed) {
-			std::cout << "  " << current.offset() << ": free[" << size << "]\n";
-			next_freed = Acc::get_ptr(next_freed + node_next_offset);
-		} else {
-			std::cout << "  ! INVALID BLOCK AT " << current.offset() << "\n";
+	std::cout << "heap[" << heap_end - ram_begin << "] {";
+	if (heap_end - ram_begin) {
+		std::cout << "\n";
+		while (current < end) {
+			auto size { Acc::get_int_value(current) };
+			if (current == next_allocated) {
+				std::cout << "  " << current.offset() <<
+						  ": block[" << size << "] {";
+				if (size) {
+					std::cout << "\n";
+					dump_block(current + heap_overhead, current + size, "    ");
+					std::cout << "  }\n";
+				} else { std::cout << " }\n"; }
+				next_allocated = Acc::get_ptr(next_allocated + node_next_offset);
+			} else if (current == next_freed) {
+				std::cout << "  " << current.offset() <<
+						  ": free[" << size << "] { }\n";
+				next_freed = Acc::get_ptr(next_freed + node_next_offset);
+			} else {
+				std::cout << "  ! INVALID BLOCK AT " << current.offset() << "\n";
+			}
+			current = current + size;
 		}
-		current = current + size;
-	}
-	if (!(current == end)) {
-		std::cout << "  ! INVALID HEAP END " <<
-			current.offset() << " != " << end.offset() << "\n";
-	}
-	std::cout << "}\n";
+		if (!(current == end)) {
+			std::cout << "  ! INVALID HEAP END " <<
+					  current.offset() << " != " << end.offset() << "\n";
+		}
+		std::cout << "}\n";
+	} else { std::cout << " }\n"; }
 }
 
 template<typename P>

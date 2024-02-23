@@ -69,9 +69,12 @@ void vm::init(
 void vm::dump_stack() {
 	Stack_Ptr current { stack_begin };
 	Stack_Ptr end { ram_end };
-	std::cout << "stack[" << ram_end - stack_begin << "] {\n";
-	Heap::dump_block(Stack_Ptr { stack_begin }, Stack_Ptr { ram_end }, "  ");
-	std::cout << "}\n";
+	std::cout << "stack[" << ram_end - stack_begin << "] {";
+	if (ram_end - stack_begin) {
+		std::cout << "\n";
+		Heap::dump_block(Stack_Ptr { stack_begin }, Stack_Ptr { ram_end }, "  ");
+		std::cout << "}\n";
+	} else { std::cout << " }\n"; }
 }
 
 void vm::step() {

@@ -24,7 +24,7 @@ void expect_stack(
 		EXPECT_EQ(err.code, expected_error);
 	}
 	if (dump_heap) { vm::Heap::dump_heap(); }
-	if (dump_free) { std::cout << "free[" << vm::stack_begin - vm::heap_end << "]\n"; }
+	if (dump_free) { std::cout << "free[" << vm::stack_begin - vm::heap_end << "] { }\n"; }
 	if (dump_stack) { vm::dump_stack(); }
 	if (expected_begin) {
 		EXPECT_EQ(vm::stack_begin + expected_size, ram + ram_size);
