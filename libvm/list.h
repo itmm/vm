@@ -11,7 +11,7 @@ namespace vm {
 		Heap_Ptr begin { };
 		Heap_Ptr end { };
 
-		void insert(Heap_Ptr node, Heap_Ptr next);
+		void insert(Heap_Ptr node);
 		void remove(Heap_Ptr node);
 	};
 
