@@ -135,7 +135,7 @@ template Value Acc::get_value(
 
 template Value Acc::get_value(
 	const Const_Ptr<
-	    signed char*, stack_begin, ram_end, Err::leave_stack_segment
+	    signed char*, stack_begin, stack_end, Err::leave_stack_segment
 	>& ptr
 );
 

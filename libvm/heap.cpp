@@ -191,11 +191,27 @@ static void add_pointers(P begin, P end, List& used_blocks) {
 	}
 }
 
+class Full_Stack {
+	public:
+		Full_Stack():
+			old_stack_end { static_cast<int>(stack_end - stack_begin) }
+		{ stack_end = ram_end; }
+
+		~Full_Stack() { stack_end = stack_begin + old_stack_end; }
+	private:
+		int old_stack_end;
+};
+
 void Heap::collect_garbage() {
 	List used_blocks;
 	List processed_blocks;
 
-	add_pointers(Stack_Ptr { stack_begin }, Stack_Ptr { ram_end }, used_blocks);
+	{
+		Full_Stack full_stack;
+		add_pointers(
+			Stack_Ptr { stack_begin }, Stack_Ptr { stack_end }, used_blocks
+		);
+	}
 
 	while (!used_blocks.empty()) {
 		Heap_Ptr current { used_blocks.begin };
@@ -216,7 +232,7 @@ void Heap::collect_garbage() {
 // instantiate templates
 
 template void Heap::dump_block(
-	Casting_Ptr<stack_begin, ram_end, Err::leave_stack_segment> begin,
-	Casting_Ptr<stack_begin, ram_end, Err::leave_stack_segment> end,
+	Casting_Ptr<stack_begin, stack_end, Err::leave_stack_segment> begin,
+	Casting_Ptr<stack_begin, stack_end, Err::leave_stack_segment> end,
 	const char* indent
 );

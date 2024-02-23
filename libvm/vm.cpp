@@ -59,8 +59,10 @@ void vm::init(
 	check_range(code_begin_, code_end_, Err::invalid_code);
 	code_begin = code_begin_; code_end = code_end_;
 
-	stack_begin = ram_end;
 	heap_end = ram_begin;
+
+	stack_begin = stack_end = ram_end;
+
 	Heap::free_list = List { };
 	Heap::alloc_list = List { };
 	pc = Code_Ptr { code_begin };

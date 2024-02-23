@@ -7,6 +7,7 @@ const signed char* vm::code_end;
 signed char* vm::ram_begin;
 signed char* vm::heap_end;
 signed char* vm::stack_begin;
+signed char* vm::stack_end;
 signed char* vm::ram_end;
 
 vm::Code_Ptr vm::pc;
@@ -67,19 +68,19 @@ vm::operator+(
 	const Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>&, int
 );
 
-template Const_Ptr<signed char*, stack_begin, ram_end, Err::leave_stack_segment>
+template Const_Ptr<signed char*, stack_begin, stack_end, Err::leave_stack_segment>
 vm::operator+(
 	const Const_Ptr<
-	    signed char*, stack_begin, ram_end, Err::leave_stack_segment
+	    signed char*, stack_begin, stack_end, Err::leave_stack_segment
 	>&, int
 );
 
-template Ptr<stack_begin, ram_end, Err::leave_stack_segment>
-vm::operator+(const Ptr<stack_begin, ram_end, Err::leave_stack_segment>&, int);
+template Ptr<stack_begin, stack_end, Err::leave_stack_segment>
+vm::operator+(const Ptr<stack_begin, stack_end, Err::leave_stack_segment>&, int);
 
-template Casting_Ptr<stack_begin, ram_end, Err::leave_stack_segment>
+template Casting_Ptr<stack_begin, stack_end, Err::leave_stack_segment>
 vm::operator+(
-	const Casting_Ptr<stack_begin, ram_end, Err::leave_stack_segment>&, int
+	const Casting_Ptr<stack_begin, stack_end, Err::leave_stack_segment>&, int
 );
 
 template Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>
@@ -96,9 +97,11 @@ template bool vm::operator==(
 
 template bool vm::operator==(
 	const Const_Ptr<
-		signed char*, stack_begin, ram_end, Err::leave_stack_segment
+		signed char*, stack_begin, stack_end, Err::leave_stack_segment
 	>&,
-	const Const_Ptr<signed char*, stack_begin, ram_end, Err::leave_stack_segment>&
+	const Const_Ptr<
+	    signed char*, stack_begin, stack_end, Err::leave_stack_segment
+	>&
 );
 
 template bool vm::operator<(
@@ -110,13 +113,17 @@ template bool vm::operator<(
 
 template bool vm::operator<(
 	const Const_Ptr<
-	    signed char*, stack_begin, ram_end, Err::leave_stack_segment
+	    signed char*, stack_begin, stack_end, Err::leave_stack_segment
 	>&,
-	const Const_Ptr<signed char*, stack_begin, ram_end, Err::leave_stack_segment>&
+	const Const_Ptr<
+	    signed char*, stack_begin, stack_end, Err::leave_stack_segment
+	>&
 );
 
 template class vm::Ptr<ram_begin, ram_end, Err::leave_ram_segment>;
 
 template class vm::Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>;
 
-template class vm::Casting_Ptr<stack_begin, ram_end, Err::leave_stack_segment>;
+template class vm::Casting_Ptr<
+    stack_begin, stack_end, Err::leave_stack_segment
+>;

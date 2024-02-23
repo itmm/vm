@@ -8,6 +8,7 @@ namespace vm {
 	extern signed char* ram_begin;
 	extern signed char* heap_end;
 	extern signed char* stack_begin;
+	extern signed char* stack_end;
 	extern signed char* ram_end;
 
 	template<typename P> P operator+(const P& ptr, int offset);
@@ -24,9 +25,6 @@ namespace vm {
 	bool operator<(
 		const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b
 	);
-
-	class Acc;
-	class heap;
 
 	template<typename T, T& B, T& E, Err::Code C> class Const_Ptr {
 		public:
@@ -85,6 +83,6 @@ namespace vm {
 	using Heap_Ptr = Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>;
 
 	using Stack_Ptr = Casting_Ptr<
-		stack_begin, ram_end, Err::leave_stack_segment
+		stack_begin, stack_end, Err::leave_stack_segment
 	>;
 }
