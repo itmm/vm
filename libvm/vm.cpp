@@ -206,7 +206,7 @@ void vm::step() {
 
 		case op_collect_garbage: Heap::collect_garbage(); break;
 
-		case op_call: { // TODO: add unit-tests
+		case op_call: {
 			Code_Ptr new_pc { code_begin + Acc::pull_int() };
 			Stack_Frame sf;
 			sf.pc = pc;
@@ -218,7 +218,7 @@ void vm::step() {
 			break;
 		}
 
-		case op_return: { // TODO: add unit-tests
+		case op_return: {
 			auto value { Acc::get_value(Ram_Ptr { stack_end }) };
 			if (auto sf = std::get_if<Stack_Frame>(&value)) {
 				while (stack_begin < stack_end) { Acc::pull(); }

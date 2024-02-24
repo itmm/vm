@@ -3,6 +3,7 @@ find_package(GTest REQUIRED)
 add_executable(Tests
 	test-add.cpp
 	test-bool.cpp
+	test-call.cpp
 	test-collect-garbage.cpp
 	test-div.cpp
 	test-dup.cpp
