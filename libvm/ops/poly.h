@@ -10,5 +10,7 @@ namespace vm::ops {
 			Poly() = default;
 			virtual void perform_ch(signed char a, signed char b);
 			virtual void perform_int(int a, int b);
+			// TODO: configurable types
+			// TODO: multiprecision operators
 	};
 }

@@ -14,11 +14,16 @@ OP(near_jmp_false)
 OP(jmp)
 OP(jmp_true)
 OP(jmp_false)
+OP(call) // TODO: implement
+OP(call_inner) // TODO: implement
+OP(return) // TODO: implement
 OP(new)
 OP(free)
 OP(fetch)
+OP(fetch_outer) // TODO: implement
 OP(collect_garbage)
 OP(store)
+OP(store_outer) // TODO: implement
 OP(send)
 OP(receive)
 OP(equals)

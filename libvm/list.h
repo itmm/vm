@@ -6,8 +6,11 @@
 namespace vm {
 	constexpr int node_next_offset { raw_int_size };
 	constexpr int node_prev_offset { 2 * raw_int_size };
+	constexpr int node_mark { 3 * raw_int_size };
 
 	struct List {
+		// TODO: use red-black tree
+
 		Heap_Ptr begin { };
 		Heap_Ptr end { };
 
