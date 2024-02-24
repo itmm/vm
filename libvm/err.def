@@ -33,4 +33,5 @@ ERR(int_overflow)
 ERR(unexpected)
 ERR(null_access)
 ERR(change_type)
+ERR(no_stack_frame)
 #undef ERR

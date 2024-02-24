@@ -11,7 +11,7 @@ namespace vm {
 	constexpr int ch_size { 2 }; // TODO: make size configurable
 	constexpr int node_size { 3 * raw_int_size + 1 };
 	constexpr int ptr_size { raw_int_size + 1 };
-	constexpr int stack_frame_size { 3 * raw_int_size };
+	constexpr int stack_frame_size { 3 * raw_int_size + 1 };
 	constexpr int bits_per_byte { 8 };
 	constexpr int byte_mask { 0xff };
 	constexpr signed char true_lit { -1 };

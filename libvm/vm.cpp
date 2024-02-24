@@ -206,6 +206,28 @@ void vm::step() {
 
 		case op_collect_garbage: Heap::collect_garbage(); break;
 
+		case op_call: { // TODO: add unit-tests
+			Code_Ptr new_pc { code_begin + Acc::pull_int() };
+			Stack_Frame sf;
+			sf.pc = pc;
+			sf.parent = Ram_Ptr { stack_begin };
+			sf.outer = Ram_Ptr { stack_end };
+			Acc::push(sf);
+			pc = new_pc;
+			stack_end = stack_begin;
+			break;
+		}
+
+		case op_return: { // TODO: add unit-tests
+			auto value { Acc::get_value(Ram_Ptr { stack_end }) };
+			if (auto sf = std::get_if<Stack_Frame>(&value)) {
+				while (stack_begin < stack_end) { Acc::pull(); }
+				stack_end = ram_begin + sf->parent.offset();
+				Acc::pull();
+				pc = sf->pc;
+			} else { err(Err::no_stack_frame); }
+			break;
+		}
 		default: err(Err::unknown_opcode);
 	}
 }

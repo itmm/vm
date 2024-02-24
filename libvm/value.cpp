@@ -5,6 +5,18 @@
 
 using namespace vm;
 
+bool vm::operator==(const Stack_Frame& a, const Stack_Frame& b) {
+	return a.pc == b.pc && a.parent == b.parent && a.outer == b.outer;
+}
+
+bool vm::operator<(const Stack_Frame& a, const Stack_Frame& b) {
+	return a.pc < b.pc || (
+		a.pc == b.pc && (a.parent < b.parent || (
+			a.parent == b.parent && a.outer < b.outer
+		))
+	);
+}
+
 int vm::value_size(const Value& value) {
 	if (std::get_if<signed char>(&value)) {
 		return ch_size;
@@ -12,6 +24,8 @@ int vm::value_size(const Value& value) {
 		return int_size;
 	} else if (std::get_if<Heap_Ptr>(&value)) {
 		return ptr_size;
+	} else if (std::get_if<Stack_Frame>(&value)) {
+		return stack_frame_size;
 	} else { err(Err::unknown_type); }
 }
 

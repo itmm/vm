@@ -7,7 +7,16 @@
 namespace vm {
 	// TODO: add Stack Frame
 
-	using Value = std::variant<signed char, int, Heap_Ptr>;
+	struct Stack_Frame {
+		Code_Ptr pc;
+		Ram_Ptr parent;
+		Ram_Ptr outer;
+	};
+
+	bool operator==(const Stack_Frame& a, const Stack_Frame& b);
+	bool operator<(const Stack_Frame& a, const Stack_Frame& b);
+
+	using Value = std::variant<signed char, int, Heap_Ptr, Stack_Frame>;
 
 	int value_size(const Value& value);
 

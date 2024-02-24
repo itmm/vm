@@ -51,6 +51,13 @@ vm::operator+(
 	>&, int
 );
 
+template Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_segment>
+vm::operator+(
+	const Const_Ptr<
+		signed char*, ram_begin, ram_end, Err::leave_ram_segment
+	>&, int
+);
+
 template Const_Ptr<signed char*, ram_begin, heap_end, Err::leave_heap_segment>
 vm::operator+(
 	const Const_Ptr<
@@ -90,6 +97,20 @@ vm::operator-(
 
 template bool vm::operator==(
 	const Const_Ptr<
+		const signed char*, code_begin, code_end, Err::leave_code_segment
+	>&,
+	const Const_Ptr<const signed char*, code_begin, code_end, Err::leave_code_segment>&
+);
+
+template bool vm::operator==(
+	const Const_Ptr<
+		signed char*, ram_begin, ram_end, Err::leave_ram_segment
+	>&,
+	const Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_segment>&
+);
+
+template bool vm::operator==(
+	const Const_Ptr<
 	    signed char*, ram_begin, heap_end, Err::leave_heap_segment
 	>&,
 	const Const_Ptr<signed char*, ram_begin, heap_end, Err::leave_heap_segment>&
@@ -102,6 +123,20 @@ template bool vm::operator==(
 	const Const_Ptr<
 	    signed char*, stack_begin, stack_end, Err::leave_stack_segment
 	>&
+);
+
+template bool vm::operator<(
+	const Const_Ptr<
+		const signed char*, code_begin, code_end, Err::leave_code_segment
+	>&,
+	const Const_Ptr<const signed char*, code_begin, code_end, Err::leave_code_segment>&
+);
+
+template bool vm::operator<(
+	const Const_Ptr<
+		signed char*, ram_begin, ram_end, Err::leave_ram_segment
+	>&,
+	const Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_segment>&
 );
 
 template bool vm::operator<(

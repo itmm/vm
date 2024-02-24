@@ -30,6 +30,10 @@ signed char Acc::get_byte(const Const_Ptr<T, B, E, C>& ptr) {
 	ptr.check(1); return *ptr.ptr_;
 }
 
+static constexpr int stack_frame_pc { 1 };
+static constexpr int stack_frame_end { 1 + raw_int_size };
+static constexpr int stack_frame_outer { 1 + 2 * raw_int_size };
+
 template<typename T, T& B, T& E, Err::Code C>
 Value Acc::get_value(const Const_Ptr<T, B, E, C>& ptr) {
 	ptr.check(1); switch (*ptr.ptr_) {
@@ -46,6 +50,15 @@ Value Acc::get_value(const Const_Ptr<T, B, E, C>& ptr) {
 			return Value { Heap_Ptr {
 				offset >= 0 ? ram_begin + offset : nullptr
 			} };
+		}
+
+		case stack_frame_type: {
+			ptr.check(stack_frame_size);
+			Stack_Frame frame;
+			frame.pc = Code_Ptr { code_begin + get_int_value(ptr + stack_frame_pc) };
+			frame.parent = Ram_Ptr { ram_begin + get_int_value(ptr + stack_frame_end) };
+			frame.outer = Ram_Ptr { ram_begin + get_int_value(ptr + stack_frame_outer) };
+			return frame;
 		}
 		default: err(Err::unknown_type);
 	}
@@ -65,9 +78,16 @@ void Acc::set_value(Ptr<B, E, C> ptr, const Value& value) {
 		ptr.check(int_size); set_ptr_type(ptr.ptr_, int_type);
 		set_int(ptr + 1, *val);
 	} else if (auto pt = std::get_if<Heap_Ptr>(&value)) {
-		ptr.check(ptr_size); set_ptr_type(ptr.ptr_, ptr_type);
+		ptr.check(ptr_size);
+		set_ptr_type(ptr.ptr_, ptr_type);
 		int v = *pt ? static_cast<int>(pt->ptr_ - ram_begin) : -1;
 		set_int(ptr + 1, v);
+	} else if (auto sf = std::get_if<Stack_Frame>(&value)) {
+		ptr.check(stack_frame_size);
+		set_ptr_type(ptr.ptr_, stack_frame_type);
+		set_int(ptr + stack_frame_pc, sf->pc.offset());
+		set_int(ptr + stack_frame_end, sf->parent.offset());
+		set_int(ptr + stack_frame_outer, sf->outer.offset());
 	} else { err(Err::unknown_type); }
 }
 
@@ -124,6 +144,12 @@ template int Acc::get_int_value(
 template signed char Acc::get_byte(
 	const Const_Ptr<
 	    const signed char*, code_begin, code_end, Err::leave_code_segment
+	>& ptr
+);
+
+template Value Acc::get_value(
+	const Const_Ptr<
+		signed char*, ram_begin, ram_end, Err::leave_ram_segment
 	>& ptr
 );
 
