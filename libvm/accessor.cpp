@@ -124,13 +124,21 @@ Heap_Ptr Acc::pull_ptr() {
 	return *ptr;
 }
 
-void Acc::push(Value value) {
+Stack_Ptr Acc::push(Value value, int after_values) {
 	auto size { value_size(value) };
 	if (heap_end + size > stack_begin) { err(Err::stack_overflow); }
+	Stack_Ptr position { stack_begin };
+	if (after_values) {
+		for (; after_values; --after_values) {
+			position = position + value_size(*position.ptr_);
+		}
+		memmove(stack_begin - size, stack_begin, position.ptr_ - stack_begin);
+	}
 	stack_begin -= size;
-	std::memset(stack_begin, 0, size);
-	auto ptr { Stack_Ptr { stack_begin } };
-	set_value(ptr, value);
+	position = position - size;
+	std::memset(position.ptr_, 0, size);
+	set_value(position, value);
+	return position;
 }
 
 // instantiate templates:

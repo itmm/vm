@@ -18,6 +18,7 @@ namespace vm {
 
 	using Value = std::variant<signed char, int, Heap_Ptr, Stack_Frame>;
 
+	int value_size(signed char type);
 	int value_size(const Value& value);
 
 	int int_value(const Value& value);

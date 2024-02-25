@@ -33,6 +33,6 @@ namespace vm {
 			static int pull_int();
 			static Heap_Ptr pull_ptr();
 
-			static void push(Value value);
+			static Stack_Ptr push(Value value, int after_values = 0);
 	};
 }

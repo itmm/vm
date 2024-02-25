@@ -209,18 +209,13 @@ void vm::step() {
 		case op_call: {
 			Code_Ptr new_pc { code_begin + Acc::pull_int() };
 			int num_args { Acc::pull_int() };
-			std::vector<Value> args;
-			for (; num_args; --num_args) { args.push_back(Acc::pull()); }
 			Stack_Frame sf;
 			sf.pc = pc;
-			sf.parent = Ram_Ptr { stack_begin };
+			sf.parent = Ram_Ptr { stack_end };
 			sf.outer = Ram_Ptr { stack_end };
-			Acc::push(sf);
+			Stack_Ptr position = Acc::push(sf, num_args);
 			pc = new_pc;
-			stack_end = stack_begin;
-			while (!args.empty()) {
-				Acc::push(args.back()); args.pop_back();
-			}
+			stack_end = ram_begin + position.offset();
 			break;
 		}
 

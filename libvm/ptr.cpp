@@ -95,6 +95,11 @@ vm::operator-(
 	const Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>&, int
 );
 
+template Casting_Ptr<stack_begin, stack_end, Err::leave_stack_segment>
+vm::operator-(
+	const Casting_Ptr<stack_begin, stack_end, Err::leave_stack_segment>&, int
+);
+
 template bool vm::operator==(
 	const Const_Ptr<
 		const signed char*, code_begin, code_end, Err::leave_code_segment

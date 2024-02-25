@@ -1,5 +1,7 @@
 #include <limits>
 
+#include <iostream>
+
 #include "value.h"
 #include "vm.h"
 
@@ -15,6 +17,16 @@ bool vm::operator<(const Stack_Frame& a, const Stack_Frame& b) {
 			a.parent == b.parent && a.outer < b.outer
 		))
 	);
+}
+
+int vm::value_size(signed char type) {
+	switch (type) {
+		case ch_type: return ch_size;
+		case int_type: return int_size;
+		case ptr_type: return ptr_size;
+		case stack_frame_type: return stack_frame_size;
+		default: err(Err::unknown_type);
+	}
 }
 
 int vm::value_size(const Value& value) {
