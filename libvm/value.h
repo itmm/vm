@@ -5,8 +5,6 @@
 #include "ptr.h"
 
 namespace vm {
-	// TODO: add Stack Frame
-
 	struct Stack_Frame {
 		Code_Ptr pc;
 		Ram_Ptr parent;
