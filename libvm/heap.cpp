@@ -127,8 +127,9 @@ template<typename P> void Heap::dump_block(P begin, P end, const char* indent) {
 			std::cout << indent << current.offset() << ": ptr == " << ptr->offset() << " ("
 				<< (*ptr ? (ptr->offset() - heap_overhead) : -1) << ")\n";
 			current = current + ptr_size;
-		} else if (auto sf { std::get_if<Stack_Frame>(&value) }) {
-			std::cout << indent << current.offset() << ": stack_frame == " << ptr->offset() << " ()\n";
+		} else if (std::get_if<Stack_Frame>(&value)) {
+			// TODO: log stack frame details
+			std::cout << indent << current.offset() << ": stack_frame ()\n";
 			current = current + stack_frame_size;
 		} else {
 			std::cout << indent << "! UNKNOWN TYPE AT " << current.offset() << "\n";
