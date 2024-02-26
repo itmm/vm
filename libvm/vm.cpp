@@ -70,9 +70,10 @@ void vm::init(
 
 void vm::dump_stack() {
 	Stack_Ptr current { stack_begin };
-	Stack_Ptr end { ram_end };
-	std::cout << "stack[" << ram_end - stack_begin << "] {";
-	if (ram_end - stack_begin) {
+	Stack_Ptr end { stack_end };
+	int size { end.offset() - current.offset() };
+	std::cout << "stack[" << size << "] {";
+	if (size) {
 		std::cout << "\n";
 		Heap::dump_block(Stack_Ptr { stack_begin }, Stack_Ptr { ram_end }, "  ");
 		std::cout << "}\n";
@@ -215,7 +216,7 @@ void vm::step() {
 			sf.outer = Ram_Ptr { stack_end };
 			Stack_Ptr position = Acc::push(sf, num_args);
 			pc = new_pc;
-			stack_end = ram_begin + position.offset();
+			stack_end = stack_begin + position.offset();
 			break;
 		}
 

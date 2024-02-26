@@ -124,10 +124,12 @@ template<typename P> void Heap::dump_block(P begin, P end, const char* indent) {
 				": int == " << *val << "\n";
 			current = current + int_size;
 		} else if (auto ptr { std::get_if<Heap_Ptr>(&value) }) {
-			std::cout << indent << current.offset() <<
-				": ptr == " << ptr->offset() <<
-				" (" << (*ptr ? (ptr->offset() - heap_overhead) : -1) << ")\n";
+			std::cout << indent << current.offset() << ": ptr == " << ptr->offset() << " ("
+				<< (*ptr ? (ptr->offset() - heap_overhead) : -1) << ")\n";
 			current = current + ptr_size;
+		} else if (auto sf { std::get_if<Stack_Frame>(&value) }) {
+			std::cout << indent << current.offset() << ": stack_frame == " << ptr->offset() << " ()\n";
+			current = current + stack_frame_size;
 		} else {
 			std::cout << indent << "! UNKNOWN TYPE AT " << current.offset() << "\n";
 			break;
