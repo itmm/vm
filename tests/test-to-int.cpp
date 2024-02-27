@@ -24,7 +24,7 @@ TEST(ch_to_int_tests, negative) {
 
 TEST(ch_to_int_tests, no_ram) {
 	signed char code[] { PUSH_SMALL_INT(5) };
-	EXPECT_STACK_OVERFLOW(code, int_size - 1);
+	EXPECT_STACK_OVERFLOW(code, Int::typed_size - 1);
 }
 
 TEST(ch_to_int_tests, underflow) {

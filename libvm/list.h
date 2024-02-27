@@ -4,9 +4,9 @@
 #include "vm.h"
 
 namespace vm {
-	constexpr int node_next_offset { raw_int_size };
-	constexpr int node_prev_offset { 2 * raw_int_size };
-	constexpr int node_mark { 3 * raw_int_size };
+	constexpr int node_next_offset { Int::raw_size };
+	constexpr int node_prev_offset { 2 * Int::raw_size };
+	constexpr int node_mark { 3 * Int::raw_size };
 
 	struct List {
 		// TODO: use red-black tree

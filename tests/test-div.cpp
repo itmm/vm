@@ -56,7 +56,7 @@ TEST(div_int_tests, div_by_0) {
 
 TEST(div_int_tests, no_ram) {
 	signed char code[] { PUSH_SMALL_INT(8), PUSH_SMALL_INT(2), op_div };
-	EXPECT_STACK_OVERFLOW(code, 2 * int_size - 1);
+	EXPECT_STACK_OVERFLOW(code, 2 * Int::typed_size - 1);
 }
 
 TEST(div_int_tests, underflow) {

@@ -7,7 +7,7 @@ using namespace vm;
 TEST(add_int_tests, simple) {
 	signed char code[] { PUSH_SMALL_INT(10), PUSH_SMALL_INT(20), op_add };
 	signed char expected[] { RAW_INT(30) };
-	EXPECT_LIMITED_STACK(code, 2 * int_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Int::typed_size, expected);
 }
 
 TEST(add_int_tests, negative) {

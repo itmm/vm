@@ -23,7 +23,7 @@ TEST(dup_tests, ch_no_ram) {
 TEST(dup_tests, dup_int) {
 	signed char code[] { PUSH_SMALL_INT(10), op_dup };
 	signed char expected[] { RAW_INT(10), RAW_INT(10) };
-	EXPECT_LIMITED_STACK(code, 2 * int_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Int::typed_size, expected);
 }
 
 TEST(dup_tests, empty_int) {
@@ -33,6 +33,6 @@ TEST(dup_tests, empty_int) {
 
 TEST(dup_tests, int_no_ram) {
 	signed char code[] { PUSH_SMALL_INT(22), op_dup };
-	EXPECT_STACK_OVERFLOW(code, 2 * int_size - 1);
+	EXPECT_STACK_OVERFLOW(code, 2 * Int::typed_size - 1);
 }
 

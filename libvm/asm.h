@@ -12,6 +12,6 @@
 
 #define RAW_CH(X) vm::Char::type_ch, ID_(X)
 #define RAW_INT_(X) FOREACH_INT_(X, ID_)
-#define RAW_INT(X) int_type, RAW_INT_(X)
+#define RAW_INT(X) Int::type_ch, RAW_INT_(X)
 #define RAW_PTR(X) ptr_type, RAW_INT_(X)
 #define PUSH_INT(X) vm::op_push_int, RAW_INT_(X)

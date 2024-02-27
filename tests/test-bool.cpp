@@ -24,13 +24,13 @@ TEST(bool_tests, not_underflow_ch) {
 TEST(bool_tests, not_true_int) {
 	signed char code[] { PUSH_SMALL_INT(true_lit), op_not };
 	signed char expected[] { RAW_INT(false_lit) };
-	EXPECT_LIMITED_STACK(code, int_size, expected);
+	EXPECT_LIMITED_STACK(code, Int::typed_size, expected);
 }
 
 TEST(bool_tests, not_false_int) {
 	signed char code[] { PUSH_SMALL_INT(false_lit), op_not };
 	signed char expected[] { RAW_INT(true_lit) };
-	EXPECT_LIMITED_STACK(code, int_size, expected);
+	EXPECT_LIMITED_STACK(code, Int::typed_size, expected);
 }
 
 TEST(bool_tests, and00_ch) {
@@ -67,7 +67,7 @@ TEST(bool_tests, and00_int) {
 		PUSH_SMALL_INT(false_lit), PUSH_SMALL_INT(false_lit), op_and
 	};
 	signed char expected[] { RAW_INT(false_lit) };
-	EXPECT_LIMITED_STACK(code, 2 * int_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Int::typed_size, expected);
 }
 
 TEST(bool_tests, and01_int) {
@@ -75,7 +75,7 @@ TEST(bool_tests, and01_int) {
 		PUSH_SMALL_INT(true_lit), PUSH_SMALL_INT(false_lit), op_and
 	};
 	signed char expected[] { RAW_INT(false_lit) };
-	EXPECT_LIMITED_STACK(code, 2 * int_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Int::typed_size, expected);
 }
 
 TEST(bool_tests, and10_int) {
@@ -83,7 +83,7 @@ TEST(bool_tests, and10_int) {
 		PUSH_SMALL_INT(false_lit), PUSH_SMALL_INT(true_lit), op_and
 	};
 	signed char expected[] { RAW_INT(false_lit) };
-	EXPECT_LIMITED_STACK(code, 2 * int_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Int::typed_size, expected);
 }
 
 TEST(bool_tests, and11_int) {
@@ -91,7 +91,7 @@ TEST(bool_tests, and11_int) {
 		PUSH_SMALL_INT(true_lit), PUSH_SMALL_INT(true_lit), op_and
 	};
 	signed char expected[] { RAW_INT(true_lit) };
-	EXPECT_LIMITED_STACK(code, 2 * int_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Int::typed_size, expected);
 }
 
 TEST(bool_tests, and_underflow_int) {
@@ -133,7 +133,7 @@ TEST(bool_tests, or00_int) {
 		PUSH_SMALL_INT(false_lit), PUSH_SMALL_INT(false_lit), op_or
 	};
 	signed char expected[] { RAW_INT(false_lit) };
-	EXPECT_LIMITED_STACK(code, 2 * int_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Int::typed_size, expected);
 }
 
 TEST(bool_tests, or01_int) {
@@ -141,7 +141,7 @@ TEST(bool_tests, or01_int) {
 		PUSH_SMALL_INT(true_lit), PUSH_SMALL_INT(false_lit), op_or
 	};
 	signed char expected[] { RAW_INT(true_lit) };
-	EXPECT_LIMITED_STACK(code, 2 * int_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Int::typed_size, expected);
 }
 
 TEST(bool_tests, or10_int) {
@@ -149,7 +149,7 @@ TEST(bool_tests, or10_int) {
 		PUSH_SMALL_INT(false_lit), PUSH_SMALL_INT(true_lit), op_or
 	};
 	signed char expected[] { RAW_INT(true_lit) };
-	EXPECT_LIMITED_STACK(code, 2 * int_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Int::typed_size, expected);
 }
 
 TEST(bool_tests, or11_int) {
@@ -157,7 +157,7 @@ TEST(bool_tests, or11_int) {
 		PUSH_SMALL_INT(true_lit), PUSH_SMALL_INT(true_lit), op_or
 	};
 	signed char expected[] { RAW_INT(true_lit) };
-	EXPECT_LIMITED_STACK(code, 2 * int_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Int::typed_size, expected);
 }
 
 TEST(bool_tests, or_underflow_int) {
@@ -199,7 +199,7 @@ TEST(bool_tests, xor00_int) {
 		PUSH_SMALL_INT(false_lit), PUSH_SMALL_INT(false_lit), op_xor
 	};
 	signed char expected[] { RAW_INT(false_lit) };
-	EXPECT_LIMITED_STACK(code, 2 * int_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Int::typed_size, expected);
 }
 
 TEST(bool_tests, xor01_int) {
@@ -207,7 +207,7 @@ TEST(bool_tests, xor01_int) {
 		PUSH_SMALL_INT(true_lit), PUSH_SMALL_INT(false_lit), op_xor
 	};
 	signed char expected[] { RAW_INT(true_lit) };
-	EXPECT_LIMITED_STACK(code, 2 * int_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Int::typed_size, expected);
 }
 
 TEST(bool_tests, xor10_int) {
@@ -215,7 +215,7 @@ TEST(bool_tests, xor10_int) {
 		PUSH_SMALL_INT(false_lit), PUSH_SMALL_INT(true_lit), op_xor
 	};
 	signed char expected[] { RAW_INT(true_lit) };
-	EXPECT_LIMITED_STACK(code, 2 * int_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Int::typed_size, expected);
 }
 
 TEST(bool_tests, xor11_int) {
@@ -223,7 +223,7 @@ TEST(bool_tests, xor11_int) {
 		PUSH_SMALL_INT(true_lit), PUSH_SMALL_INT(true_lit), op_xor
 	};
 	signed char expected[] { RAW_INT(false_lit) };
-	EXPECT_LIMITED_STACK(code, 2 * int_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Int::typed_size, expected);
 }
 
 TEST(bool_tests, xor_underflow_int) {

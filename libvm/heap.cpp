@@ -122,7 +122,7 @@ template<typename P> void Heap::dump_block(P begin, P end, const char* indent) {
 		} else if (auto val { std::get_if<int>(&value) }) {
 			std::cout << indent << current.offset() <<
 				": int == " << *val << "\n";
-			current = current + int_size;
+			current = current + Int::typed_size;
 		} else if (auto ptr { std::get_if<Heap_Ptr>(&value) }) {
 			std::cout << indent << current.offset() << ": ptr == " << ptr->offset() << " ("
 				<< (*ptr ? (ptr->offset() - heap_overhead) : -1) << ")\n";

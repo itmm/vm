@@ -24,13 +24,13 @@ TEST(equals_tests, underflow_ch) {
 TEST(equals_tests, equals_int) {
 	signed char code[] { PUSH_SMALL_INT(5), PUSH_SMALL_INT(5), op_equals };
 	signed char expected[] { RAW_CH(true_lit) };
-	EXPECT_LIMITED_STACK(code, 2 * int_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Int::typed_size, expected);
 }
 
 TEST(equals_tests, not_equals_int) {
 	signed char code[] { PUSH_SMALL_INT(4), PUSH_SMALL_INT(5), op_equals };
 	signed char expected[] { RAW_CH(false_lit) };
-	EXPECT_LIMITED_STACK(code, 2 * int_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Int::typed_size, expected);
 }
 
 TEST(equals_tests, empty_int) {

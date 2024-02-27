@@ -8,7 +8,7 @@ template<typename T, T& B, T& E, Err::Code C>
 int Acc::get_int_value(const Const_Ptr<T, B, E, C>& ptr) {
 	int value { 0 };
 	for (
-		auto i { ptr.ptr_ }, e { ptr.ptr_ + raw_int_size };
+		auto i { ptr.ptr_ }, e { ptr.ptr_ + Int::raw_size };
 		i < e; ++i
 	) { value = (value << bits_per_byte) + (*i & byte_mask); }
 	return value;
@@ -17,7 +17,7 @@ int Acc::get_int_value(const Const_Ptr<T, B, E, C>& ptr) {
 template<signed char*& B, signed char*& E, Err::Code C>
 void Acc::set_int(Ptr<B, E, C> ptr, int value) {
 	for (
-		auto i { ptr.ptr_ + raw_int_size - 1 }; i >= ptr.ptr_; --i
+		auto i { ptr.ptr_ + Int::raw_size - 1 }; i >= ptr.ptr_; --i
 	) {
 		*i = static_cast<signed char>(value);
 		value >>= bits_per_byte;
@@ -31,8 +31,8 @@ signed char Acc::get_byte(const Const_Ptr<T, B, E, C>& ptr) {
 }
 
 static constexpr int stack_frame_pc { 1 };
-static constexpr int stack_frame_end { 1 + raw_int_size };
-static constexpr int stack_frame_outer { 1 + 2 * raw_int_size };
+static constexpr int stack_frame_end { 1 + Int::raw_size };
+static constexpr int stack_frame_outer { 1 + 2 * Int::raw_size };
 
 template<typename T, T& B, T& E, Err::Code C>
 Value Acc::get_value(const Const_Ptr<T, B, E, C>& ptr) {
@@ -40,8 +40,8 @@ Value Acc::get_value(const Const_Ptr<T, B, E, C>& ptr) {
 		case Char::type_ch:
 			ptr.check(Char::typed_size); return Value { ptr.ptr_[1] };
 
-		case int_type:
-			ptr.check(int_size);
+		case Int::type_ch:
+			ptr.check(Int::typed_size);
 			return Value { get_int_value(ptr + 1) };
 
 		case ptr_type: {
@@ -75,7 +75,7 @@ void Acc::set_value(Ptr<B, E, C> ptr, const Value& value) {
 		ptr.check(Char::typed_size); set_ptr_type(ptr.ptr_, Char::type_ch);
 		ptr.ptr_[1] = *ch;
 	} else if (auto val = std::get_if<int>(&value)) {
-		ptr.check(int_size); set_ptr_type(ptr.ptr_, int_type);
+		ptr.check(Int::typed_size); set_ptr_type(ptr.ptr_, Int::type_ch);
 		set_int(ptr + 1, *val);
 	} else if (auto pt = std::get_if<Heap_Ptr>(&value)) {
 		ptr.check(ptr_size);

@@ -18,5 +18,5 @@ TEST(pull_tests, underflow_ch) {
 TEST(pull_tests, pull_int) {
 	signed char code[] { PUSH_SMALL_INT(10), PUSH_SMALL_INT(11), op_pull };
 	signed char expected[] { RAW_INT(10) };
-	EXPECT_LIMITED_STACK(code, 2 * int_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Int::typed_size, expected);
 }

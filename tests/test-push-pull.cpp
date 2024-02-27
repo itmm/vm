@@ -17,5 +17,5 @@ TEST(push_pull_tests, push_3) {
 
 TEST(push_pull_tests, no_ram) {
 	signed char code[] { PUSH_INT(10) };
-	EXPECT_STACK_OVERFLOW(code, int_size - 1);
+	EXPECT_STACK_OVERFLOW(code, Int::typed_size - 1);
 }

@@ -6,13 +6,13 @@
 
 #if CONFIG_WITH_INT
 	#if !defined(CONFIG_INT_SIZE)
-		#define CONFIG_INT_SIZE 3
+		#define CONFIG_INT_SIZE 4
 	#endif
 	#if !defined(CONFIG_INT_TYPE)
 		#define CONFIG_INT_TYPE int
 	#endif
 	#if !defined(CONFIG_INT_USE_TYPE_FIELD)
-		#define CONFIG_INT_USE_TYPE_FIELD true
+		#define CONFIG_INT_USE_TYPE_FIELD false
 	#endif
 	#if !defined(CONFIG_INT_MULTI_PRECISION)
 		#define CONFIG_INT_MULTI_PRECISION false

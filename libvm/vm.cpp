@@ -104,16 +104,16 @@ void vm::step() {
 		}
 		case op_jmp: {
 			int value { Acc::get_int_value(pc) };
-			pc = pc + raw_int_size; jump(value, true_lit); break;
+			pc = pc + Int::raw_size; jump(value, true_lit); break;
 		}
 		case op_jmp_false: {
 			int value { Acc::get_int_value(pc) };
-			pc = pc + raw_int_size;
+			pc = pc + Int::raw_size;
 			jump_with_stack_condition(value, true); break;
 		}
 		case op_jmp_true: {
 			int value { Acc::get_int_value(pc) };
-			pc = pc + raw_int_size;
+			pc = pc + Int::raw_size;
 			jump_with_stack_condition(value, false); break;
 		}
 
@@ -188,7 +188,7 @@ void vm::step() {
 			#if CONFIG_HAS_OP_PUSH_INT
 				case op_push_int:
 					Acc::push(Acc::get_int_value(pc));
-					pc = pc + raw_int_size; break;
+					pc = pc + Int::raw_size; break;
 			#endif
 		#endif
 		#if CONFIG_HAS_CH && CONFIG_HAS_INT

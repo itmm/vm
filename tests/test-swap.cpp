@@ -7,7 +7,7 @@ using namespace vm;
 TEST(swap_tests, simple) {
 	signed char code[] { PUSH_SMALL_INT(1), PUSH_SMALL_INT(2), op_swap };
 	signed char expected[] { RAW_INT(1), RAW_INT(2) };
-	EXPECT_LIMITED_STACK(code, 2 * int_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Int::typed_size, expected);
 }
 
 TEST(swap_tests, overflow) {
