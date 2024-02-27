@@ -7,7 +7,7 @@ using namespace vm;
 TEST(dup_tests, dup_ch) {
 	signed char code[] { PUSH_CH(10), op_dup };
 	signed char expected[] { RAW_CH(10), RAW_CH(10) };
-	EXPECT_LIMITED_STACK(code, 2 * ch_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Char::typed_size, expected);
 }
 
 TEST(dup_tests, empty_ch) {
@@ -17,7 +17,7 @@ TEST(dup_tests, empty_ch) {
 
 TEST(dup_tests, ch_no_ram) {
 	signed char code[] { PUSH_CH(22), op_dup };
-	EXPECT_STACK_OVERFLOW(code, 2 * ch_size - 1);
+	EXPECT_STACK_OVERFLOW(code, 2 * Char::typed_size - 1);
 }
 
 TEST(dup_tests, dup_int) {

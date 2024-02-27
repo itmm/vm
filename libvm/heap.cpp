@@ -118,7 +118,7 @@ template<typename P> void Heap::dump_block(P begin, P end, const char* indent) {
 		if (auto ch { std::get_if<signed char>(&value) }) {
 			std::cout << indent << current.offset() <<
 				": char == " << static_cast<int>(*ch) << "\n";
-			current = current + ch_size;
+			current = current + Char::typed_size;
 		} else if (auto val { std::get_if<int>(&value) }) {
 			std::cout << indent << current.offset() <<
 				": int == " << *val << "\n";

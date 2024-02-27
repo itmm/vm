@@ -7,13 +7,13 @@ using namespace vm;
 TEST(equals_tests, equals_ch) {
 	signed char code[] { PUSH_CH(5), PUSH_CH(5), op_equals };
 	signed char expected[] { RAW_CH(true_lit) };
-	EXPECT_LIMITED_STACK(code, 2 * ch_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Char::typed_size, expected);
 }
 
 TEST(equals_tests, not_equals_ch) {
 	signed char code[] { PUSH_CH(4), PUSH_CH(5), op_equals };
 	signed char expected[] { RAW_CH(false_lit) };
-	EXPECT_LIMITED_STACK(code, 2 * ch_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Char::typed_size, expected);
 }
 
 TEST(equals_tests, underflow_ch) {

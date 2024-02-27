@@ -7,7 +7,7 @@ using namespace vm;
 TEST(pull_tests, pull_ch) {
 	signed char code[] { PUSH_CH(10), PUSH_CH(11), op_pull };
 	signed char expected[] { RAW_CH(10) };
-	EXPECT_LIMITED_STACK(code, 2 * ch_size, expected);
+	EXPECT_LIMITED_STACK(code, 2 * Char::typed_size, expected);
 }
 
 TEST(pull_tests, underflow_ch) {

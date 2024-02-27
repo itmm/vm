@@ -12,7 +12,7 @@ TEST(call_tests, simple) {
 		PUSH_CH(0), PUSH_CH(2), op_call
 	};
 	signed char expected[] { };
-	EXPECT_LIMITED_STACK(code, stack_frame_size + ch_size, expected);
+	EXPECT_LIMITED_STACK(code, stack_frame_size + Char::typed_size, expected);
 }
 
 TEST(call_tests, return_with_noempty_stack) {
@@ -23,5 +23,7 @@ TEST(call_tests, return_with_noempty_stack) {
 		PUSH_CH(0), PUSH_CH(2), op_call
 	};
 	signed char expected[] { };
-	EXPECT_LIMITED_STACK(code, stack_frame_size + 2 * ch_size, expected);
+	EXPECT_LIMITED_STACK(
+		code, stack_frame_size + 2 * Char::typed_size, expected
+	);
 }

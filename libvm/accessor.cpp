@@ -37,8 +37,8 @@ static constexpr int stack_frame_outer { 1 + 2 * raw_int_size };
 template<typename T, T& B, T& E, Err::Code C>
 Value Acc::get_value(const Const_Ptr<T, B, E, C>& ptr) {
 	ptr.check(1); switch (*ptr.ptr_) {
-		case ch_type:
-			ptr.check(ch_size); return Value { ptr.ptr_[1] };
+		case Char::type_ch:
+			ptr.check(Char::typed_size); return Value { ptr.ptr_[1] };
 
 		case int_type:
 			ptr.check(int_size);
@@ -72,7 +72,7 @@ static void set_ptr_type(signed char* ptr, signed char type) {
 template<signed char*& B, signed char*& E, Err::Code C>
 void Acc::set_value(Ptr<B, E, C> ptr, const Value& value) {
 	if (auto ch = std::get_if<signed char>(&value)) {
-		ptr.check(ch_size); set_ptr_type(ptr.ptr_, ch_type);
+		ptr.check(Char::typed_size); set_ptr_type(ptr.ptr_, Char::type_ch);
 		ptr.ptr_[1] = *ch;
 	} else if (auto val = std::get_if<int>(&value)) {
 		ptr.check(int_size); set_ptr_type(ptr.ptr_, int_type);
