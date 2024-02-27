@@ -7,7 +7,10 @@
 int main() {
 	signed char ram[4096];
 	signed char code[] {
-		PUSH_CH('?'), vm::op_write_ch, vm::op_break
+		#if CONFIG_WITH_CHAR
+			PUSH_CH('?'), vm::op_write_ch,
+		#endif
+		vm::op_break
 	};
 	try {
 		vm::init(ram, ram + sizeof(ram), code, code + sizeof(code));

@@ -3,18 +3,16 @@
 
 using namespace vm;
 
-void vm::ops::Mult::perform_ch(signed char a, signed char b) {
-	Acc::push(to_ch(a * b, Err::mult_overflow, Err::mult_underflow));
-}
-
-void vm::ops::Mult::perform_int(int a, int b) {
-	if (a == 0x80000000 && b == -1) { err(Err::mult_overflow); }
-	int value { a * b };
-	if (b != 0 && value / b != a) {
-		if ((a < 0 && b > 0) || (a > 0 && b < 0)) {
-			err(Err::mult_underflow);
+#if CONFIG_WITH_INT
+	void vm::ops::Mult::perform_int(int a, int b) {
+		if (a == 0x80000000 && b == -1) { err(Err::mult_overflow); }
+		int value { a * b };
+		if (b != 0 && value / b != a) {
+			if ((a < 0 && b > 0) || (a > 0 && b < 0)) {
+				err(Err::mult_underflow);
+			}
+			err(Err::mult_overflow);
 		}
-		err(Err::mult_overflow);
+		Acc::push(value);
 	}
-	Acc::push(value);
-}
+#endif

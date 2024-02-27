@@ -23,7 +23,9 @@ void expect_stack(
 		}
 		EXPECT_EQ(err.code, expected_error);
 	}
-	if (dump_heap) { vm::Heap::dump_heap(); }
+	#if CONFIG_WITH_HEAP
+		if (dump_heap) { vm::Heap::dump_heap(); }
+	#endif
 	if (dump_free) { std::cout << "free[" << vm::stack_begin - vm::heap_end << "] { }\n"; }
 	if (dump_stack) { vm::dump_stack(); }
 	if (expected_begin) {

@@ -52,15 +52,20 @@ namespace vm {
 	constexpr signed char ptr_type { 0x30 };
 	constexpr signed char stack_frame_type { 0x40 };
 
-	constexpr int node_size { 3 * Int::raw_size + 1 };
-	constexpr int ptr_size { Int::raw_size + 1 };
-	constexpr int stack_frame_size { 3 * Int::raw_size + 1 };
+	#if CONFIG_WITH_HEAP
+		constexpr int node_size { 3 * Int::raw_size + 1 };
+		constexpr int ptr_size { Int::raw_size + 1 };
+		constexpr int heap_overhead { node_size };
+	#endif
+	#if CONFIG_WITH_CALL
+		constexpr int stack_frame_size { 3 * Int::raw_size + 1 };
+	#endif
+
 	constexpr int bits_per_byte { 8 };
 	constexpr int byte_mask { 0xff };
 	constexpr signed char true_lit { -1 };
 	constexpr signed char false_lit { 0 };
 	static_assert(true_lit != false_lit);
-	constexpr int heap_overhead { node_size };
 
 	enum OpCode {
 		#define OP(O) op_##O,

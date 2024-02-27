@@ -1,64 +1,93 @@
-#include "../config.h"
 #if !defined(OP)
     #define OP(O)
 #endif
-#if CONFIG_HAS_OP_NOP
-    OP(nop)
+#if CONFIG_WITH_NUMERIC
+	OP(add)
+	OP(and)
 #endif
-#if CONFIG_HAS_OP_BREAK
-    OP(break)
+OP(break)
+#if CONFIG_WITH_CALL
+	OP(call)
+	OP(call_inner) // TODO: implement
+	OP(call_outer) // TODO: implement
 #endif
-OP(near_jmp)
-OP(near_jmp_true)
-OP(near_jmp_false)
-OP(jmp)
-OP(jmp_true)
-OP(jmp_false)
-OP(call)
-OP(call_outer) // TODO: implement
-OP(call_inner) // TODO: implement
-OP(return)
-OP(return_value) // TODO: implement
-OP(new)
-OP(free)
-OP(fetch)
-OP(fetch_outer) // TODO: implement
-OP(collect_garbage)
-OP(store)
-OP(store_outer) // TODO: implement
-OP(send)
-OP(receive)
-OP(equals)
-OP(less)
-OP(not)
-OP(and)
-OP(or)
-OP(xor)
-#if CONFIG_HAS_CH
-    OP(push_ch)
-    #if CONFIG_HAS_OP_WRITE_CH
-        OP(write_ch)
-    #endif
+#if CONFIG_WITH_GC
+	OP(collect_garbage)
+#endif
+#if CONFIG_WITH_INT
+	OP(div)
 #endif
 OP(dup)
-OP(pull)
-OP(swap)
-OP(add)
-OP(sub)
-OP(mult)
-OP(div)
-OP(mod)
-#if CONFIG_HAS_INT
-	#if CONFIG_HAS_OP_PUSH_INT
-		OP(push_int)
+#if CONFIG_WITH_NUMERIC
+	OP(equals)
+	OP(fetch)
+	#if CONFIG_WITH_CALL
+		OP(fetch_outer) // TODO: implement
 	#endif
 #endif
-#if CONFIG_HAS_CH && CONFIG_HAS_INT
-    #if CONFIG_HAS_OP_CH_TO_INT
-        OP(to_int)
-    #endif
-    #if CONFIG_HAS_OP_INT_TO_CH
-        OP(to_ch)
-    #endif
+#if CONFIG_WITH_HEAP
+	OP(free)
+#endif
+#if CONFIG_WITH_INT
+	OP(jmp)
+	OP(jmp_false)
+	OP(jmp_true)
+#endif
+#if CONFIG_WITH_NUMERIC
+	OP(less)
+#endif
+#if CONFIG_WITH_INT
+	OP(mod)
+	OP(mult)
+#endif
+OP(near_jmp)
+#if CONFIG_WITH_NUMERIC
+	OP(near_jmp_false)
+	OP(near_jmp_true)
+#endif
+#if CONFIG_WITH_HEAP
+	OP(new)
+#endif
+OP(nop)
+#if CONFIG_WITH_NUMERIC
+	OP(not)
+	OP(or)
+#endif
+OP(pull)
+#if CONFIG_WITH_CHAR
+	OP(push_ch)
+#endif
+#if CONFIG_WITH_INT
+	OP(push_int)
+#endif
+#if CONFIG_WITH_HEAP
+	OP(receive)
+#endif
+#if CONFIG_WITH_CALL
+	OP(return)
+	OP(return_value) // TODO: implement
+#endif
+#if CONFIG_WITH_HEAP
+	OP(send)
+#endif
+#if CONFIG_WITH_NUMERIC
+	OP(store)
+	#if CONFIG_WITH_CALL
+		OP(store_outer) // TODO: implement
+	#endif
+	OP(sub)
+#endif
+OP(swap)
+#if CONFIG_WITH_CHAR
+	OP(to_ch)
+#endif
+#if CONFIG_WITH_INT
+	OP(to_int)
+#endif
+#if CONFIG_WITH_CHAR
+	OP(write_ch)
+#endif
+#if CONFIG_WITH_NUMERIC
+	OP(xor)
 #endif
 #undef OP

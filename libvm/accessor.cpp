@@ -4,62 +4,71 @@
 
 using namespace vm;
 
-template<typename T, T& B, T& E, Err::Code C>
-int Acc::get_int_value(const Const_Ptr<T, B, E, C>& ptr) {
-	int value { 0 };
-	for (
-		auto i { ptr.ptr_ }, e { ptr.ptr_ + Int::raw_size };
-		i < e; ++i
-	) { value = (value << bits_per_byte) + (*i & byte_mask); }
-	return value;
-}
-
-template<signed char*& B, signed char*& E, Err::Code C>
-void Acc::set_int(Ptr<B, E, C> ptr, int value) {
-	for (
-		auto i { ptr.ptr_ + Int::raw_size - 1 }; i >= ptr.ptr_; --i
-	) {
-		*i = static_cast<signed char>(value);
-		value >>= bits_per_byte;
+#if CONFIG_WITH_INT
+	template<typename T, T& B, T& E, Err::Code C>
+	int Acc::get_int_value(const Const_Ptr<T, B, E, C>& ptr) {
+		int value { 0 };
+		for (
+			auto i { ptr.ptr_ }, e { ptr.ptr_ + Int::raw_size };
+			i < e; ++i
+		) { value = (value << bits_per_byte) + (*i & byte_mask); }
+		return value;
 	}
-	if (value != 0 && value != -1) { err(Err::int_overflow); }
-}
+
+	template<signed char*& B, signed char*& E, Err::Code C>
+	void Acc::set_int(Ptr<B, E, C> ptr, int value) {
+		for (
+			auto i { ptr.ptr_ + Int::raw_size - 1 }; i >= ptr.ptr_; --i
+		) {
+			*i = static_cast<signed char>(value);
+			value >>= bits_per_byte;
+		}
+		if (value != 0 && value != -1) { err(Err::int_overflow); }
+	}
+#endif
 
 template<typename T, T& B, T& E, Err::Code C>
 signed char Acc::get_byte(const Const_Ptr<T, B, E, C>& ptr) {
 	ptr.check(1); return *ptr.ptr_;
 }
 
-static constexpr int stack_frame_pc { 1 };
-static constexpr int stack_frame_end { 1 + Int::raw_size };
-static constexpr int stack_frame_outer { 1 + 2 * Int::raw_size };
+#if CONFIG_WITH_CALL
+	static constexpr int stack_frame_pc { 1 };
+	static constexpr int stack_frame_end { 1 + Int::raw_size };
+	static constexpr int stack_frame_outer { 1 + 2 * Int::raw_size };
+#endif
 
 template<typename T, T& B, T& E, Err::Code C>
 Value Acc::get_value(const Const_Ptr<T, B, E, C>& ptr) {
 	ptr.check(1); switch (*ptr.ptr_) {
-		case Char::type_ch:
-			ptr.check(Char::typed_size); return Value { ptr.ptr_[1] };
-
-		case Int::type_ch:
-			ptr.check(Int::typed_size);
-			return Value { get_int_value(ptr + 1) };
-
-		case ptr_type: {
-			ptr.check(ptr_size);
-			int offset { get_int_value(ptr + 1) };
-			return Value { Heap_Ptr {
-				offset >= 0 ? ram_begin + offset : nullptr
-			} };
-		}
-
-		case stack_frame_type: {
-			ptr.check(stack_frame_size);
-			Stack_Frame frame;
-			frame.pc = Code_Ptr { code_begin + get_int_value(ptr + stack_frame_pc) };
-			frame.parent = Ram_Ptr { ram_begin + get_int_value(ptr + stack_frame_end) };
-			frame.outer = Ram_Ptr { ram_begin + get_int_value(ptr + stack_frame_outer) };
-			return frame;
-		}
+		#if CONFIG_WITH_CHAR
+			case Char::type_ch:
+				ptr.check(Char::typed_size); return Value { ptr.ptr_[1] };
+		#endif
+		#if CONFIG_WITH_INT
+			case Int::type_ch:
+				ptr.check(Int::typed_size);
+				return Value { get_int_value(ptr + 1) };
+		#endif
+		#if CONFIG_WITH_HEAP
+			case ptr_type: {
+				ptr.check(ptr_size);
+				int offset { get_int_value(ptr + 1) };
+				return Value { Heap_Ptr {
+					offset >= 0 ? ram_begin + offset : nullptr
+				} };
+			}
+		#endif
+		#if CONFIG_WITH_CALL
+			case stack_frame_type: {
+				ptr.check(stack_frame_size);
+				Stack_Frame frame;
+				frame.pc = Code_Ptr { code_begin + get_int_value(ptr + stack_frame_pc) };
+				frame.parent = Ram_Ptr { ram_begin + get_int_value(ptr + stack_frame_end) };
+				frame.outer = Ram_Ptr { ram_begin + get_int_value(ptr + stack_frame_outer) };
+				return frame;
+			}
+		#endif
 		default: err(Err::unknown_type);
 	}
 }
@@ -71,58 +80,82 @@ static void set_ptr_type(signed char* ptr, signed char type) {
 
 template<signed char*& B, signed char*& E, Err::Code C>
 void Acc::set_value(Ptr<B, E, C> ptr, const Value& value) {
-	if (auto ch = std::get_if<signed char>(&value)) {
-		ptr.check(Char::typed_size); set_ptr_type(ptr.ptr_, Char::type_ch);
-		ptr.ptr_[1] = *ch;
-	} else if (auto val = std::get_if<int>(&value)) {
-		ptr.check(Int::typed_size); set_ptr_type(ptr.ptr_, Int::type_ch);
-		set_int(ptr + 1, *val);
-	} else if (auto pt = std::get_if<Heap_Ptr>(&value)) {
-		ptr.check(ptr_size);
-		set_ptr_type(ptr.ptr_, ptr_type);
-		int v = *pt ? static_cast<int>(pt->ptr_ - ram_begin) : -1;
-		set_int(ptr + 1, v);
-	} else if (auto sf = std::get_if<Stack_Frame>(&value)) {
-		ptr.check(stack_frame_size);
-		set_ptr_type(ptr.ptr_, stack_frame_type);
-		set_int(ptr + stack_frame_pc, sf->pc.offset());
-		set_int(ptr + stack_frame_end, sf->parent.offset());
-		set_int(ptr + stack_frame_outer, sf->outer.offset());
-	} else { err(Err::unknown_type); }
+	#if CONFIG_WITH_CHAR
+		if (auto ch = std::get_if<signed char>(&value)) {
+			ptr.check(Char::typed_size); set_ptr_type(ptr.ptr_, Char::type_ch);
+			ptr.ptr_[1] = *ch;
+			return;
+		}
+	#endif
+	#if CONFIG_WITH_INT
+		if (auto val = std::get_if<int>(&value)) {
+			ptr.check(Int::typed_size); set_ptr_type(ptr.ptr_, Int::type_ch);
+			set_int(ptr + 1, *val);
+			return;
+		}
+	#endif
+	#if CONFIG_WITH_HEAP
+		if (auto pt = std::get_if<Heap_Ptr>(&value)) {
+			ptr.check(ptr_size);
+			set_ptr_type(ptr.ptr_, ptr_type);
+			int v = *pt ? static_cast<int>(pt->ptr_ - ram_begin) : -1;
+			set_int(ptr + 1, v);
+			return;
+		}
+	#endif
+	#if CONFIG_WITH_CALL
+		if (auto sf = std::get_if<Stack_Frame>(&value)) {
+			ptr.check(stack_frame_size);
+			set_ptr_type(ptr.ptr_, stack_frame_type);
+			set_int(ptr + stack_frame_pc, sf->pc.offset());
+			set_int(ptr + stack_frame_end, sf->parent.offset());
+			set_int(ptr + stack_frame_outer, sf->outer.offset());
+			return;
+		}
+	#endif
+	err(Err::unknown_type);
 }
 
-template<typename P> Heap_Ptr Acc::get_ptr(const P& ptr) {
-	if (!ptr) { err(Err::null_access); }
-	int value { get_int_value(ptr) };
-	return Heap_Ptr { value >= 0 ? ram_begin + value : nullptr };
-}
+#if CONFIG_WITH_HEAP
+	template<typename P> Heap_Ptr Acc::get_ptr(const P& ptr) {
+		if (!ptr) { err(Err::null_access); }
+		int value { get_int_value(ptr) };
+		return Heap_Ptr { value >= 0 ? ram_begin + value : nullptr };
+	}
 
-template<typename P> void Acc::set_ptr(P ptr, const Heap_Ptr& value) {
-	auto got { value.ptr_ };
-	if (!ptr) { err(Err::null_access); }
-	set_int(ptr, got ? static_cast<int>(got - ram_begin) : -1);
-}
+	template<typename P> void Acc::set_ptr(P ptr, const Heap_Ptr& value) {
+		auto got { value.ptr_ };
+		if (!ptr) { err(Err::null_access); }
+		set_int(ptr, got ? static_cast<int>(got - ram_begin) : -1);
+	}
+#endif
 
 Value Acc::pull() {
 	auto value { get_value(Stack_Ptr { stack_begin }) };
 	stack_begin += value_size(value); return value;
 }
 
-signed char Acc::pull_ch() {
-	auto value { pull() };
-	auto ch = std::get_if<signed char>(&value);
-	if (!ch) { err(Err::no_char); }
-	return *ch;
-}
+#if CONFIG_WITH_CHAR
+	signed char Acc::pull_ch() {
+		auto value { pull() };
+		auto ch = std::get_if<signed char>(&value);
+		if (!ch) { err(Err::no_char); }
+		return *ch;
+	}
+#endif
 
-int Acc::pull_int() { return int_value(pull()); }
+#if CONFIG_WITH_INT
+	int Acc::pull_int() { return int_value(pull()); }
+#endif
 
-Heap_Ptr Acc::pull_ptr() {
-	auto value { pull() };
-	auto ptr = std::get_if<Heap_Ptr>(&value);
-	if (!ptr) { err(Err::no_pointer); }
-	return *ptr;
-}
+#if CONFIG_WITH_HEAP
+	Heap_Ptr Acc::pull_ptr() {
+		auto value { pull() };
+		auto ptr = std::get_if<Heap_Ptr>(&value);
+		if (!ptr) { err(Err::no_pointer); }
+		return *ptr;
+	}
+#endif
 
 Stack_Ptr Acc::push(Value value, int after_values) {
 	auto size { value_size(value) };
@@ -143,11 +176,13 @@ Stack_Ptr Acc::push(Value value, int after_values) {
 
 // instantiate templates:
 
-template int Acc::get_int_value(
-	const Const_Ptr<
-	    const signed char*, code_begin, code_end, Err::leave_code_segment
-	>& ptr
-);
+#if CONFIG_WITH_INT
+	template int Acc::get_int_value(
+		const Const_Ptr<
+			const signed char*, code_begin, code_end, Err::leave_code_segment
+		>& ptr
+	);
+#endif
 
 template signed char Acc::get_byte(
 	const Const_Ptr<
@@ -177,11 +212,13 @@ template void Acc::set_value(
 	Ptr<ram_begin, heap_end, Err::leave_heap_segment> ptr, const Value& value
 );
 
-template Heap_Ptr Acc::get_ptr(
-	const Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>& ptr
-);
+#if CONFIG_WITH_HEAP
+	template Heap_Ptr Acc::get_ptr(
+		const Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>& ptr
+	);
 
-template void Acc::set_ptr(
-	Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment> ptr,
-	const Heap_Ptr& value
-);
+	template void Acc::set_ptr(
+		Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment> ptr,
+		const Heap_Ptr& value
+	);
+#endif

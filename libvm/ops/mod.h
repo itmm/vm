@@ -2,14 +2,13 @@
 
 #include "poly.h"
 
-namespace vm::ops {
-	class Mod : public ops::Poly {
-	public:
-		Mod() = default;
+#if CONFIG_WITH_INT
+	namespace vm::ops {
+		class Mod : public ops::Poly {
+		public:
+			Mod() = default;
 
-		void perform_ch(signed char a, signed char b) override;
-
-		void perform_int(int a, int b) override;
-	};
-
-}
+			void perform_int(int a, int b) override;
+		};
+	}
+#endif

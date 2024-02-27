@@ -47,6 +47,9 @@ namespace vm {
 			#endif
 			Stack_Frame
 		#endif
+		#if !defined(VARIANT_SEP)
+			void*
+		#endif
 	>;
 
 	int value_size(signed char type);

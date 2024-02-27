@@ -2,14 +2,15 @@
 
 #include "poly.h"
 
-namespace vm::ops {
-	class Mult : public ops::Poly {
-	public:
-		Mult() = default;
+#if CONFIG_WITH_INT
 
-		void perform_ch(signed char a, signed char b) override;
+	namespace vm::ops {
+		class Mult : public ops::Poly {
+		public:
+			Mult() = default;
 
-		void perform_int(int a, int b) override;
-	};
+			void perform_int(int a, int b) override;
+		};
+	}
 
-}
+#endif
