@@ -2,8 +2,8 @@
 
 using namespace vm;
 
-const signed char* vm::code_begin;
-const signed char* vm::code_end;
+const signed char* vm::old_code_begin;
+const signed char* vm::old_code_end;
 signed char* vm::ram_begin;
 #if CONFIG_WITH_HEAP
 	signed char* vm::heap_end;
@@ -55,7 +55,7 @@ signed char* Stack_Ptr::end { nullptr };
 
 // instantiate templates:
 
-template class vm::Const_Ptr<const signed char*, code_begin, code_end, Err::leave_code_segment>;
+template class vm::Const_Ptr<const signed char*, old_code_begin, old_code_end, Err::leave_code_segment>;
 
 template void vm::Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_segment>::check(int) const;
 #if CONFIG_WITH_HEAP
@@ -68,8 +68,8 @@ template void vm::Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_seg
 #endif
 
 template Code_Ptr vm::operator+(const Code_Ptr&, int);
-template Const_Ptr<const signed char*, code_begin, code_end, Err::leave_code_segment> vm::operator+(
-	const Const_Ptr<const signed char*, code_begin, code_end, Err::leave_code_segment>&, int);
+template Const_Ptr<const signed char*, old_code_begin, old_code_end, Err::leave_code_segment> vm::operator+(
+	const Const_Ptr<const signed char*, old_code_begin, old_code_end, Err::leave_code_segment>&, int);
 template Ram_Ptr vm::operator+(const Ram_Ptr&, int);
 template Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_segment> vm::operator+(
 	const Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_segment>&, int);
@@ -135,9 +135,9 @@ template Stack_Ptr vm::operator-(const Stack_Ptr&, int);
 
 template bool vm::operator==(
 	const Const_Ptr<
-		const signed char*, code_begin, code_end, Err::leave_code_segment
+		const signed char*, old_code_begin, old_code_end, Err::leave_code_segment
 	>&,
-	const Const_Ptr<const signed char*, code_begin, code_end, Err::leave_code_segment>&
+	const Const_Ptr<const signed char*, old_code_begin, old_code_end, Err::leave_code_segment>&
 );
 
 template bool vm::operator==(
@@ -178,9 +178,9 @@ template bool vm::operator==(
 
 template bool vm::operator<(
 	const Const_Ptr<
-		const signed char*, code_begin, code_end, Err::leave_code_segment
+		const signed char*, old_code_begin, old_code_end, Err::leave_code_segment
 	>&,
-	const Const_Ptr<const signed char*, code_begin, code_end, Err::leave_code_segment>&
+	const Const_Ptr<const signed char*, old_code_begin, old_code_end, Err::leave_code_segment>&
 );
 
 template bool vm::operator<(

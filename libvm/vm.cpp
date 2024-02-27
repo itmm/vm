@@ -61,7 +61,8 @@ void vm::init(
 	ram_begin = ram_begin_; ram_end = ram_end_;
 
 	check_range(code_begin_, code_end_, Err::invalid_code);
-	code_begin = code_begin_; code_end = code_end_;
+	old_code_begin = Code_Ptr::begin = code_begin_;
+	old_code_end = Code_Ptr::end = code_end_;
 
 	#if CONFIG_WITH_HEAP
 		heap_end = ram_begin;
@@ -77,7 +78,7 @@ void vm::init(
 		Heap::alloc_list = List { };
 	#endif
 
-	pc = Code_Ptr { code_begin };
+	pc = Code_Ptr { Code_Ptr::begin };
 }
 
 template<typename P> void vm::dump_block(const P& begin, const P& end, const char* indent) {
@@ -154,7 +155,7 @@ void vm::step() {
 		case op_break: err(Err::got_break);
 		#if CONFIG_WITH_CALL
 			case op_call: {
-				Code_Ptr new_pc { code_begin + Acc::pull_int() };
+				Code_Ptr new_pc { Code_Ptr::begin + Acc::pull_int() };
 				int num_args { Acc::pull_int() };
 				Stack_Frame sf;
 				sf.pc = pc;

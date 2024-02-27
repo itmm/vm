@@ -3,8 +3,8 @@
 #include "err.h"
 
 namespace vm {
-	extern const signed char* code_begin;
-	extern const signed char* code_end;
+	extern const signed char* old_code_begin;
+	extern const signed char* old_code_end;
 	extern signed char* ram_begin;
 	#if CONFIG_WITH_HEAP
 		extern signed char* heap_end;
@@ -75,11 +75,11 @@ namespace vm {
 	};
 
 	class Code_Ptr: public Const_Ptr<
-		const signed char*, code_begin, code_end, Err::leave_code_segment
+		const signed char*, old_code_begin, old_code_end, Err::leave_code_segment
 	> {
 		public:
 			explicit Code_Ptr(const signed char* ptr = nullptr):
-				Const_Ptr<const signed char*, code_begin, code_end, Err::leave_code_segment>(ptr) { }
+				Const_Ptr<const signed char*, old_code_begin, old_code_end, Err::leave_code_segment>(ptr) { }
 
 			static const signed char* begin;
 			static const signed char* end;

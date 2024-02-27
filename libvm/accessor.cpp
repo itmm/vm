@@ -62,7 +62,7 @@ template<typename P> Value Acc::get_value(const P& ptr) {
 			case stack_frame_type: {
 				ptr.check(stack_frame_size);
 				Stack_Frame frame;
-				frame.pc = Code_Ptr { code_begin + get_int(ptr + stack_frame_pc) };
+				frame.pc = Code_Ptr { Code_Ptr::begin + get_int(ptr + stack_frame_pc) };
 				frame.parent = Ram_Ptr { ram_begin + get_int(ptr + stack_frame_end) };
 				frame.outer = Ram_Ptr { ram_begin + get_int(ptr + stack_frame_outer) };
 				return frame;
@@ -178,14 +178,14 @@ Stack_Ptr Acc::push(Value value, int after_values) {
 #if CONFIG_WITH_INT
 	template int Acc::get_int(
 		const Const_Ptr<
-			const signed char*, code_begin, code_end, Err::leave_code_segment
+			const signed char*, old_code_begin, old_code_end, Err::leave_code_segment
 		>& ptr
 	);
 #endif
 
 template signed char Acc::get_byte(
 	const Const_Ptr<
-	    const signed char*, code_begin, code_end, Err::leave_code_segment
+	    const signed char*, old_code_begin, old_code_end, Err::leave_code_segment
 	>& ptr
 );
 
