@@ -71,7 +71,7 @@ namespace vm {
 
 			T ptr_;
 
-			void check(int size) const;
+			void internal_check(int size, T begin, T end, Err::Code code) const;
 	};
 
 	class Code_Ptr: public Const_Ptr<
@@ -83,6 +83,8 @@ namespace vm {
 
 			static const signed char* begin;
 			static const signed char* end;
+
+			void check(int size) const { internal_check(size, begin, end, Err::leave_code_segment); }
 	};
 
 	extern Code_Ptr pc;
@@ -103,6 +105,8 @@ namespace vm {
 
 			static signed char* begin;
 			static signed char* end;
+
+			void check(int size) const { internal_check(size, begin, end, Err::leave_ram_segment); }
 	};
 
 	template<signed char*& B, signed char*& E, Err::Code C>
@@ -117,28 +121,34 @@ namespace vm {
 	#if CONFIG_WITH_HEAP
 		class Heap_Ptr : public Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment> {
 			public:
-				Heap_Ptr(signed char* ptr = nullptr) : Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>(ptr) { }
+				explicit Heap_Ptr(signed char* ptr = nullptr) : Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>(ptr) { }
 
 				static signed char* begin;
 				static signed char* end;
+
+				void check(int size) const { internal_check(size, begin, end, Err::leave_heap_segment); }
 		};
 	#endif
 
 	#if CONFIG_WITH_CALL
 		class Stack_Ptr : public Casting_Ptr<stack_begin, stack_end, Err::leave_stack_segment> {
 			public:
-				Stack_Ptr(signed char* ptr = nullptr) : Casting_Ptr<stack_begin, stack_end, Err::leave_stack_segment>(ptr) { }
+				explicit Stack_Ptr(signed char* ptr = nullptr) : Casting_Ptr<stack_begin, stack_end, Err::leave_stack_segment>(ptr) { }
 
 				static signed char* begin;
 				static signed char* end;
+
+				void check(int size) const { internal_check(size, begin, end, Err::leave_stack_segment); }
 		};
 	#else
 		class Stack_Ptr : public Casting_Ptr<stack_begin, ram_end, Err::leave_stack_segment> {
 			public:
-				Stack_Ptr(signed char* ptr = nullptr) : Casting_Ptr<stack_begin, ram_end, Err::leave_stack_segment>(ptr) { }
+				explicit Stack_Ptr(signed char* ptr = nullptr) : Casting_Ptr<stack_begin, ram_end, Err::leave_stack_segment>(ptr) { }
 
 				static signed char* begin;
 				static signed char* end;
+
+				void check(int size) const { internal_check(size, begin, end, Err::leave_stack_segment); }
 		};
 	#endif
 }

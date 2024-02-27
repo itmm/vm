@@ -17,8 +17,8 @@ signed char* vm::ram_end;
 vm::Code_Ptr vm::pc;
 
 template<typename T, T& B, T& E, Err::Code C>
-void Const_Ptr<T, B, E, C>::check(int size) const {
-	if (ptr_ < B || ptr_ + size > E) { err(C); }
+void Const_Ptr<T, B, E, C>::internal_check(int size, T begin, T end, Err::Code code) const {
+	if (ptr_ < begin || ptr_ + size > end) { err(code); }
 }
 
 template<typename P> P vm::operator+(const P& ptr, int offset) {
@@ -57,14 +57,15 @@ signed char* Stack_Ptr::end { nullptr };
 
 template class vm::Const_Ptr<const signed char*, old_code_begin, old_code_end, Err::leave_code_segment>;
 
-template void vm::Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_segment>::check(int) const;
+template void vm::Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_segment>::internal_check(int, signed char*, signed char*, Err::Code) const;
 #if CONFIG_WITH_HEAP
-	template void vm::Const_Ptr<signed char*, ram_begin, heap_end, Err::leave_heap_segment>::check(int) const;
+	template void vm::Const_Ptr<signed char*, ram_begin, heap_end, Err::leave_heap_segment>::internal_check(int, signed char*, signed char*, Err::Code) const;
 #endif
 #if CONFIG_WITH_CALL
-	template void vm::Const_Ptr<signed char*, stack_begin, stack_end, Err::leave_stack_segment>::check(int) const;
+	template void vm::Const_Ptr<signed char*, stack_begin, stack_end, Err::leave_stack_segment>::internal_check(int, signed char*, signed char*, Err::Code) const;
 #else
 	template void vm::Const_Ptr<signed char*, stack_begin, ram_end, Err::leave_stack_segment>::check(int) const;
+	template void vm::Const_Ptr<signed char*, stack_begin, ram_end, Err::leave_stack_segment>::internal_check(int, signed char*, signed char*, Err::Code) const;
 #endif
 
 template Code_Ptr vm::operator+(const Code_Ptr&, int);

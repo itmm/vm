@@ -27,8 +27,7 @@ using namespace vm;
 	}
 #endif
 
-template<typename T, T& B, T& E, Err::Code C>
-signed char Acc::get_byte(const Const_Ptr<T, B, E, C>& ptr) {
+template<typename P> signed char Acc::get_byte(const P& ptr) {
 	ptr.check(1); return *ptr.ptr_;
 }
 
@@ -77,8 +76,8 @@ static void set_ptr_type(signed char* ptr, signed char type) {
 	*ptr = type;
 }
 
-template<signed char*& B, signed char*& E, Err::Code C>
-void Acc::set_value(Ptr<B, E, C> ptr, const Value& value) {
+template<typename P>
+void Acc::set_value(P ptr, const Value& value) {
 	#if CONFIG_WITH_CHAR
 		if (auto ch = std::get_if<signed char>(&value)) {
 			ptr.check(Char::typed_size); set_ptr_type(ptr.ptr_, Char::type_ch);
@@ -183,37 +182,13 @@ Stack_Ptr Acc::push(Value value, int after_values) {
 	);
 #endif
 
-template signed char Acc::get_byte(
-	const Const_Ptr<
-	    const signed char*, old_code_begin, old_code_end, Err::leave_code_segment
-	>& ptr
-);
-
-template Value Acc::get_value(
-	const Const_Ptr<
-		signed char*, ram_begin, ram_end, Err::leave_ram_segment
-	>& ptr
-);
-
 #if CONFIG_WITH_HEAP
 	template Value Acc::get_value(const Heap_Ptr&);
 #endif
 
 template Value Acc::get_value(const Ram_Ptr&);
 
-#if CONFIG_WITH_CALL
-	template Value Acc::get_value(
-		const Const_Ptr<
-			signed char*, stack_begin, stack_end, Err::leave_stack_segment
-		>& ptr
-	);
-#else
-	template Value Acc::get_value(
-		const Const_Ptr<
-			signed char*, stack_begin, ram_end, Err::leave_stack_segment
-		>& ptr
-	);
-#endif
+template Value Acc::get_value(const Stack_Ptr&);
 
 #if CONFIG_WITH_HEAP
 	template void Acc::set_value(

@@ -13,13 +13,12 @@ namespace vm {
 			template<signed char*& B, signed char*& E, Err::Code C>
 			static void set_int(Ptr<B, E, C> ptr, int value);
 
-			template<typename T, T& B, T& E, Err::Code C>
-			static signed char get_byte(const Const_Ptr<T, B, E, C>& ptr);
+			template<typename P>
+			static signed char get_byte(const P& ptr);
 
 			template<typename P> static Value get_value(const P& ptr);
 
-			template<signed char*& B, signed char*& E, Err::Code C>
-			static void set_value(Ptr<B, E, C> ptr, const Value& value);
+			template<typename P> static void set_value(P ptr, const Value& value);
 
 			#if CONFIG_WITH_HEAP
 				template<typename P> static Heap_Ptr get_ptr(const P& ptr);
