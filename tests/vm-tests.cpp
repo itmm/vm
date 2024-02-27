@@ -26,12 +26,12 @@ void expect_stack(
 	#if CONFIG_WITH_HEAP
 		if (dump_heap) { vm::Heap::dump_heap(); }
 	#endif
-	if (dump_free) { std::cout << "free[" << vm::stack_begin - vm::stack_lower_limit() << "] { }\n"; }
+	if (dump_free) { std::cout << "free[" << vm::Stack_Ptr::begin - vm::stack_lower_limit() << "] { }\n"; }
 	if (dump_stack) { vm::dump_stack(); }
 	if (expected_begin) {
-		EXPECT_EQ(vm::stack_begin + expected_size, ram + ram_size);
+		EXPECT_EQ(vm::Stack_Ptr::begin + expected_size, ram + ram_size);
 		for (int i { 0 }; i < expected_size; ++i) {
-			EXPECT_EQ(vm::stack_begin[i], expected_begin[i]);
+			EXPECT_EQ(vm::Stack_Ptr::begin[i], expected_begin[i]);
 		}
 	}
 }

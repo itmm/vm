@@ -21,12 +21,12 @@ using namespace vm;
 
 namespace {
 	void fetch(int offset) {
-		Acc::push(Acc::get_value(Stack_Ptr { stack_begin + offset }));
+		Acc::push(Acc::get_value(Stack_Ptr { Stack_Ptr::begin + offset }));
 	}
 
 	void store(int offset) {
 		auto value { Acc::pull() };
-		Acc::set_value(Stack_Ptr { stack_begin + offset }, value);
+		Acc::set_value(Stack_Ptr { Stack_Ptr::begin + offset }, value);
 	}
 
 	void jump(int offset, int condition) {
@@ -58,19 +58,20 @@ void vm::init(
 	const signed char* code_begin_, const signed char* code_end_
 ) {
 	check_range(ram_begin_, ram_end_, Err::invalid_ram);
-	ram_begin = ram_begin_; ram_end = ram_end_;
+	old_ram_begin = Ram_Ptr::begin = ram_begin_; old_ram_end = Ram_Ptr::end = ram_end_;
 
 	check_range(code_begin_, code_end_, Err::invalid_code);
 	old_code_begin = Code_Ptr::begin = code_begin_;
 	old_code_end = Code_Ptr::end = code_end_;
 
 	#if CONFIG_WITH_HEAP
-		heap_end = ram_begin;
+		old_heap_end = Heap_Ptr::end = Ram_Ptr::begin;
 	#endif
 
-	stack_begin = ram_end;
+	Stack_Ptr::begin = Ram_Ptr::end;
+	old_stack_begin = Ram_Ptr::end;
 	#if CONFIG_WITH_CALL
-		stack_end = stack_begin;
+		old_stack_end = Stack_Ptr::end = Stack_Ptr::begin;
 	#endif
 
 	#if CONFIG_WITH_HEAP
@@ -133,13 +134,13 @@ template<typename P> void vm::dump_block(const P& begin, const P& end, const cha
 }
 
 void vm::dump_stack() {
-	Stack_Ptr current { stack_begin };
+	Stack_Ptr current { Stack_Ptr::begin };
 	Stack_Ptr end { stack_upper_limit() };
 	int size { end.offset() - current.offset() };
 	std::cout << "stack[" << size << "] {";
 	if (size) {
 		std::cout << "\n";
-		dump_block(Stack_Ptr { stack_begin }, Stack_Ptr { ram_end }, "  ");
+		dump_block(Stack_Ptr { Stack_Ptr::begin }, Stack_Ptr { Ram_Ptr::end }, "  ");
 		std::cout << "}\n";
 	} else { std::cout << " }\n"; }
 }
@@ -159,11 +160,11 @@ void vm::step() {
 				int num_args { Acc::pull_int() };
 				Stack_Frame sf;
 				sf.pc = pc;
-				sf.parent = Ram_Ptr { stack_end };
-				sf.outer = Ram_Ptr { stack_end };
+				sf.parent = Ram_Ptr { Stack_Ptr::end };
+				sf.outer = Ram_Ptr { Stack_Ptr::end };
 				Stack_Ptr position = Acc::push(sf, num_args);
 				pc = new_pc;
-				stack_end = stack_begin + position.offset();
+				old_stack_end = Stack_Ptr::end = Stack_Ptr::begin + position.offset();
 				break;
 			}
 		#endif
@@ -263,10 +264,10 @@ void vm::step() {
 		#endif
 		#if CONFIG_WITH_CALL
 			case op_return: {
-				auto value { Acc::get_value(Ram_Ptr { stack_end }) };
+				auto value { Acc::get_value(Ram_Ptr { Stack_Ptr::end }) };
 				if (auto sf = std::get_if<Stack_Frame>(&value)) {
-					while (stack_begin < stack_end) { Acc::pull(); }
-					stack_end = ram_begin + sf->parent.offset();
+					while (Stack_Ptr::begin < Stack_Ptr::end) { Acc::pull(); }
+					old_stack_end = Stack_Ptr::end = Ram_Ptr::begin + sf->parent.offset();
 					Acc::pull();
 					pc = sf->pc;
 				} else { err(Err::no_stack_frame); }

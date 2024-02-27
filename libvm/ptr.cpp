@@ -4,15 +4,15 @@ using namespace vm;
 
 const signed char* vm::old_code_begin;
 const signed char* vm::old_code_end;
-signed char* vm::ram_begin;
+signed char* vm::old_ram_begin;
 #if CONFIG_WITH_HEAP
-	signed char* vm::heap_end;
+	signed char* vm::old_heap_end;
 #endif
-signed char* vm::stack_begin;
+signed char* vm::old_stack_begin;
 #if CONFIG_WITH_CALL
-	signed char* vm::stack_end;
+	signed char* vm::old_stack_end;
 #endif
-signed char* vm::ram_end;
+signed char* vm::old_ram_end;
 
 vm::Code_Ptr vm::pc;
 
@@ -57,64 +57,64 @@ signed char* Stack_Ptr::end { nullptr };
 
 template class vm::Const_Ptr<const signed char*, old_code_begin, old_code_end, Err::leave_code_segment>;
 
-template void vm::Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_segment>::internal_check(int, signed char*, signed char*, Err::Code) const;
+template void vm::Const_Ptr<signed char*, old_ram_begin, old_ram_end, Err::leave_ram_segment>::internal_check(int, signed char*, signed char*, Err::Code) const;
 #if CONFIG_WITH_HEAP
-	template void vm::Const_Ptr<signed char*, ram_begin, heap_end, Err::leave_heap_segment>::internal_check(int, signed char*, signed char*, Err::Code) const;
+	template void vm::Const_Ptr<signed char*, old_ram_begin, old_heap_end, Err::leave_heap_segment>::internal_check(int, signed char*, signed char*, Err::Code) const;
 #endif
 #if CONFIG_WITH_CALL
-	template void vm::Const_Ptr<signed char*, stack_begin, stack_end, Err::leave_stack_segment>::internal_check(int, signed char*, signed char*, Err::Code) const;
+	template void vm::Const_Ptr<signed char*, old_stack_begin, old_stack_end, Err::leave_stack_segment>::internal_check(int, signed char*, signed char*, Err::Code) const;
 #else
-	template void vm::Const_Ptr<signed char*, stack_begin, ram_end, Err::leave_stack_segment>::check(int) const;
-	template void vm::Const_Ptr<signed char*, stack_begin, ram_end, Err::leave_stack_segment>::internal_check(int, signed char*, signed char*, Err::Code) const;
+	template void vm::Const_Ptr<signed char*, old_stack_begin, old_ram_end, Err::leave_stack_segment>::check(int) const;
+	template void vm::Const_Ptr<signed char*, old_stack_begin, old_ram_end, Err::leave_stack_segment>::internal_check(int, signed char*, signed char*, Err::Code) const;
 #endif
 
 template Code_Ptr vm::operator+(const Code_Ptr&, int);
 template Const_Ptr<const signed char*, old_code_begin, old_code_end, Err::leave_code_segment> vm::operator+(
 	const Const_Ptr<const signed char*, old_code_begin, old_code_end, Err::leave_code_segment>&, int);
 template Ram_Ptr vm::operator+(const Ram_Ptr&, int);
-template Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_segment> vm::operator+(
-	const Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_segment>&, int);
-template Ptr<ram_begin, ram_end, Err::leave_ram_segment> vm::operator+(
-	const Ptr<ram_begin, ram_end, Err::leave_ram_segment>&, int);
+template Const_Ptr<signed char*, old_ram_begin, old_ram_end, Err::leave_ram_segment> vm::operator+(
+	const Const_Ptr<signed char*, old_ram_begin, old_ram_end, Err::leave_ram_segment>&, int);
+template Ptr<old_ram_begin, old_ram_end, Err::leave_ram_segment> vm::operator+(
+	const Ptr<old_ram_begin, old_ram_end, Err::leave_ram_segment>&, int);
 
 #if CONFIG_WITH_HEAP
 	template Heap_Ptr vm::operator+(const Heap_Ptr&, int);
-	template Ptr<ram_begin, heap_end, Err::leave_heap_segment> vm::operator+(
-		const Ptr<ram_begin, heap_end, Err::leave_heap_segment>&, int);
+	template Ptr<old_ram_begin, old_heap_end, Err::leave_heap_segment> vm::operator+(
+		const Ptr<old_ram_begin, old_heap_end, Err::leave_heap_segment>&, int);
 #endif
 
 template Stack_Ptr vm::operator+(const Stack_Ptr&, int);
 template Stack_Ptr vm::operator-(const Stack_Ptr&, int);
 
 #if CONFIG_WITH_CALL
-	template Const_Ptr<signed char*, stack_begin, stack_end, Err::leave_stack_segment>
+	template Const_Ptr<signed char*, old_stack_begin, old_stack_end, Err::leave_stack_segment>
 	vm::operator+(
 		const Const_Ptr<
-			signed char*, stack_begin, stack_end, Err::leave_stack_segment
+			signed char*, old_stack_begin, old_stack_end, Err::leave_stack_segment
 		>&, int
 	);
 
-	template Ptr<stack_begin, stack_end, Err::leave_stack_segment>
-	vm::operator+(const Ptr<stack_begin, stack_end, Err::leave_stack_segment>&, int);
+	template Ptr<old_stack_begin, old_stack_end, Err::leave_stack_segment>
+	vm::operator+(const Ptr<old_stack_begin, old_stack_end, Err::leave_stack_segment>&, int);
 
-	template Casting_Ptr<stack_begin, stack_end, Err::leave_stack_segment>
+	template Casting_Ptr<old_stack_begin, old_stack_end, Err::leave_stack_segment>
 	vm::operator+(
-		const Casting_Ptr<stack_begin, stack_end, Err::leave_stack_segment>&, int
+		const Casting_Ptr<old_stack_begin, old_stack_end, Err::leave_stack_segment>&, int
 	);
 #else
-	template Const_Ptr<signed char*, stack_begin, ram_end, Err::leave_stack_segment>
+	template Const_Ptr<signed char*, old_stack_begin, old_ram_end, Err::leave_stack_segment>
 	vm::operator+(
 		const Const_Ptr<
-			signed char*, stack_begin, ram_end, Err::leave_stack_segment
+			signed char*, old_stack_begin, old_ram_end, Err::leave_stack_segment
 		>&, int
 	);
 
-	template Ptr<stack_begin, ram_end, Err::leave_stack_segment>
-	vm::operator+(const Ptr<stack_begin, ram_end, Err::leave_stack_segment>&, int);
+	template Ptr<old_stack_begin, old_ram_end, Err::leave_stack_segment>
+	vm::operator+(const Ptr<old_stack_begin, old_ram_end, Err::leave_stack_segment>&, int);
 
-	template Casting_Ptr<stack_begin, ram_end, Err::leave_stack_segment>
+	template Casting_Ptr<old_stack_begin, old_ram_end, Err::leave_stack_segment>
 	vm::operator+(
-		const Casting_Ptr<stack_begin, ram_end, Err::leave_stack_segment>&, int
+		const Casting_Ptr<old_stack_begin, old_ram_end, Err::leave_stack_segment>&, int
 	);
 #endif
 
@@ -123,14 +123,14 @@ template Stack_Ptr vm::operator-(const Stack_Ptr&, int);
 #endif
 
 #if CONFIG_WITH_CALL
-	template Casting_Ptr<stack_begin, stack_end, Err::leave_stack_segment>
+	template Casting_Ptr<old_stack_begin, old_stack_end, Err::leave_stack_segment>
 	vm::operator-(
-		const Casting_Ptr<stack_begin, stack_end, Err::leave_stack_segment>&, int
+		const Casting_Ptr<old_stack_begin, old_stack_end, Err::leave_stack_segment>&, int
 	);
 #else
-	template Casting_Ptr<stack_begin, ram_end, Err::leave_stack_segment>
+	template Casting_Ptr<old_stack_begin, old_ram_end, Err::leave_stack_segment>
 	vm::operator-(
-		const Casting_Ptr<stack_begin, ram_end, Err::leave_stack_segment>&, int
+		const Casting_Ptr<old_stack_begin, old_ram_end, Err::leave_stack_segment>&, int
 	);
 #endif
 
@@ -143,36 +143,36 @@ template bool vm::operator==(
 
 template bool vm::operator==(
 	const Const_Ptr<
-		signed char*, ram_begin, ram_end, Err::leave_ram_segment
+		signed char*, old_ram_begin, old_ram_end, Err::leave_ram_segment
 	>&,
-	const Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_segment>&
+	const Const_Ptr<signed char*, old_ram_begin, old_ram_end, Err::leave_ram_segment>&
 );
 
 #if CONFIG_WITH_HEAP
 	template bool vm::operator==(
 		const Const_Ptr<
-			signed char*, ram_begin, heap_end, Err::leave_heap_segment
+			signed char*, old_ram_begin, old_heap_end, Err::leave_heap_segment
 		>&,
-		const Const_Ptr<signed char*, ram_begin, heap_end, Err::leave_heap_segment>&
+		const Const_Ptr<signed char*, old_ram_begin, old_heap_end, Err::leave_heap_segment>&
 	);
 #endif
 
 #if CONFIG_WITH_CALL
 	template bool vm::operator==(
 		const Const_Ptr<
-			signed char*, stack_begin, stack_end, Err::leave_stack_segment
+			signed char*, old_stack_begin, old_stack_end, Err::leave_stack_segment
 		>&,
 		const Const_Ptr<
-			signed char*, stack_begin, stack_end, Err::leave_stack_segment
+			signed char*, old_stack_begin, old_stack_end, Err::leave_stack_segment
 		>&
 	);
 #else
 	template bool vm::operator==(
 		const Const_Ptr<
-			signed char*, stack_begin, ram_end, Err::leave_stack_segment
+			signed char*, old_stack_begin, old_ram_end, Err::leave_stack_segment
 		>&,
 		const Const_Ptr<
-			signed char*, stack_begin, ram_end, Err::leave_stack_segment
+			signed char*, old_stack_begin, old_ram_end, Err::leave_stack_segment
 		>&
 	);
 #endif
@@ -186,52 +186,52 @@ template bool vm::operator<(
 
 template bool vm::operator<(
 	const Const_Ptr<
-		signed char*, ram_begin, ram_end, Err::leave_ram_segment
+		signed char*, old_ram_begin, old_ram_end, Err::leave_ram_segment
 	>&,
-	const Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_segment>&
+	const Const_Ptr<signed char*, old_ram_begin, old_ram_end, Err::leave_ram_segment>&
 );
 
 #if CONFIG_WITH_HEAP
 	template bool vm::operator<(
 		const Const_Ptr<
-			signed char*, ram_begin, heap_end, Err::leave_heap_segment
+			signed char*, old_ram_begin, old_heap_end, Err::leave_heap_segment
 		>&,
-		const Const_Ptr<signed char*, ram_begin, heap_end, Err::leave_heap_segment>&
+		const Const_Ptr<signed char*, old_ram_begin, old_heap_end, Err::leave_heap_segment>&
 	);
 #endif
 
 #if CONFIG_WITH_CALL
 	template bool vm::operator<(
 		const Const_Ptr<
-			signed char*, stack_begin, stack_end, Err::leave_stack_segment
+			signed char*, old_stack_begin, old_stack_end, Err::leave_stack_segment
 		>&,
 		const Const_Ptr<
-			signed char*, stack_begin, stack_end, Err::leave_stack_segment
+			signed char*, old_stack_begin, old_stack_end, Err::leave_stack_segment
 		>&
 	);
 #else
 	template bool vm::operator<(
 		const Const_Ptr<
-			signed char*, stack_begin, ram_end, Err::leave_stack_segment
+			signed char*, old_stack_begin, old_ram_end, Err::leave_stack_segment
 		>&,
 		const Const_Ptr<
-			signed char*, stack_begin, ram_end, Err::leave_stack_segment
+			signed char*, old_stack_begin, old_ram_end, Err::leave_stack_segment
 		>&
 	);
 #endif
 
-template class vm::Ptr<ram_begin, ram_end, Err::leave_ram_segment>;
+template class vm::Ptr<old_ram_begin, old_ram_end, Err::leave_ram_segment>;
 
 #if CONFIG_WITH_HEAP
-	template class vm::Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>;
+	template class vm::Casting_Ptr<old_ram_begin, old_heap_end, Err::leave_heap_segment>;
 #endif
 
 #if CONFIG_WITH_CALL
 	template class vm::Casting_Ptr<
-		stack_begin, stack_end, Err::leave_stack_segment
+		old_stack_begin, old_stack_end, Err::leave_stack_segment
 	>;
 #else
 	template class vm::Casting_Ptr<
-		stack_begin, ram_end, Err::leave_stack_segment
+		old_stack_begin, old_ram_end, Err::leave_stack_segment
 	>;
 #endif

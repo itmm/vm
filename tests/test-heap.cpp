@@ -10,21 +10,21 @@ using namespace vm;
 		signed char code[] { PUSH_CH(10), op_new };
 		signed char expected[] { RAW_PTR(heap_overhead) };
 		EXPECT_LIMITED_STACK(code, 10 + heap_overhead + ptr_size, expected);
-		EXPECT_EQ(heap_end, stack_begin);
+		EXPECT_EQ(Heap_Ptr::end, Stack_Ptr::begin);
 	}
 
 	TEST(heap_tests, alloc_all) {
 		signed char code[] { PUSH_SMALL_INT(20), op_new };
 		signed char expected[] { RAW_PTR(heap_overhead) };
 		EXPECT_LIMITED_STACK(code, 20 + heap_overhead + ptr_size, expected);
-		EXPECT_EQ(heap_end, stack_begin);
+		EXPECT_EQ(Heap_Ptr::end, Stack_Ptr::begin);
 	}
 
 	TEST(heap_tests, simple_alloc_and_free) {
 		signed char code[] { PUSH_CH(10), op_new, op_free };
 		signed char expected[] { };
 		EXPECT_LIMITED_STACK(code, 10 + heap_overhead + ptr_size, expected);
-		EXPECT_EQ(heap_end, ram_begin);
+		EXPECT_EQ(Heap_Ptr::end, Ram_Ptr::begin);
 	}
 
 	TEST(heap_tests, free_list) {
@@ -49,7 +49,7 @@ using namespace vm;
 			code, heap_size + stack_size + ptr_size + Int::typed_size + Char::typed_size,
 			expected
 		);
-		EXPECT_EQ(heap_end + 2 * Int::typed_size + Char::typed_size, stack_begin);
+		EXPECT_EQ(Heap_Ptr::end + 2 * Int::typed_size + Char::typed_size, Stack_Ptr::begin);
 	}
 
 

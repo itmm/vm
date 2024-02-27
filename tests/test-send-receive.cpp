@@ -17,6 +17,6 @@ using namespace vm;
 		signed char expected[] { RAW_INT(44), RAW_PTR(heap_overhead) };
 		//Enable_Dump enable_dump { true, true, true };
 		EXPECT_LIMITED_STACK(code, block_size + heap_overhead + 2 * ptr_size + Int::typed_size + Char::typed_size, expected);
-		EXPECT_EQ(heap_end + Int::typed_size + Char::typed_size, stack_begin);
+		EXPECT_EQ(Heap_Ptr::end + Int::typed_size + Char::typed_size, Stack_Ptr::begin);
 	}
 #endif

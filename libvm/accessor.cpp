@@ -5,8 +5,7 @@
 using namespace vm;
 
 #if CONFIG_WITH_INT
-	template<typename T, T& B, T& E, Err::Code C>
-	int Acc::get_int(const Const_Ptr<T, B, E, C>& ptr) {
+	template<typename P> int Acc::get_int(const P& ptr) {
 		int value { 0 };
 		for (
 			auto i { ptr.ptr_ }, e { ptr.ptr_ + Int::raw_size };
@@ -15,8 +14,7 @@ using namespace vm;
 		return value;
 	}
 
-	template<signed char*& B, signed char*& E, Err::Code C>
-	void Acc::set_int(Ptr<B, E, C> ptr, int value) {
+	template<typename P> void Acc::set_int(P ptr, int value) {
 		for (
 			auto i { ptr.ptr_ + Int::raw_size - 1 }; i >= ptr.ptr_; --i
 		) {
@@ -53,7 +51,7 @@ template<typename P> Value Acc::get_value(const P& ptr) {
 				ptr.check(ptr_size);
 				int offset { get_int(ptr + 1) };
 				return Value { Heap_Ptr {
-					offset >= 0 ? ram_begin + offset : nullptr
+					offset >= 0 ? Ram_Ptr::begin + offset : nullptr
 				} };
 			}
 		#endif
@@ -62,8 +60,8 @@ template<typename P> Value Acc::get_value(const P& ptr) {
 				ptr.check(stack_frame_size);
 				Stack_Frame frame;
 				frame.pc = Code_Ptr { Code_Ptr::begin + get_int(ptr + stack_frame_pc) };
-				frame.parent = Ram_Ptr { ram_begin + get_int(ptr + stack_frame_end) };
-				frame.outer = Ram_Ptr { ram_begin + get_int(ptr + stack_frame_outer) };
+				frame.parent = Ram_Ptr { Ram_Ptr::begin + get_int(ptr + stack_frame_end) };
+				frame.outer = Ram_Ptr { Ram_Ptr::begin + get_int(ptr + stack_frame_outer) };
 				return frame;
 			}
 		#endif
@@ -96,7 +94,7 @@ void Acc::set_value(P ptr, const Value& value) {
 		if (auto pt = std::get_if<Heap_Ptr>(&value)) {
 			ptr.check(ptr_size);
 			set_ptr_type(ptr.ptr_, ptr_type);
-			int v = *pt ? static_cast<int>(pt->ptr_ - ram_begin) : -1;
+			int v = *pt ? static_cast<int>(pt->ptr_ - Ram_Ptr::begin) : -1;
 			set_int(ptr + 1, v);
 			return;
 		}
@@ -118,19 +116,21 @@ void Acc::set_value(P ptr, const Value& value) {
 	template<typename P> Heap_Ptr Acc::get_ptr(const P& ptr) {
 		if (!ptr) { err(Err::null_access); }
 		int value { get_int(ptr) };
-		return Heap_Ptr { value >= 0 ? ram_begin + value : nullptr };
+		return Heap_Ptr { value >= 0 ? Ram_Ptr::begin + value : nullptr };
 	}
 
 	template<typename P> void Acc::set_ptr(P ptr, const Heap_Ptr& value) {
 		auto got { value.ptr_ };
 		if (!ptr) { err(Err::null_access); }
-		set_int(ptr, got ? static_cast<int>(got - ram_begin) : -1);
+		set_int(ptr, got ? static_cast<int>(got - Ram_Ptr::begin) : -1);
 	}
 #endif
 
 Value Acc::pull() {
-	auto value { get_value(Stack_Ptr { stack_begin }) };
-	stack_begin += value_size(value); return value;
+	auto value { get_value(Stack_Ptr { Stack_Ptr::begin }) };
+	old_stack_begin += value_size(value);
+	Stack_Ptr::begin += value_size(value);
+	return value;
 }
 
 #if CONFIG_WITH_CHAR
@@ -157,15 +157,16 @@ Value Acc::pull() {
 
 Stack_Ptr Acc::push(Value value, int after_values) {
 	auto size { value_size(value) };
-	if (stack_lower_limit() + size > stack_begin) { err(Err::stack_overflow); }
-	Stack_Ptr position { stack_begin };
+	if (stack_lower_limit() + size > Stack_Ptr::begin) { err(Err::stack_overflow); }
+	Stack_Ptr position { Stack_Ptr::begin };
 	if (after_values) {
 		for (; after_values; --after_values) {
 			position = position + value_size(*position.ptr_);
 		}
-		memmove(stack_begin - size, stack_begin, position.ptr_ - stack_begin);
+		memmove(Stack_Ptr::begin - size, Stack_Ptr::begin, position.ptr_ - Stack_Ptr::begin);
 	}
-	stack_begin -= size;
+	Stack_Ptr::begin -= size;
+	old_stack_begin -= size;
 	position = position - size;
 	std::memset(position.ptr_, 0, size);
 	set_value(position, value);
@@ -174,12 +175,10 @@ Stack_Ptr Acc::push(Value value, int after_values) {
 
 // instantiate templates:
 
+template signed char Acc::get_byte(const Code_Ptr&);
+
 #if CONFIG_WITH_INT
-	template int Acc::get_int(
-		const Const_Ptr<
-			const signed char*, old_code_begin, old_code_end, Err::leave_code_segment
-		>& ptr
-	);
+	template int Acc::get_int(const Code_Ptr&);
 #endif
 
 #if CONFIG_WITH_HEAP
@@ -191,10 +190,7 @@ template Value Acc::get_value(const Ram_Ptr&);
 template Value Acc::get_value(const Stack_Ptr&);
 
 #if CONFIG_WITH_HEAP
-	template void Acc::set_value(
-		Ptr<ram_begin, heap_end, Err::leave_heap_segment> ptr, const Value& value
-	);
-
+	template void Acc::set_value(Heap_Ptr ptr, const Value& value);
 	template Heap_Ptr Acc::get_ptr(const Heap_Ptr&);
 	template void Acc::set_ptr(Heap_Ptr, const Heap_Ptr&);
 #endif

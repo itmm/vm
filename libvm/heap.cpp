@@ -32,9 +32,9 @@ using namespace vm;
 			}
 		}
 
-		if (block.ptr_ + size == heap_end) {
+		if (block.ptr_ + size == Heap_Ptr::end) {
 			free_list.remove(block);
-			heap_end = block.ptr_;
+			old_heap_end = Heap_Ptr::end = block.ptr_;
 		}
 	}
 
@@ -75,14 +75,14 @@ using namespace vm;
 		int size = std::max(orig_size + heap_overhead, node_size);
 		auto found { find_on_free_list(size) };
 		if (!found) {
-			if (heap_end + size > stack_begin) {
+			if (Heap_Ptr::end + size > Stack_Ptr::begin) {
 				if (run_gc) {
 					collect_garbage(); alloc_block(orig_size, false); return;
 				}
 				err(Err::heap_overflow);
 			}
-			found = Heap_Ptr { heap_end };
-			heap_end += size;
+			found = Heap_Ptr { Heap_Ptr::end };
+			Heap_Ptr::end += size; old_heap_end += size;
 			Acc::set_int(found, size);
 		} else { size = Acc::get_int(found); }
 
@@ -100,19 +100,19 @@ using namespace vm;
 		if (size < std::max(node_size, heap_overhead)) {
 			err(Err::free_invalid_block);
 		}
-		if (Heap_Ptr { heap_end } < block + size) {
+		if (Heap_Ptr { Heap_Ptr::end } < block + size) {
 			err(Err::free_invalid_block);
 		}
 		Heap::insert_into_free_list(block);
 	}
 
 	void Heap::dump_heap() {
-		Heap_Ptr current { ram_begin };
-		Heap_Ptr end { heap_end };
+		Heap_Ptr current { Ram_Ptr::begin };
+		Heap_Ptr end { Heap_Ptr::end };
 		Heap_Ptr next_allocated { alloc_list.begin };
 		Heap_Ptr next_freed { free_list.begin };
-		std::cout << "heap[" << heap_end - ram_begin << "] {";
-		if (heap_end - ram_begin) {
+		std::cout << "heap[" << Heap_Ptr::end - Ram_Ptr::begin << "] {";
+		if (Heap_Ptr::end - Ram_Ptr::begin) {
 			std::cout << "\n";
 			while (current < end) {
 				auto size { Acc::get_int(current) };
@@ -161,12 +161,12 @@ using namespace vm;
 	class Full_Stack {
 		public:
 			Full_Stack():
-				old_stack_end { static_cast<int>(stack_end - stack_begin) }
-			{ stack_end = ram_end; }
+				prev_stack_end { static_cast<int>(Stack_Ptr::end - Stack_Ptr::begin) }
+			{ old_stack_end = Stack_Ptr::end = Ram_Ptr::end; }
 
-			~Full_Stack() { stack_end = stack_begin + old_stack_end; }
+			~Full_Stack() { old_stack_end = Stack_Ptr::end = Stack_Ptr::begin + prev_stack_end; }
 		private:
-			int old_stack_end;
+			int prev_stack_end;
 	};
 
 	void Heap::collect_garbage() {
@@ -176,7 +176,7 @@ using namespace vm;
 		{
 			Full_Stack full_stack;
 			add_pointers(
-				Stack_Ptr { stack_begin }, Stack_Ptr { stack_end }, used_blocks
+				Stack_Ptr { Stack_Ptr::begin }, Stack_Ptr { Stack_Ptr::end }, used_blocks
 			);
 		}
 

@@ -5,31 +5,15 @@
 namespace vm {
 	extern const signed char* old_code_begin;
 	extern const signed char* old_code_end;
-	extern signed char* ram_begin;
+	extern signed char* old_ram_begin;
 	#if CONFIG_WITH_HEAP
-		extern signed char* heap_end;
+		extern signed char* old_heap_end;
 	#endif
-	extern signed char* stack_begin;
+	extern signed char* old_stack_begin;
 	#if CONFIG_WITH_CALL
-		extern signed char* stack_end;
+		extern signed char* old_stack_end;
 	#endif
-	extern signed char* ram_end;
-
-	inline signed char* stack_lower_limit() {
-		#if CONFIG_WITH_HEAP
-			return heap_end;
-		#else
-			return ram_begin;
-		#endif
-	}
-
-	inline signed char* stack_upper_limit() {
-		#if CONFIG_WITH_CALL
-			return stack_end;
-		#else
-			return ram_end;
-		#endif
-	}
+	extern signed char* old_ram_end;
 
 	template<typename P> P operator+(const P& ptr, int offset);
 	template<typename P> P operator-(const P& ptr, int offset);
@@ -99,9 +83,9 @@ namespace vm {
 			[[nodiscard]] signed char* ptr() const { return this->ptr_; }
 	};
 
-	class Ram_Ptr : public Ptr<ram_begin, ram_end, Err::leave_ram_segment> {
+	class Ram_Ptr : public Ptr<old_ram_begin, old_ram_end, Err::leave_ram_segment> {
 		public:
-			explicit Ram_Ptr(signed char* ptr = nullptr): Ptr<ram_begin, ram_end, Err::leave_ram_segment>(ptr) { }
+			explicit Ram_Ptr(signed char* ptr = nullptr): Ptr<old_ram_begin, old_ram_end, Err::leave_ram_segment>(ptr) { }
 
 			static signed char* begin;
 			static signed char* end;
@@ -119,9 +103,9 @@ namespace vm {
 	};
 
 	#if CONFIG_WITH_HEAP
-		class Heap_Ptr : public Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment> {
+		class Heap_Ptr : public Casting_Ptr<old_ram_begin, old_heap_end, Err::leave_heap_segment> {
 			public:
-				explicit Heap_Ptr(signed char* ptr = nullptr) : Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>(ptr) { }
+				explicit Heap_Ptr(signed char* ptr = nullptr) : Casting_Ptr<old_ram_begin, old_heap_end, Err::leave_heap_segment>(ptr) { }
 
 				static signed char* begin;
 				static signed char* end;
@@ -131,9 +115,9 @@ namespace vm {
 	#endif
 
 	#if CONFIG_WITH_CALL
-		class Stack_Ptr : public Casting_Ptr<stack_begin, stack_end, Err::leave_stack_segment> {
+		class Stack_Ptr : public Casting_Ptr<old_stack_begin, old_stack_end, Err::leave_stack_segment> {
 			public:
-				explicit Stack_Ptr(signed char* ptr = nullptr) : Casting_Ptr<stack_begin, stack_end, Err::leave_stack_segment>(ptr) { }
+				explicit Stack_Ptr(signed char* ptr = nullptr) : Casting_Ptr<old_stack_begin, old_stack_end, Err::leave_stack_segment>(ptr) { }
 
 				static signed char* begin;
 				static signed char* end;
@@ -141,9 +125,9 @@ namespace vm {
 				void check(int size) const { internal_check(size, begin, end, Err::leave_stack_segment); }
 		};
 	#else
-		class Stack_Ptr : public Casting_Ptr<stack_begin, ram_end, Err::leave_stack_segment> {
+		class Stack_Ptr : public Casting_Ptr<old_stack_begin, old_ram_end, Err::leave_stack_segment> {
 			public:
-				explicit Stack_Ptr(signed char* ptr = nullptr) : Casting_Ptr<stack_begin, ram_end, Err::leave_stack_segment>(ptr) { }
+				explicit Stack_Ptr(signed char* ptr = nullptr) : Casting_Ptr<old_stack_begin, old_ram_end, Err::leave_stack_segment>(ptr) { }
 
 				static signed char* begin;
 				static signed char* end;
@@ -151,4 +135,21 @@ namespace vm {
 				void check(int size) const { internal_check(size, begin, end, Err::leave_stack_segment); }
 		};
 	#endif
+
+	inline signed char* stack_lower_limit() {
+		#if CONFIG_WITH_HEAP
+			return Heap_Ptr::end;
+		#else
+			return Ram_Ptr::begin;
+		#endif
+	}
+
+	inline signed char* stack_upper_limit() {
+		#if CONFIG_WITH_CALL
+			return old_stack_end;
+		#else
+			return Ram_Ptr::end;
+		#endif
+	}
+
 }

@@ -17,7 +17,7 @@ using namespace vm;
 		signed char expected[] { };
 		//Enable_Dump enable_dump { true, true, true };
 		EXPECT_LIMITED_STACK(code, 2 * raw_block_size + 2 * ptr_size, expected);
-		EXPECT_EQ(heap_end, ram_begin);
+		EXPECT_EQ(Heap_Ptr::end, Ram_Ptr::begin);
 	}
 
 	TEST(collect_garbage_tests, auto_collect) {
