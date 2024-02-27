@@ -55,7 +55,21 @@ signed char* Stack_Ptr::end { nullptr };
 
 // instantiate templates:
 
+template class vm::Const_Ptr<const signed char*, code_begin, code_end, Err::leave_code_segment>;
+
+template void vm::Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_segment>::check(int) const;
+#if CONFIG_WITH_HEAP
+	template void vm::Const_Ptr<signed char*, ram_begin, heap_end, Err::leave_heap_segment>::check(int) const;
+#endif
+#if CONFIG_WITH_CALL
+	template void vm::Const_Ptr<signed char*, stack_begin, stack_end, Err::leave_stack_segment>::check(int) const;
+#else
+	template void vm::Const_Ptr<signed char*, stack_begin, ram_end, Err::leave_stack_segment>::check(int) const;
+#endif
+
 template Code_Ptr vm::operator+(const Code_Ptr&, int);
+template Const_Ptr<const signed char*, code_begin, code_end, Err::leave_code_segment> vm::operator+(
+	const Const_Ptr<const signed char*, code_begin, code_end, Err::leave_code_segment>&, int);
 template Ram_Ptr vm::operator+(const Ram_Ptr&, int);
 template Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_segment> vm::operator+(
 	const Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_segment>&, int);

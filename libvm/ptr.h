@@ -49,7 +49,7 @@ namespace vm {
 	template<typename T, T& B, T& E, Err::Code C> class Const_Ptr {
 		public:
 			explicit Const_Ptr(T ptr = nullptr): ptr_ { ptr } {
-				if (ptr_) { check(0); }
+				if (ptr_) { }
 			}
 
 			explicit operator bool() const { return ptr_; }
@@ -61,6 +61,7 @@ namespace vm {
 			friend class Heap;
 			template<typename P> friend P operator+(const P& ptr, int offset);
 			template<typename P> friend P operator-(const P& ptr, int offset);
+
 			friend bool operator==<>(
 				const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b
 			);
