@@ -22,16 +22,21 @@ namespace vm {
 			template<signed char*& B, signed char*& E, Err::Code C>
 			static void set_value(Ptr<B, E, C> ptr, const Value& value);
 
-			template<typename P> static Heap_Ptr get_ptr(const P& ptr);
+			#if CONFIG_WITH_HEAP
+				template<typename P> static Heap_Ptr get_ptr(const P& ptr);
 
-			template<typename P> static void set_ptr(
-				P ptr, const Heap_Ptr& value
-			);
+				template<typename P> static void set_ptr(
+					P ptr, const Heap_Ptr& value
+				);
+			#endif
 
 			static Value pull();
 			static signed char pull_ch();
 			static int pull_int();
-			static Heap_Ptr pull_ptr();
+
+			#if CONFIG_WITH_HEAP
+				static Heap_Ptr pull_ptr();
+			#endif
 
 			static Stack_Ptr push(Value value, int after_values = 0);
 	};

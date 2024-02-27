@@ -6,10 +6,30 @@ namespace vm {
 	extern const signed char* code_begin;
 	extern const signed char* code_end;
 	extern signed char* ram_begin;
-	extern signed char* heap_end;
+	#if CONFIG_WITH_HEAP
+		extern signed char* heap_end;
+	#endif
 	extern signed char* stack_begin;
-	extern signed char* stack_end;
+	#if CONFIG_WITH_CALL
+		extern signed char* stack_end;
+	#endif
 	extern signed char* ram_end;
+
+	inline signed char* stack_lower_limit() {
+		#if CONFIG_WITH_HEAP
+			return heap_end;
+		#else
+			return ram_begin;
+		#endif
+	}
+
+	inline signed char* stack_upper_limit() {
+		#if CONFIG_WITH_CALL
+			return stack_end;
+		#else
+			return ram_end;
+		#endif
+	}
 
 	template<typename P> P operator+(const P& ptr, int offset);
 	template<typename P> P operator-(const P& ptr, int offset);
@@ -80,9 +100,13 @@ namespace vm {
 			explicit operator Ram_Ptr() const { return Ram_Ptr { this->ptr_ }; }
 	};
 
-	using Heap_Ptr = Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>;
+	#if CONFIG_WITH_HEAP
+		using Heap_Ptr = Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>;
+	#endif
 
-	using Stack_Ptr = Casting_Ptr<
-		stack_begin, stack_end, Err::leave_stack_segment
-	>;
+	#if CONFIG_WITH_CALL
+		using Stack_Ptr = Casting_Ptr<stack_begin, stack_end, Err::leave_stack_segment>;
+	#else
+		using Stack_Ptr = Casting_Ptr<stack_begin, ram_end, Err::leave_stack_segment>;
+	#endif
 }

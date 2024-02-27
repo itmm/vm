@@ -63,9 +63,14 @@ void vm::init(
 	check_range(code_begin_, code_end_, Err::invalid_code);
 	code_begin = code_begin_; code_end = code_end_;
 
-	heap_end = ram_begin;
+	#if CONFIG_WITH_HEAP
+		heap_end = ram_begin;
+	#endif
 
-	stack_begin = stack_end = ram_end;
+	stack_begin = ram_end;
+	#if CONFIG_WITH_CALL
+		stack_end = stack_begin;
+	#endif
 
 	#if CONFIG_WITH_HEAP
 		Heap::free_list = List { };
@@ -77,7 +82,7 @@ void vm::init(
 
 void vm::dump_stack() {
 	Stack_Ptr current { stack_begin };
-	Stack_Ptr end { stack_end };
+	Stack_Ptr end { stack_upper_limit() };
 	int size { end.offset() - current.offset() };
 	std::cout << "stack[" << size << "] {";
 	if (size) {

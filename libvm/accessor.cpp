@@ -159,7 +159,7 @@ Value Acc::pull() {
 
 Stack_Ptr Acc::push(Value value, int after_values) {
 	auto size { value_size(value) };
-	if (heap_end + size > stack_begin) { err(Err::stack_overflow); }
+	if (stack_lower_limit() + size > stack_begin) { err(Err::stack_overflow); }
 	Stack_Ptr position { stack_begin };
 	if (after_values) {
 		for (; after_values; --after_values) {
@@ -196,23 +196,33 @@ template Value Acc::get_value(
 	>& ptr
 );
 
-template Value Acc::get_value(
-	const Const_Ptr<
-		signed char*, ram_begin, heap_end, Err::leave_heap_segment
-	>& ptr
-);
+#if CONFIG_WITH_HEAP
+	template Value Acc::get_value(
+		const Const_Ptr<
+			signed char*, ram_begin, heap_end, Err::leave_heap_segment
+		>& ptr
+	);
+#endif
 
-template Value Acc::get_value(
-	const Const_Ptr<
-	    signed char*, stack_begin, stack_end, Err::leave_stack_segment
-	>& ptr
-);
-
-template void Acc::set_value(
-	Ptr<ram_begin, heap_end, Err::leave_heap_segment> ptr, const Value& value
-);
+#if CONFIG_WITH_CALL
+	template Value Acc::get_value(
+		const Const_Ptr<
+			signed char*, stack_begin, stack_end, Err::leave_stack_segment
+		>& ptr
+	);
+#else
+	template Value Acc::get_value(
+		const Const_Ptr<
+			signed char*, stack_begin, ram_end, Err::leave_stack_segment
+		>& ptr
+	);
+#endif
 
 #if CONFIG_WITH_HEAP
+	template void Acc::set_value(
+		Ptr<ram_begin, heap_end, Err::leave_heap_segment> ptr, const Value& value
+	);
+
 	template Heap_Ptr Acc::get_ptr(
 		const Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>& ptr
 	);
