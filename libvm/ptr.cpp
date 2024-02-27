@@ -39,47 +39,37 @@ bool vm::operator<(
 	const Const_Ptr<T, B, E, C>& a, const Const_Ptr<T, B, E, C>& b
 ) { return a.ptr_ < b.ptr_; }
 
-// instantiate templates:
+const signed char* Code_Ptr::begin { nullptr };
+const signed char* Code_Ptr::end { nullptr };
 
-template class vm::Const_Ptr<
-	const signed char*, code_begin, code_end,
-	Err::leave_code_segment
->;
-
-template Const_Ptr<
-    const signed char*, code_begin, code_end, Err::leave_code_segment
->
-vm::operator+(
-	const Const_Ptr<
-	    const signed char*, code_begin, code_end, Err::leave_code_segment
-	>&, int
-);
-
-template Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_segment>
-vm::operator+(
-	const Const_Ptr<
-		signed char*, ram_begin, ram_end, Err::leave_ram_segment
-	>&, int
-);
+signed char* Ram_Ptr::begin { nullptr };
+signed char* Ram_Ptr::end { nullptr };
 
 #if CONFIG_WITH_HEAP
-	template Const_Ptr<signed char*, ram_begin, heap_end, Err::leave_heap_segment>
-	vm::operator+(
-		const Const_Ptr<
-			signed char*, ram_begin, heap_end, Err::leave_heap_segment
-		>&, int
-	);
-
-	template Ptr<ram_begin, heap_end, Err::leave_heap_segment>
-	vm::operator+(
-		const Ptr<ram_begin, heap_end, Err::leave_heap_segment>&, int
-	);
-
-	template Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>
-	vm::operator+(
-		const Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>&, int
-	);
+	signed char* Heap_Ptr::begin { nullptr };
+	signed char* Heap_Ptr::end { nullptr };
 #endif
+
+signed char* Stack_Ptr::begin { nullptr };
+signed char* Stack_Ptr::end { nullptr };
+
+// instantiate templates:
+
+template Code_Ptr vm::operator+(const Code_Ptr&, int);
+template Ram_Ptr vm::operator+(const Ram_Ptr&, int);
+template Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_segment> vm::operator+(
+	const Const_Ptr<signed char*, ram_begin, ram_end, Err::leave_ram_segment>&, int);
+template Ptr<ram_begin, ram_end, Err::leave_ram_segment> vm::operator+(
+	const Ptr<ram_begin, ram_end, Err::leave_ram_segment>&, int);
+
+#if CONFIG_WITH_HEAP
+	template Heap_Ptr vm::operator+(const Heap_Ptr&, int);
+	template Ptr<ram_begin, heap_end, Err::leave_heap_segment> vm::operator+(
+		const Ptr<ram_begin, heap_end, Err::leave_heap_segment>&, int);
+#endif
+
+template Stack_Ptr vm::operator+(const Stack_Ptr&, int);
+template Stack_Ptr vm::operator-(const Stack_Ptr&, int);
 
 #if CONFIG_WITH_CALL
 	template Const_Ptr<signed char*, stack_begin, stack_end, Err::leave_stack_segment>
@@ -114,10 +104,7 @@ vm::operator+(
 #endif
 
 #if CONFIG_WITH_HEAP
-	template Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>
-	vm::operator-(
-		const Casting_Ptr<ram_begin, heap_end, Err::leave_heap_segment>&, int
-	);
+	template Heap_Ptr vm::operator-(const Heap_Ptr&, int);
 #endif
 
 #if CONFIG_WITH_CALL

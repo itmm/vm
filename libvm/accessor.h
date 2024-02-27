@@ -8,7 +8,7 @@ namespace vm {
 	class Acc {
 		public:
 			template<typename T, T& B, T& E, Err::Code C>
-			static int get_int_value(const Const_Ptr<T, B, E, C>& ptr);
+			static int get_int(const Const_Ptr<T, B, E, C>& ptr);
 
 			template<signed char*& B, signed char*& E, Err::Code C>
 			static void set_int(Ptr<B, E, C> ptr, int value);
@@ -16,8 +16,7 @@ namespace vm {
 			template<typename T, T& B, T& E, Err::Code C>
 			static signed char get_byte(const Const_Ptr<T, B, E, C>& ptr);
 
-			template<typename T, T& B, T& E, Err::Code C>
-			static Value get_value(const Const_Ptr<T, B, E, C>& ptr);
+			template<typename P> static Value get_value(const P& ptr);
 
 			template<signed char*& B, signed char*& E, Err::Code C>
 			static void set_value(Ptr<B, E, C> ptr, const Value& value);

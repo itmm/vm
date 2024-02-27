@@ -14,10 +14,10 @@ using namespace vm;
 
 	void Heap::insert_into_free_list(Heap_Ptr block) {
 		free_list.insert(block);
-		int size { Acc::get_int_value(block) };
+		int size { Acc::get_int(block) };
 
 		if (auto smaller = Acc::get_ptr(block + node_prev_offset)) {
-			int smaller_size { Acc::get_int_value(smaller) };
+			int smaller_size { Acc::get_int(smaller) };
 			if (smaller + smaller_size == block) {
 				Acc::set_int(smaller, smaller_size + size);
 				free_list.remove(block);
@@ -27,7 +27,7 @@ using namespace vm;
 
 		if (auto greater = Acc::get_ptr(block + node_next_offset)) {
 			if (block + size == greater) {
-				Acc::set_int(block, size + Acc::get_int_value(greater));
+				Acc::set_int(block, size + Acc::get_int(greater));
 				free_list.remove(greater);
 			}
 		}
@@ -41,7 +41,7 @@ using namespace vm;
 	Heap_Ptr Heap::find_on_free_list(int size, bool tight_fit) {
 		auto current { free_list.end };
 		while (current) {
-			int cur_size { Acc::get_int_value(current) };
+			int cur_size { Acc::get_int(current) };
 			bool found {
 				tight_fit ?
 				cur_size == size || cur_size > 3 * size :
@@ -84,7 +84,7 @@ using namespace vm;
 			found = Heap_Ptr { heap_end };
 			heap_end += size;
 			Acc::set_int(found, size);
-		} else { size = Acc::get_int_value(found); }
+		} else { size = Acc::get_int(found); }
 
 		alloc_list.insert(found);
 
@@ -96,7 +96,7 @@ using namespace vm;
 	void Heap::free_block(Heap_Ptr block) {
 		block = block - heap_overhead;
 		alloc_list.remove(block);
-		int size { Acc::get_int_value(block) };
+		int size { Acc::get_int(block) };
 		if (size < std::max(node_size, heap_overhead)) {
 			err(Err::free_invalid_block);
 		}
@@ -115,7 +115,7 @@ using namespace vm;
 		if (heap_end - ram_begin) {
 			std::cout << "\n";
 			while (current < end) {
-				auto size { Acc::get_int_value(current) };
+				auto size { Acc::get_int(current) };
 				if (current == next_allocated) {
 					std::cout << "  " << current.offset() <<
 							  ": block[" << size << "] {";
@@ -184,7 +184,7 @@ using namespace vm;
 			Heap_Ptr current { used_blocks.begin };
 			used_blocks.remove(current);
 			processed_blocks.insert(current);
-			Heap_Ptr end { current + Acc::get_int_value(current) };
+			Heap_Ptr end { current + Acc::get_int(current) };
 			add_pointers(current + heap_overhead, end, used_blocks);
 		}
 

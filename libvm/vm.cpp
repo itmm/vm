@@ -80,7 +80,7 @@ void vm::init(
 	pc = Code_Ptr { code_begin };
 }
 
-template<typename P> void vm::dump_block(P begin, P end, const char* indent) {
+template<typename P> void vm::dump_block(const P& begin, const P& end, const char* indent) {
 	P current { begin };
 	while (current < end) {
 		vm::Value value;
@@ -189,16 +189,16 @@ void vm::step() {
 		#endif
 		#if CONFIG_WITH_INT
 			case op_jmp: {
-				int value { Acc::get_int_value(pc) };
+				int value { Acc::get_int(pc) };
 				pc = pc + Int::raw_size; jump(value, true_lit); break;
 			}
 			case op_jmp_false: {
-				int value { Acc::get_int_value(pc) };
+				int value { Acc::get_int(pc) };
 				pc = pc + Int::raw_size;
 				jump_with_stack_condition(value, true); break;
 			}
 			case op_jmp_true: {
-				int value { Acc::get_int_value(pc) };
+				int value { Acc::get_int(pc) };
 				pc = pc + Int::raw_size;
 				jump_with_stack_condition(value, false); break;
 			}
@@ -249,7 +249,7 @@ void vm::step() {
 		#endif
 		#if CONFIG_WITH_INT
 			case op_push_int:
-				Acc::push(Acc::get_int_value(pc));
+				Acc::push(Acc::get_int(pc));
 				pc = pc + Int::raw_size; break;
 		#endif
 		#if CONFIG_WITH_HEAP
@@ -311,9 +311,5 @@ void vm::step() {
 // instantiate templates
 
 #if CONFIG_WITH_HEAP
-	template void vm::dump_block(
-		Casting_Ptr<vm::ram_begin, vm::heap_end, Err::leave_heap_segment>,
-		Casting_Ptr<vm::ram_begin, vm::heap_end, Err::leave_heap_segment>,
-		const char*
-	);
+	template void vm::dump_block(const Heap_Ptr&, const Heap_Ptr&, const char*);
 #endif
