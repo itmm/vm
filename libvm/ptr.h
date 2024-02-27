@@ -152,7 +152,7 @@ namespace vm {
 
 	inline signed char* stack_upper_limit() {
 		#if CONFIG_WITH_CALL
-			return old_stack_end;
+			return Stack_Ptr::end;
 		#else
 			return Ram_Ptr::end;
 		#endif
