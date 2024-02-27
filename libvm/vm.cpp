@@ -29,7 +29,7 @@ namespace {
 		Acc::set_value(Stack_Ptr { stack_begin + offset }, value);
 	}
 
-	void jump(int offset, signed char condition) {
+	void jump(int offset, int condition) {
 		Code_Ptr target { pc + offset };
 		if (condition) { pc = target; }
 	}
@@ -80,6 +80,57 @@ void vm::init(
 	pc = Code_Ptr { code_begin };
 }
 
+template<typename P> void vm::dump_block(P begin, P end, const char* indent) {
+	P current { begin };
+	while (current < end) {
+		vm::Value value;
+		try { value = Acc::get_value(current); }
+		catch (const Err& err) {
+			std::cout << indent << "! NO VALID VALUE AT " <<
+				current.offset() << "\n";
+			break;
+		}
+		#if CONFIG_WITH_CHAR
+			if (auto ch { std::get_if<signed char>(&value) }) {
+				std::cout << indent << current.offset() <<
+					": char == " << static_cast<int>(*ch) << "\n";
+				current = current + Char::typed_size;
+				continue;
+			}
+		#endif
+		#if CONFIG_WITH_INT
+			if (auto val { std::get_if<int>(&value) }) {
+				std::cout << indent << current.offset() <<
+					": int == " << *val << "\n";
+				current = current + Int::typed_size;
+				continue;
+			}
+		#endif
+		#if CONFIG_WITH_HEAP
+			if (auto ptr { std::get_if<Heap_Ptr>(&value) }) {
+				std::cout << indent << current.offset() << ": ptr == " << ptr->offset() << " ("
+					<< (*ptr ? (ptr->offset() - heap_overhead) : -1) << ")\n";
+				current = current + ptr_size;
+				continue;
+			}
+		#endif
+		#if CONFIG_WITH_CALL
+			if (std::get_if<Stack_Frame>(&value)) {
+				// TODO: log stack frame details
+				std::cout << indent << current.offset() << ": stack_frame ()\n";
+				current = current + stack_frame_size;
+				continue;
+			}
+		#endif
+		std::cout << indent << "! UNKNOWN TYPE AT " << current.offset() << "\n";
+		break;
+	}
+	if (!(current == end)) {
+		std::cout << indent << "! INVALID END " << current.offset()<< " != " <<
+			end.offset() << "\n";
+	}
+}
+
 void vm::dump_stack() {
 	Stack_Ptr current { stack_begin };
 	Stack_Ptr end { stack_upper_limit() };
@@ -87,10 +138,7 @@ void vm::dump_stack() {
 	std::cout << "stack[" << size << "] {";
 	if (size) {
 		std::cout << "\n";
-		#if CONFIG_WITH_HEAP
-			// TODO: move to vm
-			Heap::dump_block(Stack_Ptr { stack_begin }, Stack_Ptr { ram_end }, "  ");
-		#endif
+		dump_block(Stack_Ptr { stack_begin }, Stack_Ptr { ram_end }, "  ");
 		std::cout << "}\n";
 	} else { std::cout << " }\n"; }
 }
@@ -259,3 +307,13 @@ void vm::step() {
 		default: err(Err::unknown_opcode);
 	}
 }
+
+// instantiate templates
+
+#if CONFIG_WITH_HEAP
+	template void vm::dump_block(
+		Casting_Ptr<vm::ram_begin, vm::heap_end, Err::leave_heap_segment>,
+		Casting_Ptr<vm::ram_begin, vm::heap_end, Err::leave_heap_segment>,
+		const char*
+	);
+#endif

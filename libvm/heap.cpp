@@ -106,43 +106,6 @@ using namespace vm;
 		Heap::insert_into_free_list(block);
 	}
 
-	template<typename P> void Heap::dump_block(P begin, P end, const char* indent) {
-		P current { begin };
-		while (current < end) {
-			vm::Value value;
-			try { value = Acc::get_value(current); }
-			catch (const Err& err) {
-				std::cout << indent << "! NO VALID VALUE AT " <<
-					current.offset() << "\n";
-				break;
-			}
-			if (auto ch { std::get_if<signed char>(&value) }) {
-				std::cout << indent << current.offset() <<
-					": char == " << static_cast<int>(*ch) << "\n";
-				current = current + Char::typed_size;
-			} else if (auto val { std::get_if<int>(&value) }) {
-				std::cout << indent << current.offset() <<
-					": int == " << *val << "\n";
-				current = current + Int::typed_size;
-			} else if (auto ptr { std::get_if<Heap_Ptr>(&value) }) {
-				std::cout << indent << current.offset() << ": ptr == " << ptr->offset() << " ("
-					<< (*ptr ? (ptr->offset() - heap_overhead) : -1) << ")\n";
-				current = current + ptr_size;
-			} else if (std::get_if<Stack_Frame>(&value)) {
-				// TODO: log stack frame details
-				std::cout << indent << current.offset() << ": stack_frame ()\n";
-				current = current + stack_frame_size;
-			} else {
-				std::cout << indent << "! UNKNOWN TYPE AT " << current.offset() << "\n";
-				break;
-			}
-		}
-		if (!(current == end)) {
-			std::cout << indent << "! INVALID END " << current.offset()<< " != " <<
-				end.offset() << "\n";
-		}
-	}
-
 	void Heap::dump_heap() {
 		Heap_Ptr current { ram_begin };
 		Heap_Ptr end { heap_end };
@@ -233,11 +196,4 @@ using namespace vm;
 		alloc_list.end = processed_blocks.end;
 	}
 
-	// instantiate templates
-
-	template void Heap::dump_block(
-		Casting_Ptr<stack_begin, stack_end, Err::leave_stack_segment> begin,
-		Casting_Ptr<stack_begin, stack_end, Err::leave_stack_segment> end,
-		const char* indent
-	);
 #endif

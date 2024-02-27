@@ -79,5 +79,7 @@ namespace vm {
 
 	void step();
 
+	template<typename P> void dump_block(P begin, P end, const char* indent);
+
 	void dump_stack();
 }
