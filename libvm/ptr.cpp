@@ -56,7 +56,9 @@ signed char* Ram_Ptr::end { nullptr };
 #endif
 
 signed char* Stack_Ptr::begin { nullptr };
-signed char* Stack_Ptr::end { nullptr };
+#if CONFIG_WITH_CALL
+	signed char* Stack_Ptr::end { nullptr };
+#endif
 
 // instantiate templates:
 

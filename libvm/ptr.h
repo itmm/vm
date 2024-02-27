@@ -133,7 +133,9 @@ namespace vm {
 				explicit Stack_Ptr(signed char* ptr = nullptr) : Casting_Ptr<old_stack_begin, old_ram_end>(ptr) { }
 
 				static signed char* begin;
-				static signed char* end;
+				#if CONFIG_WITH_CALL
+					static signed char* end;
+				#endif
 
 				void check(int size) const { internal_check(size, begin, end, Err::leave_stack_segment); }
 				[[nodiscard]] int offset() const { return internal_check(begin); }
@@ -155,5 +157,4 @@ namespace vm {
 			return Ram_Ptr::end;
 		#endif
 	}
-
 }
