@@ -16,13 +16,13 @@ signed char* vm::old_ram_end;
 
 vm::Code_Ptr vm::pc;
 
-template<typename T, T& B, T& E>
-void Const_Ptr<T, B, E>::internal_check(int size, const signed char* begin, const signed char* end, Err::Code code) const {
+template<typename T>
+void Const_Ptr<T>::internal_check(int size, const signed char* begin, const signed char* end, Err::Code code) const {
 	if (ptr_ < begin || ptr_ + size > end) { err(code); }
 }
 
-template<typename T, T& B, T& E>
-int Const_Ptr<T, B, E>::internal_offset(const signed char* begin) const {
+template<typename T>
+int Const_Ptr<T>::internal_offset(const signed char* begin) const {
 	return ptr_ ? static_cast<int>(ptr_ - begin) : -1;
 }
 
@@ -34,15 +34,15 @@ template<typename P> P vm::operator-(const P& ptr, int offset) {
 	return P { ptr.ptr_ - offset };
 }
 
-template<typename T, T& B, T& E>
-bool vm::operator==(
-	const Const_Ptr<T, B, E>& a, const Const_Ptr<T, B, E>& b
-) { return a.ptr_ == b.ptr_; }
+template<typename T>
+bool vm::operator==(const Const_Ptr<T>& a, const Const_Ptr<T>& b) {
+	return a.ptr_ == b.ptr_;
+}
 
-template<typename T, T& B, T& E>
-bool vm::operator<(
-	const Const_Ptr<T, B, E>& a, const Const_Ptr<T, B, E>& b
-) { return a.ptr_ < b.ptr_; }
+template<typename T>
+bool vm::operator<(const Const_Ptr<T>& a, const Const_Ptr<T>& b) {
+	return a.ptr_ < b.ptr_;
+}
 
 const signed char* Code_Ptr::begin { nullptr };
 const signed char* Code_Ptr::end { nullptr };
@@ -62,182 +62,37 @@ signed char* Stack_Ptr::begin { nullptr };
 
 // instantiate templates:
 
-template class vm::Const_Ptr<const signed char*, old_code_begin, old_code_end>;
+template class vm::Const_Ptr<const signed char*>;
 
-template void vm::Const_Ptr<signed char*, old_ram_begin, old_ram_end>::internal_check(int, const signed char*, const signed char*, Err::Code) const;
-template int vm::Const_Ptr<signed char*, old_ram_begin, old_ram_end>::internal_offset(const signed char*) const;
-#if CONFIG_WITH_HEAP
-	template void vm::Const_Ptr<signed char*, old_ram_begin, old_heap_end>::internal_check(int, const signed char*, const signed char*, Err::Code) const;
-	template int vm::Const_Ptr<signed char*, old_ram_begin, old_heap_end>::internal_offset(const signed char*) const;
-#endif
-#if CONFIG_WITH_CALL
-	template void vm::Const_Ptr<signed char*, old_stack_begin, old_stack_end>::internal_check(int, const signed char*, const signed char*, Err::Code) const;
-	template int vm::Const_Ptr<signed char*, old_stack_begin, old_stack_end>::internal_offset(const signed char*) const;
-#else
-	template void vm::Const_Ptr<signed char*, old_stack_begin, old_ram_end>::internal_check(int, const signed char*, const signed char*, Err::Code) const;
-	template int vm::Const_Ptr<signed char*, old_stack_begin, old_ram_end>::internal_offset(const signed char*) const;
-#endif
+template void vm::Const_Ptr<signed char*>::internal_check(int, const signed char*, const signed char*, Err::Code) const;
+template int vm::Const_Ptr<signed char*>::internal_offset(const signed char*) const;
 
 template Code_Ptr vm::operator+(const Code_Ptr&, int);
-template Const_Ptr<const signed char*, old_code_begin, old_code_end> vm::operator+(
-	const Const_Ptr<const signed char*, old_code_begin, old_code_end>&, int);
+template Const_Ptr<const signed char*> vm::operator+(const Const_Ptr<const signed char*>&, int);
 template Ram_Ptr vm::operator+(const Ram_Ptr&, int);
-template Const_Ptr<signed char*, old_ram_begin, old_ram_end> vm::operator+(
-	const Const_Ptr<signed char*, old_ram_begin, old_ram_end>&, int);
-template Ptr<old_ram_begin, old_ram_end> vm::operator+(
-	const Ptr<old_ram_begin, old_ram_end>&, int);
+template Const_Ptr<signed char*> vm::operator+(const Const_Ptr<signed char*>&, int);
+template Const_Ptr<signed char*> vm::operator-(const Const_Ptr<signed char*>&, int);
 
 #if CONFIG_WITH_HEAP
 	template Heap_Ptr vm::operator+(const Heap_Ptr&, int);
-	template Ptr<old_ram_begin, old_heap_end> vm::operator+(
-		const Ptr<old_ram_begin, old_heap_end>&, int);
+	template Heap_Ptr vm::operator-(const Heap_Ptr&, int);
 #endif
 
 template Stack_Ptr vm::operator+(const Stack_Ptr&, int);
 template Stack_Ptr vm::operator-(const Stack_Ptr&, int);
 
-#if CONFIG_WITH_CALL
-	template Const_Ptr<signed char*, old_stack_begin, old_stack_end>
-	vm::operator+(
-		const Const_Ptr<
-			signed char*, old_stack_begin, old_stack_end
-		>&, int
-	);
-
-	template Ptr<old_stack_begin, old_stack_end>
-	vm::operator+(const Ptr<old_stack_begin, old_stack_end>&, int);
-
-	template Casting_Ptr<old_stack_begin, old_stack_end>
-	vm::operator+(
-		const Casting_Ptr<old_stack_begin, old_stack_end>&, int
-	);
-#else
-	template Const_Ptr<signed char*, old_stack_begin, old_ram_end>
-	vm::operator+(
-		const Const_Ptr<
-			signed char*, old_stack_begin, old_ram_end
-		>&, int
-	);
-
-	template Ptr<old_stack_begin, old_ram_end>
-	vm::operator+(const Ptr<old_stack_begin, old_ram_end>&, int);
-
-	template Casting_Ptr<old_stack_begin, old_ram_end>
-	vm::operator+(
-		const Casting_Ptr<old_stack_begin, old_ram_end>&, int
-	);
-#endif
-
-#if CONFIG_WITH_HEAP
-	template Heap_Ptr vm::operator-(const Heap_Ptr&, int);
-#endif
-
-#if CONFIG_WITH_CALL
-	template Casting_Ptr<old_stack_begin, old_stack_end>
-	vm::operator-(
-		const Casting_Ptr<old_stack_begin, old_stack_end>&, int
-	);
-#else
-	template Casting_Ptr<old_stack_begin, old_ram_end>
-	vm::operator-(
-		const Casting_Ptr<old_stack_begin, old_ram_end>&, int
-	);
-#endif
-
 template bool vm::operator==(
-	const Const_Ptr<
-		const signed char*, old_code_begin, old_code_end
-	>&,
-	const Const_Ptr<const signed char*, old_code_begin, old_code_end>&
+	const Const_Ptr<const signed char*>&, const Const_Ptr<const signed char*>&
 );
 
 template bool vm::operator==(
-	const Const_Ptr<
-		signed char*, old_ram_begin, old_ram_end
-	>&,
-	const Const_Ptr<signed char*, old_ram_begin, old_ram_end>&
-);
-
-#if CONFIG_WITH_HEAP
-	template bool vm::operator==(
-		const Const_Ptr<
-			signed char*, old_ram_begin, old_heap_end
-		>&,
-		const Const_Ptr<signed char*, old_ram_begin, old_heap_end>&
-	);
-#endif
-
-#if CONFIG_WITH_CALL
-	template bool vm::operator==(
-		const Const_Ptr<
-			signed char*, old_stack_begin, old_stack_end
-		>&,
-		const Const_Ptr<
-			signed char*, old_stack_begin, old_stack_end
-		>&
-	);
-#else
-	template bool vm::operator==(
-		const Const_Ptr<signed char*, old_stack_begin, old_ram_end>&,
-		const Const_Ptr<signed char*, old_stack_begin, old_ram_end>&
-	);
-#endif
-
-template bool vm::operator<(
-	const Const_Ptr<
-		const signed char*, old_code_begin, old_code_end
-	>&,
-	const Const_Ptr<const signed char*, old_code_begin, old_code_end>&
+	const Const_Ptr<signed char*>&, const Const_Ptr<signed char*>&
 );
 
 template bool vm::operator<(
-	const Const_Ptr<
-		signed char*, old_ram_begin, old_ram_end
-	>&,
-	const Const_Ptr<signed char*, old_ram_begin, old_ram_end>&
+	const Const_Ptr<const signed char*>&, const Const_Ptr<const signed char*>&
 );
 
-#if CONFIG_WITH_HEAP
-	template bool vm::operator<(
-		const Const_Ptr<
-			signed char*, old_ram_begin, old_heap_end
-		>&,
-		const Const_Ptr<signed char*, old_ram_begin, old_heap_end>&
-	);
-#endif
-
-#if CONFIG_WITH_CALL
-	template bool vm::operator<(
-		const Const_Ptr<
-			signed char*, old_stack_begin, old_stack_end
-		>&,
-		const Const_Ptr<
-			signed char*, old_stack_begin, old_stack_end
-		>&
-	);
-#else
-	template bool vm::operator<(
-		const Const_Ptr<
-			signed char*, old_stack_begin, old_ram_end
-		>&,
-		const Const_Ptr<
-			signed char*, old_stack_begin, old_ram_end
-		>&
-	);
-#endif
-
-template class vm::Ptr<old_ram_begin, old_ram_end>;
-
-#if CONFIG_WITH_HEAP
-	template class vm::Casting_Ptr<old_ram_begin, old_heap_end>;
-#endif
-
-#if CONFIG_WITH_CALL
-	template class vm::Casting_Ptr<
-		old_stack_begin, old_stack_end
-	>;
-#else
-	template class vm::Casting_Ptr<
-		old_stack_begin, old_ram_end
-	>;
-#endif
+template bool vm::operator<(
+	const Const_Ptr<signed char*>&, const Const_Ptr<signed char*>&
+);

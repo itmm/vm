@@ -18,23 +18,17 @@ namespace vm {
 	template<typename P> P operator+(const P& ptr, int offset);
 	template<typename P> P operator-(const P& ptr, int offset);
 
-	template<typename T, T& B, T& E> class Const_Ptr;
+	template<typename T> class Const_Ptr;
 
-	template<typename T, T& B, T& E>
-	bool operator==(
-		const Const_Ptr<T, B, E>& a, const Const_Ptr<T, B, E>& b
-	);
+	template<typename T>
+	bool operator==(const Const_Ptr<T>& a, const Const_Ptr<T>& b);
 
-	template<typename T, T& B, T& E>
-	bool operator<(
-		const Const_Ptr<T, B, E>& a, const Const_Ptr<T, B, E>& b
-	);
+	template<typename T>
+	bool operator<(const Const_Ptr<T>& a, const Const_Ptr<T>& b);
 
-	template<typename T, T& B, T& E> class Const_Ptr {
+	template<typename T> class Const_Ptr {
 		public:
-			explicit Const_Ptr(T ptr = nullptr): ptr_ { ptr } {
-				if (ptr_) { }
-			}
+			explicit Const_Ptr(T ptr = nullptr): ptr_ { ptr } { }
 
 			explicit operator bool() const { return ptr_; }
 
@@ -45,10 +39,10 @@ namespace vm {
 			template<typename P> friend P operator-(const P& ptr, int offset);
 
 			friend bool operator==<>(
-				const Const_Ptr<T, B, E>& a, const Const_Ptr<T, B, E>& b
+				const Const_Ptr<T>& a, const Const_Ptr<T>& b
 			);
 			friend bool operator< <>(
-				const Const_Ptr<T, B, E>& a, const Const_Ptr<T, B, E>& b
+				const Const_Ptr<T>& a, const Const_Ptr<T>& b
 			);
 
 			T ptr_;
@@ -57,12 +51,9 @@ namespace vm {
 			int internal_offset(const signed char* begin) const;
 	};
 
-	class Code_Ptr: public Const_Ptr<
-		const signed char*, old_code_begin, old_code_end
-	> {
+	class Code_Ptr: public Const_Ptr<const signed char*> {
 		public:
-			explicit Code_Ptr(const signed char* ptr = nullptr):
-				Const_Ptr<const signed char*, old_code_begin, old_code_end>(ptr) { }
+			explicit Code_Ptr(const signed char* ptr = nullptr): Const_Ptr<const signed char*>(ptr) { }
 
 			static const signed char* begin;
 			static const signed char* end;
@@ -73,19 +64,18 @@ namespace vm {
 
 	extern Code_Ptr pc;
 
-	template<signed char*& B, signed char*& E>
-	class Ptr : public Const_Ptr<signed char*, B, E> {
+	class Ptr : public Const_Ptr<signed char*> {
 		public:
 			explicit Ptr(signed char* ptr = nullptr):
-				Const_Ptr<signed char*, B, E> { ptr } { }
+				Const_Ptr<signed char*> { ptr } { }
 
 		protected:
 			[[nodiscard]] signed char* ptr() const { return this->ptr_; }
 	};
 
-	class Ram_Ptr : public Ptr<old_ram_begin, old_ram_end> {
+	class Ram_Ptr : public Ptr {
 		public:
-			explicit Ram_Ptr(signed char* ptr = nullptr): Ptr<old_ram_begin, old_ram_end>(ptr) { }
+			explicit Ram_Ptr(signed char* ptr = nullptr): Ptr { ptr } { }
 
 			static signed char* begin;
 			static signed char* end;
@@ -94,19 +84,17 @@ namespace vm {
 			[[nodiscard]] int offset() const { return internal_offset(begin); }
 	};
 
-	template<signed char*& B, signed char*& E>
-	class Casting_Ptr : public Ptr<B, E> {
+	class Casting_Ptr : public Ptr {
 		public:
-			explicit Casting_Ptr(signed char* ptr = nullptr):
-				Ptr<B, E> { ptr } { }
+			explicit Casting_Ptr(signed char* ptr = nullptr): Ptr { ptr } { }
 
 			explicit operator Ram_Ptr() const { return Ram_Ptr { this->ptr_ }; }
 	};
 
 	#if CONFIG_WITH_HEAP
-		class Heap_Ptr : public Casting_Ptr<old_ram_begin, old_heap_end> {
+		class Heap_Ptr : public Casting_Ptr {
 			public:
-				explicit Heap_Ptr(signed char* ptr = nullptr) : Casting_Ptr<old_ram_begin, old_heap_end>(ptr) { }
+				explicit Heap_Ptr(signed char* ptr = nullptr) : Casting_Ptr { ptr } { }
 
 				static signed char* begin;
 				static signed char* end;
@@ -117,9 +105,9 @@ namespace vm {
 	#endif
 
 	#if CONFIG_WITH_CALL
-		class Stack_Ptr : public Casting_Ptr<old_stack_begin, old_stack_end> {
+		class Stack_Ptr : public Casting_Ptr {
 			public:
-				explicit Stack_Ptr(signed char* ptr = nullptr) : Casting_Ptr<old_stack_begin, old_stack_end>(ptr) { }
+				explicit Stack_Ptr(signed char* ptr = nullptr) : Casting_Ptr { ptr } { }
 
 				static signed char* begin;
 				static signed char* end;
