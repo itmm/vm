@@ -67,7 +67,7 @@ namespace vm {
 	using Value = std::variant<
 		#if CONFIG_WITH_CHAR
 			#define VARIANT_SEP 1
-			signed char
+			Char
 		#endif
 		#if CONFIG_WITH_INT
 			#if !defined(VARIANT_SEP)
@@ -75,7 +75,7 @@ namespace vm {
 			#else
 				,
 			#endif
-			int
+			Int
 		#endif
 		#if CONFIG_WITH_HEAP
 			#if !defined(VARIANT_SEP)
@@ -104,5 +104,4 @@ namespace vm {
 	int int_value(const Value& value);
 
 	signed char to_ch(int value, Err::Code overflow, Err::Code underflow);
-
 }

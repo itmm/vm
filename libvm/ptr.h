@@ -35,18 +35,26 @@ namespace vm {
 
 			T ptr_;
 
-			void internal_check(int size, const signed char* begin, const signed char* end, Err::Code code) const;
+			void internal_check(
+				int size, const signed char* begin,
+				const signed char* end, Err::Code code
+			) const;
+
 			int internal_offset(const signed char* begin) const;
 	};
 
 	class Code_Ptr: public Const_Ptr<const signed char*> {
 		public:
-			explicit Code_Ptr(const signed char* ptr = nullptr): Const_Ptr<const signed char*>(ptr) { }
+			explicit Code_Ptr(const signed char* ptr = nullptr):
+				Const_Ptr<const signed char*>(ptr) { }
 
 			static const signed char* begin;
 			static const signed char* end;
 
-			void check(int size) const { internal_check(size, begin, end, Err::leave_code_segment); }
+			void check(int size) const {
+				internal_check(size, begin, end, Err::leave_code_segment);
+			}
+
 			[[nodiscard]] int offset() const { return internal_offset(begin); }
 	};
 
@@ -76,8 +84,15 @@ namespace vm {
 
 				static signed char* end;
 
-				void check(int size) const { internal_check(size, Ram_Ptr::begin, end, Err::leave_heap_segment); }
-				[[nodiscard]] int offset() const { return internal_offset(Ram_Ptr::begin); }
+				void check(int size) const {
+					internal_check(
+						size, Ram_Ptr::begin, end, Err::leave_heap_segment
+					);
+				}
+
+				[[nodiscard]] int offset() const {
+					return internal_offset(Ram_Ptr::begin);
+				}
 		};
 	#endif
 
@@ -89,8 +104,13 @@ namespace vm {
 				static signed char* begin;
 				static signed char* end;
 
-				void check(int size) const { internal_check(size, begin, end, Err::leave_stack_segment); }
-				[[nodiscard]] int offset() const { return internal_offset(Ram_Ptr::begin); }
+				void check(int size) const {
+					internal_check(size, begin, end, Err::leave_stack_segment);
+				}
+
+				[[nodiscard]] int offset() const {
+					return internal_offset(Ram_Ptr::begin);
+				}
 		};
 
 		class Temporarly_Increase_Stack_Size {
@@ -121,8 +141,15 @@ namespace vm {
 					static signed char* end;
 				#endif
 
-				void check(int size) const { internal_check(size, begin, stack_lower_limit(), Err::leave_stack_segment); }
-				[[nodiscard]] int offset() const { return internal_offset(stack_lower_limit()); }
+				void check(int size) const {
+					internal_check(
+						size, begin, stack_lower_limit(),
+						Err::leave_stack_segment
+					);
+				}
+				[[nodiscard]] int offset() const {
+					return internal_offset(stack_lower_limit());
+				}
 		};
 
 		class Temporarly_Increase_Stack_Size {

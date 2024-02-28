@@ -39,12 +39,13 @@ template<typename P> Value Acc::get_value(const P& ptr) {
 	ptr.check(1); switch (*ptr.ptr_) {
 		#if CONFIG_WITH_CHAR
 			case Char::type_ch:
-				ptr.check(Char::typed_size); return Value { ptr.ptr_[1] };
+				ptr.check(Char::typed_size);
+				return Value { Char { ptr.ptr_[1] } };
 		#endif
 		#if CONFIG_WITH_INT
 			case Int::type_ch:
 				ptr.check(Int::typed_size);
-				return Value { get_int(ptr + 1) };
+				return Value { Int { get_int(ptr + 1) } };
 		#endif
 		#if CONFIG_WITH_HEAP
 			case ptr_type: {
@@ -77,16 +78,16 @@ static void set_ptr_type(signed char* ptr, signed char type) {
 template<typename P>
 void Acc::set_value(P ptr, const Value& value) {
 	#if CONFIG_WITH_CHAR
-		if (auto ch = std::get_if<signed char>(&value)) {
+		if (auto ch = std::get_if<Char>(&value)) {
 			ptr.check(Char::typed_size); set_ptr_type(ptr.ptr_, Char::type_ch);
-			ptr.ptr_[1] = *ch;
+			ptr.ptr_[1] = ch->value;
 			return;
 		}
 	#endif
 	#if CONFIG_WITH_INT
-		if (auto val = std::get_if<int>(&value)) {
+		if (auto val = std::get_if<Int>(&value)) {
 			ptr.check(Int::typed_size); set_ptr_type(ptr.ptr_, Int::type_ch);
-			set_int(ptr + 1, *val);
+			set_int(ptr + 1, val->value);
 			return;
 		}
 	#endif
@@ -135,9 +136,9 @@ Value Acc::pull() {
 #if CONFIG_WITH_CHAR
 	signed char Acc::pull_ch() {
 		auto value { pull() };
-		auto ch = std::get_if<signed char>(&value);
+		auto ch = std::get_if<Char>(&value);
 		if (!ch) { err(Err::no_char); }
-		return *ch;
+		return ch->value;
 	}
 #endif
 

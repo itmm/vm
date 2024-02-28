@@ -92,17 +92,17 @@ template<typename P> void vm::dump_block(const P& begin, const P& end, const cha
 			break;
 		}
 		#if CONFIG_WITH_CHAR
-			if (auto ch { std::get_if<signed char>(&value) }) {
+			if (auto ch { std::get_if<Char>(&value) }) {
 				std::cout << indent << current.offset() <<
-					": char == " << static_cast<int>(*ch) << "\n";
+					": char == " << static_cast<int>(ch->value) << "\n";
 				current = current + Char::typed_size;
 				continue;
 			}
 		#endif
 		#if CONFIG_WITH_INT
-			if (auto val { std::get_if<int>(&value) }) {
+			if (auto val { std::get_if<Int>(&value) }) {
 				std::cout << indent << current.offset() <<
-					": int == " << *val << "\n";
+					": int == " << val->value << "\n";
 				current = current + Int::typed_size;
 				continue;
 			}
@@ -180,7 +180,7 @@ void vm::step() {
 		#if CONFIG_WITH_NUMERIC
 			case op_equals: {
 				auto b { Acc::pull() }; auto a { Acc::pull() };
-				Acc::push(a == b ? true_lit : false_lit);
+				Acc::push(Char { a == b ? true_lit : false_lit });
 				break;
 			}
 			case op_fetch: fetch(Acc::pull_int()); break;
@@ -207,7 +207,7 @@ void vm::step() {
 		#if CONFIG_WITH_NUMERIC
 			case op_less: {
 				auto b { Acc::pull() }; auto a { Acc::pull() };
-				Acc::push(a < b ? true_lit : false_lit); break;
+				Acc::push(Char { a < b ? true_lit : false_lit }); break;
 			}
 		#endif
 		case op_near_jmp: {
@@ -235,10 +235,10 @@ void vm::step() {
 		#if CONFIG_WITH_NUMERIC
 			case op_not: {
 				auto value { Acc::pull() };
-				auto ch { std::get_if<signed char>(&value) };
-				if (ch) { Acc::push(negate_ch(*ch)); break; }
-				const int* val { std::get_if<int>(&value) };
-				if (val) { Acc::push(~*val); break; }
+				auto ch { std::get_if<Char>(&value) };
+				if (ch) { Acc::push(Char { negate_ch(ch->value) }); break; }
+				auto val { std::get_if<Int>(&value) };
+				if (val) { Acc::push(Int { ~val->value }); break; }
 				err(Err::unknown_type);
 			}
 			case op_or: { vm::ops::Or { }(); break; }
@@ -246,11 +246,11 @@ void vm::step() {
 		case op_pull: Acc::pull(); break;
 		#if CONFIG_WITH_CHAR
 			case op_push_ch:
-				Acc::push(Acc::get_byte(pc)); pc = pc + 1; break;
+				Acc::push(Char { Acc::get_byte(pc) }); pc = pc + 1; break;
 		#endif
 		#if CONFIG_WITH_INT
 			case op_push_int:
-				Acc::push(Acc::get_int(pc));
+				Acc::push(Int { Acc::get_int(pc) });
 				pc = pc + Int::raw_size; break;
 		#endif
 		#if CONFIG_WITH_HEAP
@@ -295,14 +295,14 @@ void vm::step() {
 		}
 		#if CONFIG_WITH_CHAR
 			case op_to_ch:
-				Acc::push(to_ch(
+				Acc::push(Char { to_ch(
 					Acc::pull_int(), Err::to_ch_overflow,
 					Err::to_ch_underflow
-				));
+				) });
 				break;
 		#endif
 		#if CONFIG_WITH_INT
-			case op_to_int: Acc::push(Acc::pull_int()); break;
+			case op_to_int: Acc::push(Int { Acc::pull_int() }); break;
 		#endif
 		#if CONFIG_WITH_CHAR
 			case op_write_ch: std::cout << Acc::pull_ch(); break;

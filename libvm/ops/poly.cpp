@@ -9,19 +9,22 @@ void ops::Poly::operator()() {
 	auto b { Acc::pull() }; auto a { Acc::pull() };
 
 	#if CONFIG_WITH_CHAR
-		auto a_ch = std::get_if<signed char>(&a);
-		auto b_ch = std::get_if<signed char>(&b);
+		auto a_ch = std::get_if<Char>(&a);
+		auto b_ch = std::get_if<Char>(&b);
 
-		if (a_ch && b_ch) { perform_ch(*a_ch, *b_ch); return; }
+		if (a_ch && b_ch) { perform_ch(a_ch->value, b_ch->value); return; }
 	#endif
 
 	#if CONFIG_WITH_INT
-		auto a_int = std::get_if<int>(&a);
-		auto b_int = std::get_if<int>(&b);
+		auto a_int = std::get_if<Int>(&a);
+		auto b_int = std::get_if<Int>(&b);
 
 		#if CONFIG_WITH_CHAR
 			if ((a_int || a_ch) && (b_int || b_ch)) {
-				perform_int(a_int ? *a_int : *a_ch, b_int ? *b_int : *b_ch);
+				perform_int(
+					a_int ? a_int->value : a_ch->value,
+					b_int ? b_int->value : b_ch->value
+				);
 				return;
 			}
 		#else

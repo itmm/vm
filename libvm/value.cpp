@@ -41,12 +41,12 @@ int vm::value_size(signed char type) {
 
 int vm::value_size(const Value& value) {
 	#if CONFIG_WITH_CHAR
-		if (std::get_if<signed char>(&value)) {
+		if (std::get_if<Char>(&value)) {
 			return Char::typed_size;
 		}
 	#endif
 	#if CONFIG_WITH_INT
-		if (std::get_if<int>(&value)) {
+		if (std::get_if<Int>(&value)) {
 			return Int::typed_size;
 		}
 	#endif
@@ -66,12 +66,12 @@ int vm::value_size(const Value& value) {
 #if CONFIG_WITH_INT
 int vm::int_value(const Value& value) {
 	#if CONFIG_WITH_CHAR
-		if (auto ch = std::get_if<signed char>(&value)) {
-			return *ch;
+		if (auto ch = std::get_if<Char>(&value)) {
+			return ch->value;
 		}
 	#endif
-	if (auto val = std::get_if<int>(&value)) {
-		return *val;
+	if (auto val = std::get_if<Int>(&value)) {
+		return val->value;
 	}
 	err(Err::no_integer);
 }

@@ -7,9 +7,9 @@ using namespace vm;
 
 #if CONFIG_WITH_CHAR
 	void vm::ops::Add::perform_ch(signed char a, signed char b) {
-		Acc::push(to_ch(
+		Acc::push(Char { to_ch(
 			a + b, Err::add_overflow, Err::add_underflow
-		));
+		) } );
 	}
 #endif
 
@@ -21,6 +21,6 @@ using namespace vm;
 		if (a < 0 && b < 0 && std::numeric_limits<int>::min() - a > b) {
 			err(Err::add_underflow);
 		}
-		Acc::push(a + b);
+		Acc::push(Int { a + b });
 	}
 #endif

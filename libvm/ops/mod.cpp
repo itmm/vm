@@ -13,7 +13,7 @@ using namespace vm;
 			}
 			Acc::push(value);
 		#else
-			Acc::push(a % b);
+			Acc::push(Int { a % b });
 		#endif
 	}
 #endif

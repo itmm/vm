@@ -13,6 +13,6 @@ using namespace vm;
 			}
 			err(Err::mult_overflow);
 		}
-		Acc::push(value);
+		Acc::push(Int { value });
 	}
 #endif

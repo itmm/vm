@@ -11,9 +11,9 @@ using namespace vm;
 			int value { a / b };
 			int rem { a % b };
 			if (rem < 0) { value += b > 0 ? -1 : 1; }
-			Acc::push(value);
+			Acc::push(Int { value });
 		#else
-			Acc::push(a / b);
+			Acc::push(Int { a / b });
 		#endif
 	}
 #endif
