@@ -4,6 +4,7 @@
 
 namespace vm {
 	template<typename P> P operator+(const P& ptr, int offset);
+
 	template<typename P> P operator-(const P& ptr, int offset);
 
 	template<typename T> class Const_Ptr;

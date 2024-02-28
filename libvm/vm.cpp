@@ -37,8 +37,8 @@ namespace {
 	}
 
 	#if CONFIG_WITH_CHAR
-		signed char negate_ch(signed char ch) {
-			return to_ch(~ch, Err::unexpected, Err::unexpected).value;
+		Char negate_ch(const Char& ch) {
+			return to_ch(~ch.value, Err::unexpected, Err::unexpected);
 		}
 	#endif
 
@@ -83,7 +83,9 @@ void vm::init(
 	pc = Code_Ptr { Code_Ptr::begin };
 }
 
-template<typename P> void vm::dump_block(const P& begin, const P& end, const char* indent) {
+template<typename P> void vm::dump_block(
+	const P& begin, const P& end, const char* indent
+) {
 	P current { begin };
 	while (current < end) {
 		vm::Value value;
@@ -111,16 +113,19 @@ template<typename P> void vm::dump_block(const P& begin, const P& end, const cha
 		#endif
 		#if CONFIG_WITH_HEAP
 			if (auto ptr { std::get_if<Heap_Ptr>(&value) }) {
-				std::cout << indent << current.offset() << ": ptr == " << ptr->offset() << " ("
-					<< (*ptr ? (ptr->offset() - heap_overhead) : -1) << ")\n";
+				std::cout << indent << current.offset() <<
+					": ptr == " << ptr->offset() << " (" <<
+					(*ptr ? (ptr->offset() - heap_overhead) : -1) << ")\n";
 				current = current + ptr_size;
 				continue;
 			}
 		#endif
 		#if CONFIG_WITH_CALL
-			if (std::get_if<Stack_Frame>(&value)) {
-				// TODO: log stack frame details
-				std::cout << indent << current.offset() << ": stack_frame ()\n";
+			if (auto sf = std::get_if<Stack_Frame>(&value)) {
+				std::cout << indent << current.offset() << ": stack_frame {";
+				std::cout << "pc == " << sf->pc.offset() << ", ";
+				std::cout << "parent == " << sf->parent.offset() << ", ";
+				std::cout << "outer == " << sf->outer.offset() << "}\n";
 				current = current + stack_frame_size;
 				continue;
 			}
@@ -141,7 +146,9 @@ void vm::dump_stack() {
 	std::cout << "stack[" << size << "] {";
 	if (size) {
 		std::cout << "\n";
-		dump_block(Stack_Ptr { Stack_Ptr::begin }, Stack_Ptr { Ram_Ptr::end }, "  ");
+		dump_block(
+			Stack_Ptr { Stack_Ptr::begin }, Stack_Ptr { Ram_Ptr::end }, "  "
+		);
 		std::cout << "}\n";
 	} else { std::cout << " }\n"; }
 }
@@ -157,7 +164,7 @@ void vm::step() {
 		case op_break: err(Err::got_break);
 		#if CONFIG_WITH_CALL
 			case op_call: {
-				Code_Ptr new_pc { Code_Ptr::begin + Acc::pull_int().value };
+				Code_Ptr new_pc { Code_Ptr::begin + Acc::pull_int() };
 				int num_args { Acc::pull_int().value };
 				Stack_Frame sf;
 				sf.pc = pc;
@@ -238,7 +245,7 @@ void vm::step() {
 			case op_not: {
 				auto value { Acc::pull() };
 				auto ch { std::get_if<Char>(&value) };
-				if (ch) { Acc::push(Char { negate_ch(ch->value) }); break; }
+				if (ch) { Acc::push(negate_ch(*ch)); break; }
 				auto val { std::get_if<Int>(&value) };
 				if (val) { Acc::push(Int { ~val->value }); break; }
 				err(Err::unknown_type);
@@ -252,8 +259,7 @@ void vm::step() {
 		#endif
 		#if CONFIG_WITH_INT
 			case op_push_int:
-				Acc::push(Int { Acc::get_int(pc) });
-				pc = pc + Int::raw_size; break;
+				Acc::push(Acc::get_int(pc)); pc = pc + Int::raw_size; break;
 		#endif
 		#if CONFIG_WITH_HEAP
 			case op_receive: {
@@ -268,14 +274,15 @@ void vm::step() {
 				Value value;
 				{
 					auto top { Stack_Ptr::end };
-					Temporarly_Increase_Stack_Size increase_stack_size { stack_frame_size };
+					Temporarly_Increase_Stack_Size increase_stack_size {
+						stack_frame_size
+					};
 					value = Acc::get_value(Stack_Ptr { top });
 				}
 				if (auto sf = std::get_if<Stack_Frame>(&value)) {
 					while (Stack_Ptr::begin < Stack_Ptr::end) { Acc::pull(); }
 					Stack_Ptr::end = Ram_Ptr::begin + sf->parent.offset();
-					Acc::pull();
-					pc = sf->pc;
+					Acc::pull(); pc = sf->pc;
 				} else { err(Err::no_stack_frame); }
 				break;
 			}
@@ -283,7 +290,7 @@ void vm::step() {
 		#if CONFIG_WITH_HEAP
 			case op_send: {
 				Heap_Ptr ptr { Acc::pull_ptr() };
-				ptr = ptr + Acc::pull_int().value;
+				ptr = ptr + Acc::pull_int();
 				Acc::set_value(ptr, Acc::pull()); break;
 			}
 		#endif

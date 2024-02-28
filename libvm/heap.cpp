@@ -118,19 +118,24 @@ using namespace vm;
 				auto size { Acc::get_int(current).value };
 				if (current == next_allocated) {
 					std::cout << "  " << current.offset() <<
-							  ": block[" << size << "] {";
+						": block[" << size << "] {";
 					if (size) {
 						std::cout << "\n";
-						dump_block(current + heap_overhead, current + size, "    ");
+						dump_block(
+							current + heap_overhead, current + size, "    "
+						);
 						std::cout << "  }\n";
 					} else { std::cout << " }\n"; }
-					next_allocated = Acc::get_ptr(next_allocated + node_next_offset);
+					next_allocated = Acc::get_ptr(
+						next_allocated + node_next_offset
+					);
 				} else if (current == next_freed) {
 					std::cout << "  " << current.offset() <<
 							  ": free[" << size << "] { }\n";
 					next_freed = Acc::get_ptr(next_freed + node_next_offset);
 				} else {
-					std::cout << "  ! INVALID BLOCK AT " << current.offset() << "\n";
+					std::cout << "  ! INVALID BLOCK AT " <<
+						current.offset() << "\n";
 				}
 				current = current + size;
 			}
@@ -161,10 +166,14 @@ using namespace vm;
 	class Full_Stack {
 		public:
 			Full_Stack():
-				prev_stack_end { static_cast<int>(Stack_Ptr::end - Stack_Ptr::begin) }
+				prev_stack_end {
+					static_cast<int>(Stack_Ptr::end - Stack_Ptr::begin)
+				}
 			{ Stack_Ptr::end = Ram_Ptr::end; }
 
-			~Full_Stack() { Stack_Ptr::end = Stack_Ptr::begin + prev_stack_end; }
+			~Full_Stack() {
+				Stack_Ptr::end = Stack_Ptr::begin + prev_stack_end;
+			}
 		private:
 			int prev_stack_end;
 	};
@@ -176,7 +185,8 @@ using namespace vm;
 		{
 			Full_Stack full_stack;
 			add_pointers(
-				Stack_Ptr { Stack_Ptr::begin }, Stack_Ptr { Stack_Ptr::end }, used_blocks
+				Stack_Ptr { Stack_Ptr::begin }, Stack_Ptr { Stack_Ptr::end },
+				used_blocks
 			);
 		}
 
@@ -184,7 +194,7 @@ using namespace vm;
 			Heap_Ptr current { used_blocks.begin };
 			used_blocks.remove(current);
 			processed_blocks.insert(current);
-			Heap_Ptr end { current + Acc::get_int(current).value };
+			Heap_Ptr end { current + Acc::get_int(current) };
 			add_pointers(current + heap_overhead, end, used_blocks);
 		}
 
@@ -195,5 +205,4 @@ using namespace vm;
 		alloc_list.begin =  processed_blocks.begin;
 		alloc_list.end = processed_blocks.end;
 	}
-
 #endif

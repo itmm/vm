@@ -9,14 +9,19 @@ using namespace vm;
 		Heap_Ptr smaller { end };
 		Heap_Ptr greater;
 		while (node < smaller) {
-			greater = smaller; smaller = Acc::get_ptr(smaller + node_prev_offset);
+			greater = smaller;
+			smaller = Acc::get_ptr(smaller + node_prev_offset);
 		}
 
 		Acc::set_ptr(node + node_next_offset, greater);
 		Acc::set_ptr(node + node_prev_offset, smaller);
-		if (greater) { Acc::set_ptr(greater + node_prev_offset, node); }
+		if (greater) {
+			Acc::set_ptr(greater + node_prev_offset, node);
+		}
 		else { end = node; }
-		if (smaller) { Acc::set_ptr(smaller + node_next_offset, node); }
+		if (smaller) {
+			Acc::set_ptr(smaller + node_next_offset, node);
+		}
 		else { begin = node; }
 	}
 

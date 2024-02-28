@@ -61,9 +61,9 @@ template<typename P> Value Acc::get_value(const P& ptr) {
 			case stack_frame_type: {
 				ptr.check(stack_frame_size);
 				Stack_Frame frame;
-				frame.pc = Code_Ptr { Code_Ptr::begin + get_int(ptr + stack_frame_pc).value };
-				frame.parent = Stack_Ptr { Ram_Ptr::begin + get_int(ptr + stack_frame_end).value };
-				frame.outer = Stack_Ptr { Ram_Ptr::begin + get_int(ptr + stack_frame_outer).value };
+				frame.pc = Code_Ptr { Code_Ptr::begin + get_int(ptr + stack_frame_pc) };
+				frame.parent = Stack_Ptr { Ram_Ptr::begin + get_int(ptr + stack_frame_end) };
+				frame.outer = Stack_Ptr { Ram_Ptr::begin + get_int(ptr + stack_frame_outer) };
 				return frame;
 			}
 		#endif
@@ -118,7 +118,7 @@ void Acc::set_value(P ptr, const Value& value) {
 	template<typename P> Heap_Ptr Acc::get_ptr(const P& ptr) {
 		if (!ptr) { err(Err::null_access); }
 		auto value { get_int(ptr) };
-		return Heap_Ptr { value.value >= 0 ? Ram_Ptr::begin + value.value : nullptr };
+		return Heap_Ptr { value.value >= 0 ? Ram_Ptr::begin + value : nullptr };
 	}
 
 	template<typename P> void Acc::set_ptr(P ptr, const Heap_Ptr& value) {

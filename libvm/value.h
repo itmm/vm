@@ -20,6 +20,14 @@ namespace vm {
 			value_type value;
 		};
 
+		template<typename P> P operator+(const P& ptr, const Int& offset) {
+			return ptr + offset.value;
+		}
+
+		template<typename P> P operator-(const P& ptr, const Int& offset) {
+			return ptr - offset.value;
+		}
+
 		#if CONFIG_INT_MULTI_PRECISION
 			bool operator==(const Int& a, const Int& b);
 			bool operator<(const Int& a, const Int& b);

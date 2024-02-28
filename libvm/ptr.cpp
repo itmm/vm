@@ -4,10 +4,9 @@ using namespace vm;
 
 vm::Code_Ptr vm::pc;
 
-template<typename T>
-void Const_Ptr<T>::internal_check(int size, const signed char* begin, const signed char* end, Err::Code code) const {
-	if (ptr_ < begin || ptr_ + size > end) { err(code); }
-}
+template<typename T> void Const_Ptr<T>::internal_check(
+	int size, const signed char* begin, const signed char* end, Err::Code code
+) const { if (ptr_ < begin || ptr_ + size > end) { err(code); } }
 
 template<typename T>
 int Const_Ptr<T>::internal_offset(const signed char* begin) const {
@@ -51,13 +50,23 @@ signed char* Stack_Ptr::begin { nullptr };
 
 template class vm::Const_Ptr<const signed char*>;
 
-template void vm::Const_Ptr<signed char*>::internal_check(int, const signed char*, const signed char*, Err::Code) const;
-template int vm::Const_Ptr<signed char*>::internal_offset(const signed char*) const;
+template void vm::Const_Ptr<signed char*>::internal_check(
+	int, const signed char*, const signed char*, Err::Code
+) const;
+template int vm::Const_Ptr<signed char*>::internal_offset(
+	const signed char*
+) const;
 
 template Code_Ptr vm::operator+(const Code_Ptr&, int);
-template Const_Ptr<const signed char*> vm::operator+(const Const_Ptr<const signed char*>&, int);
-template Const_Ptr<signed char*> vm::operator+(const Const_Ptr<signed char*>&, int);
-template Const_Ptr<signed char*> vm::operator-(const Const_Ptr<signed char*>&, int);
+template Const_Ptr<const signed char*> vm::operator+(
+	const Const_Ptr<const signed char*>&, int
+);
+template Const_Ptr<signed char*> vm::operator+(
+	const Const_Ptr<signed char*>&, int
+);
+template Const_Ptr<signed char*> vm::operator-(
+	const Const_Ptr<signed char*>&, int
+);
 
 #if CONFIG_WITH_HEAP
 	template Heap_Ptr vm::operator+(const Heap_Ptr&, int);

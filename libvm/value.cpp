@@ -84,4 +84,3 @@ Int vm::int_value(const Value& value) {
 		return Char { static_cast<signed char>(value) };
 	}
 #endif
-
