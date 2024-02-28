@@ -3,18 +3,6 @@
 #include "err.h"
 
 namespace vm {
-	extern const signed char* old_code_begin;
-	extern const signed char* old_code_end;
-	extern signed char* old_ram_begin;
-	#if CONFIG_WITH_HEAP
-		extern signed char* old_heap_end;
-	#endif
-	extern signed char* old_stack_begin;
-	#if CONFIG_WITH_CALL
-		extern signed char* old_stack_end;
-	#endif
-	extern signed char* old_ram_end;
-
 	template<typename P> P operator+(const P& ptr, int offset);
 	template<typename P> P operator-(const P& ptr, int offset);
 

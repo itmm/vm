@@ -128,7 +128,6 @@ void Acc::set_value(P ptr, const Value& value) {
 
 Value Acc::pull() {
 	auto value { get_value(Stack_Ptr { Stack_Ptr::begin }) };
-	old_stack_begin += value_size(value);
 	Stack_Ptr::begin += value_size(value);
 	return value;
 }
@@ -166,7 +165,6 @@ Stack_Ptr Acc::push(Value value, int after_values) {
 		memmove(Stack_Ptr::begin - size, Stack_Ptr::begin, position.ptr_ - Stack_Ptr::begin);
 	}
 	Stack_Ptr::begin -= size;
-	old_stack_begin -= size;
 	position = position - size;
 	std::memset(position.ptr_, 0, size);
 	set_value(position, value);

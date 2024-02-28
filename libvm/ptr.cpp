@@ -2,18 +2,6 @@
 
 using namespace vm;
 
-const signed char* vm::old_code_begin;
-const signed char* vm::old_code_end;
-signed char* vm::old_ram_begin;
-#if CONFIG_WITH_HEAP
-	signed char* vm::old_heap_end;
-#endif
-signed char* vm::old_stack_begin;
-#if CONFIG_WITH_CALL
-	signed char* vm::old_stack_end;
-#endif
-signed char* vm::old_ram_end;
-
 vm::Code_Ptr vm::pc;
 
 template<typename T>

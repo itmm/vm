@@ -58,20 +58,19 @@ void vm::init(
 	const signed char* code_begin_, const signed char* code_end_
 ) {
 	check_range(ram_begin_, ram_end_, Err::invalid_ram);
-	old_ram_begin = Ram_Ptr::begin = ram_begin_; old_ram_end = Ram_Ptr::end = ram_end_;
+	Ram_Ptr::begin = ram_begin_; Ram_Ptr::end = ram_end_;
 
 	check_range(code_begin_, code_end_, Err::invalid_code);
-	old_code_begin = Code_Ptr::begin = code_begin_;
-	old_code_end = Code_Ptr::end = code_end_;
+	Code_Ptr::begin = code_begin_;
+	Code_Ptr::end = code_end_;
 
 	#if CONFIG_WITH_HEAP
-		old_heap_end = Heap_Ptr::end = Ram_Ptr::begin;
+		Heap_Ptr::end = Ram_Ptr::begin;
 	#endif
 
 	Stack_Ptr::begin = Ram_Ptr::end;
-	old_stack_begin = Ram_Ptr::end;
 	#if CONFIG_WITH_CALL
-		old_stack_end = Stack_Ptr::end = Stack_Ptr::begin;
+		Stack_Ptr::end = Stack_Ptr::begin;
 	#endif
 
 	#if CONFIG_WITH_HEAP
@@ -164,7 +163,7 @@ void vm::step() {
 				sf.outer = Ram_Ptr { Stack_Ptr::end };
 				Stack_Ptr position = Acc::push(sf, num_args);
 				pc = new_pc;
-				old_stack_end = Stack_Ptr::end = Stack_Ptr::begin + position.offset();
+				Stack_Ptr::end = Stack_Ptr::begin + position.offset();
 				break;
 			}
 		#endif
@@ -267,7 +266,7 @@ void vm::step() {
 				auto value { Acc::get_value(Ram_Ptr { Stack_Ptr::end }) };
 				if (auto sf = std::get_if<Stack_Frame>(&value)) {
 					while (Stack_Ptr::begin < Stack_Ptr::end) { Acc::pull(); }
-					old_stack_end = Stack_Ptr::end = Ram_Ptr::begin + sf->parent.offset();
+					Stack_Ptr::end = Ram_Ptr::begin + sf->parent.offset();
 					Acc::pull();
 					pc = sf->pc;
 				} else { err(Err::no_stack_frame); }

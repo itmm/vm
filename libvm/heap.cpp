@@ -34,7 +34,7 @@ using namespace vm;
 
 		if (block.ptr_ + size == Heap_Ptr::end) {
 			free_list.remove(block);
-			old_heap_end = Heap_Ptr::end = block.ptr_;
+			Heap_Ptr::end = block.ptr_;
 		}
 	}
 
@@ -82,7 +82,7 @@ using namespace vm;
 				err(Err::heap_overflow);
 			}
 			found = Heap_Ptr { Heap_Ptr::end };
-			Heap_Ptr::end += size; old_heap_end += size;
+			Heap_Ptr::end += size;
 			Acc::set_int(found, size);
 		} else { size = Acc::get_int(found); }
 
@@ -162,9 +162,9 @@ using namespace vm;
 		public:
 			Full_Stack():
 				prev_stack_end { static_cast<int>(Stack_Ptr::end - Stack_Ptr::begin) }
-			{ old_stack_end = Stack_Ptr::end = Ram_Ptr::end; }
+			{ Stack_Ptr::end = Ram_Ptr::end; }
 
-			~Full_Stack() { old_stack_end = Stack_Ptr::end = Stack_Ptr::begin + prev_stack_end; }
+			~Full_Stack() { Stack_Ptr::end = Stack_Ptr::begin + prev_stack_end; }
 		private:
 			int prev_stack_end;
 	};
