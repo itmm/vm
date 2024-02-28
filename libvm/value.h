@@ -48,7 +48,7 @@ namespace vm {
 			Stack_Frame
 		#endif
 		#if !defined(VARIANT_SEP)
-			void*
+			nullptr_t
 		#endif
 	>;
 

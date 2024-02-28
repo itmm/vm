@@ -112,9 +112,9 @@ namespace vm {
 	#else
 		inline signed char* stack_lower_limit();
 
-		class Stack_Ptr : public Casting_Ptr<old_stack_begin, old_ram_end> {
+		class Stack_Ptr : public Ptr {
 			public:
-				explicit Stack_Ptr(signed char* ptr = nullptr) : Casting_Ptr<old_stack_begin, old_ram_end>(ptr) { }
+				explicit Stack_Ptr(signed char* ptr = nullptr) : Ptr { ptr } { }
 
 				static signed char* begin;
 				#if CONFIG_WITH_CALL
@@ -148,5 +148,4 @@ namespace vm {
 			return Ram_Ptr::end;
 		#endif
 	}
-
 }
