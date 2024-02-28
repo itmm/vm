@@ -178,12 +178,8 @@ template bool vm::operator==(
 	);
 #else
 	template bool vm::operator==(
-		const Const_Ptr<
-			signed char*, old_stack_begin, old_ram_end, Err::leave_stack_segment
-		>&,
-		const Const_Ptr<
-			signed char*, old_stack_begin, old_ram_end, Err::leave_stack_segment
-		>&
+		const Const_Ptr<signed char*, old_stack_begin, old_ram_end>&,
+		const Const_Ptr<signed char*, old_stack_begin, old_ram_end>&
 	);
 #endif
 

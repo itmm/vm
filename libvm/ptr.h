@@ -128,6 +128,8 @@ namespace vm {
 				[[nodiscard]] int offset() const { return internal_offset(begin); }
 		};
 	#else
+		inline signed char* stack_lower_limit();
+
 		class Stack_Ptr : public Casting_Ptr<old_stack_begin, old_ram_end> {
 			public:
 				explicit Stack_Ptr(signed char* ptr = nullptr) : Casting_Ptr<old_stack_begin, old_ram_end>(ptr) { }
@@ -137,8 +139,8 @@ namespace vm {
 					static signed char* end;
 				#endif
 
-				void check(int size) const { internal_check(size, begin, end, Err::leave_stack_segment); }
-				[[nodiscard]] int offset() const { return internal_check(begin); }
+				void check(int size) const { internal_check(size, begin, stack_lower_limit(), Err::leave_stack_segment); }
+				[[nodiscard]] int offset() const { return internal_offset(stack_lower_limit()); }
 		};
 	#endif
 
