@@ -63,45 +63,51 @@ namespace vm {
 
 	class Ram_Ptr : public Ptr {
 		public:
-			explicit Ram_Ptr(signed char* ptr = nullptr): Ptr { ptr } { }
+			Ram_Ptr() = delete;
 
 			static signed char* begin;
 			static signed char* end;
-
-			void check(int size) const { internal_check(size, begin, end, Err::leave_ram_segment); }
-			[[nodiscard]] int offset() const { return internal_offset(begin); }
-	};
-
-	class Casting_Ptr : public Ptr {
-		public:
-			explicit Casting_Ptr(signed char* ptr = nullptr): Ptr { ptr } { }
-
-			explicit operator Ram_Ptr() const { return Ram_Ptr { this->ptr_ }; }
 	};
 
 	#if CONFIG_WITH_HEAP
-		class Heap_Ptr : public Casting_Ptr {
+		class Heap_Ptr : public Ptr {
 			public:
-				explicit Heap_Ptr(signed char* ptr = nullptr) : Casting_Ptr { ptr } { }
+				explicit Heap_Ptr(signed char* ptr = nullptr) : Ptr { ptr } { }
 
-				static signed char* begin;
 				static signed char* end;
 
-				void check(int size) const { internal_check(size, begin, end, Err::leave_heap_segment); }
-				[[nodiscard]] int offset() const { return internal_offset(begin); }
+				void check(int size) const { internal_check(size, Ram_Ptr::begin, end, Err::leave_heap_segment); }
+				[[nodiscard]] int offset() const { return internal_offset(Ram_Ptr::begin); }
 		};
 	#endif
 
 	#if CONFIG_WITH_CALL
-		class Stack_Ptr : public Casting_Ptr {
+		class Stack_Ptr : public Ptr {
 			public:
-				explicit Stack_Ptr(signed char* ptr = nullptr) : Casting_Ptr { ptr } { }
+				explicit Stack_Ptr(signed char* ptr = nullptr) : Ptr { ptr } { }
 
 				static signed char* begin;
 				static signed char* end;
 
 				void check(int size) const { internal_check(size, begin, end, Err::leave_stack_segment); }
-				[[nodiscard]] int offset() const { return internal_offset(begin); }
+				[[nodiscard]] int offset() const { return internal_offset(Ram_Ptr::begin); }
+		};
+
+		class Temporarly_Increase_Stack_Size {
+			public:
+				explicit Temporarly_Increase_Stack_Size(int size) :
+					old_stack_end { Stack_Ptr::end }
+				{
+					if (old_stack_end + size > Ram_Ptr::end) {
+						err(Err::leave_stack_segment);
+					}
+					Stack_Ptr::end += size;
+				}
+				~Temporarly_Increase_Stack_Size() {
+					Stack_Ptr::end = old_stack_end;
+				}
+			private:
+				signed char* old_stack_end;
 		};
 	#else
 		inline signed char* stack_lower_limit();
@@ -117,6 +123,13 @@ namespace vm {
 
 				void check(int size) const { internal_check(size, begin, stack_lower_limit(), Err::leave_stack_segment); }
 				[[nodiscard]] int offset() const { return internal_offset(stack_lower_limit()); }
+		};
+
+		class Temporarly_Increase_Stack_Size {
+			public:
+				explicit Temporarly_Increase_Stack_Size(int) {
+					err(Err::leave_stack_segment);
+				}
 		};
 	#endif
 
@@ -135,4 +148,5 @@ namespace vm {
 			return Ram_Ptr::end;
 		#endif
 	}
+
 }

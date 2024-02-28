@@ -60,8 +60,8 @@ template<typename P> Value Acc::get_value(const P& ptr) {
 				ptr.check(stack_frame_size);
 				Stack_Frame frame;
 				frame.pc = Code_Ptr { Code_Ptr::begin + get_int(ptr + stack_frame_pc) };
-				frame.parent = Ram_Ptr { Ram_Ptr::begin + get_int(ptr + stack_frame_end) };
-				frame.outer = Ram_Ptr { Ram_Ptr::begin + get_int(ptr + stack_frame_outer) };
+				frame.parent = Stack_Ptr { Ram_Ptr::begin + get_int(ptr + stack_frame_end) };
+				frame.outer = Stack_Ptr { Ram_Ptr::begin + get_int(ptr + stack_frame_outer) };
 				return frame;
 			}
 		#endif
@@ -182,8 +182,6 @@ template signed char Acc::get_byte(const Code_Ptr&);
 #if CONFIG_WITH_HEAP
 	template Value Acc::get_value(const Heap_Ptr&);
 #endif
-
-template Value Acc::get_value(const Ram_Ptr&);
 
 template Value Acc::get_value(const Stack_Ptr&);
 

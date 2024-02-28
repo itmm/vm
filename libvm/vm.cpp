@@ -159,11 +159,11 @@ void vm::step() {
 				int num_args { Acc::pull_int() };
 				Stack_Frame sf;
 				sf.pc = pc;
-				sf.parent = Ram_Ptr { Stack_Ptr::end };
-				sf.outer = Ram_Ptr { Stack_Ptr::end };
+				sf.parent = Stack_Ptr { Stack_Ptr::end };
+				sf.outer = Stack_Ptr { Stack_Ptr::end };
 				Stack_Ptr position = Acc::push(sf, num_args);
 				pc = new_pc;
-				Stack_Ptr::end = Stack_Ptr::begin + position.offset();
+				Stack_Ptr::end = Ram_Ptr::begin + position.offset();
 				break;
 			}
 		#endif
@@ -263,7 +263,12 @@ void vm::step() {
 		#endif
 		#if CONFIG_WITH_CALL
 			case op_return: {
-				auto value { Acc::get_value(Ram_Ptr { Stack_Ptr::end }) };
+				Value value;
+				{
+					auto top { Stack_Ptr::end };
+					Temporarly_Increase_Stack_Size increase_stack_size { stack_frame_size };
+					value = Acc::get_value(Stack_Ptr { top });
+				}
 				if (auto sf = std::get_if<Stack_Frame>(&value)) {
 					while (Stack_Ptr::begin < Stack_Ptr::end) { Acc::pull(); }
 					Stack_Ptr::end = Ram_Ptr::begin + sf->parent.offset();

@@ -39,7 +39,6 @@ signed char* Ram_Ptr::begin { nullptr };
 signed char* Ram_Ptr::end { nullptr };
 
 #if CONFIG_WITH_HEAP
-	signed char* Heap_Ptr::begin { nullptr };
 	signed char* Heap_Ptr::end { nullptr };
 #endif
 
@@ -57,7 +56,6 @@ template int vm::Const_Ptr<signed char*>::internal_offset(const signed char*) co
 
 template Code_Ptr vm::operator+(const Code_Ptr&, int);
 template Const_Ptr<const signed char*> vm::operator+(const Const_Ptr<const signed char*>&, int);
-template Ram_Ptr vm::operator+(const Ram_Ptr&, int);
 template Const_Ptr<signed char*> vm::operator+(const Const_Ptr<signed char*>&, int);
 template Const_Ptr<signed char*> vm::operator-(const Const_Ptr<signed char*>&, int);
 

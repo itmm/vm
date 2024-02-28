@@ -10,8 +10,8 @@ namespace vm {
 	#if CONFIG_WITH_CALL
 		struct Stack_Frame {
 			Code_Ptr pc;
-			Ram_Ptr parent;
-			Ram_Ptr outer;
+			Stack_Ptr parent;
+			Stack_Ptr outer;
 		};
 
 		bool operator==(const Stack_Frame& a, const Stack_Frame& b);
