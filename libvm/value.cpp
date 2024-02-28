@@ -64,24 +64,24 @@ int vm::value_size(const Value& value) {
 }
 
 #if CONFIG_WITH_INT
-int vm::int_value(const Value& value) {
+Int vm::int_value(const Value& value) {
 	#if CONFIG_WITH_CHAR
 		if (auto ch = std::get_if<Char>(&value)) {
-			return ch->value;
+			return Int { ch->value };
 		}
 	#endif
 	if (auto val = std::get_if<Int>(&value)) {
-		return val->value;
+		return *val;
 	}
 	err(Err::no_integer);
 }
 #endif
 
 #if CONFIG_WITH_CHAR
-	signed char vm::to_ch(int value, Err::Code overflow, Err::Code underflow) {
+	Char vm::to_ch(int value, Err::Code overflow, Err::Code underflow) {
 		if (value > std::numeric_limits<signed char>::max()) { err(overflow); }
 		if (value < std::numeric_limits<signed char>::min()) { err(underflow); }
-		return static_cast<signed char>(value);
+		return Char { static_cast<signed char>(value) };
 	}
 #endif
 

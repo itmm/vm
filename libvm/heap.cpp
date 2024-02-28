@@ -14,12 +14,12 @@ using namespace vm;
 
 	void Heap::insert_into_free_list(Heap_Ptr block) {
 		free_list.insert(block);
-		int size { Acc::get_int(block) };
+		auto size { Acc::get_int(block).value };
 
 		if (auto smaller = Acc::get_ptr(block + node_prev_offset)) {
-			int smaller_size { Acc::get_int(smaller) };
+			auto smaller_size { Acc::get_int(smaller).value };
 			if (smaller + smaller_size == block) {
-				Acc::set_int(smaller, smaller_size + size);
+				Acc::set_int(smaller, Int { smaller_size + size });
 				free_list.remove(block);
 				block = smaller; size += smaller_size;
 			}
@@ -27,7 +27,7 @@ using namespace vm;
 
 		if (auto greater = Acc::get_ptr(block + node_next_offset)) {
 			if (block + size == greater) {
-				Acc::set_int(block, size + Acc::get_int(greater));
+				Acc::set_int(block, Int { size + Acc::get_int(greater).value });
 				free_list.remove(greater);
 			}
 		}
@@ -41,7 +41,7 @@ using namespace vm;
 	Heap_Ptr Heap::find_on_free_list(int size, bool tight_fit) {
 		auto current { free_list.end };
 		while (current) {
-			int cur_size { Acc::get_int(current) };
+			int cur_size { Acc::get_int(current).value };
 			bool found {
 				tight_fit ?
 				cur_size == size || cur_size > 3 * size :
@@ -51,8 +51,8 @@ using namespace vm;
 				int rest_size { cur_size - size };
 				if (rest_size > heap_overhead) {
 					Heap_Ptr rest_block { current + size };
-					Acc::set_int(rest_block, rest_size);
-					Acc::set_int(current, size);
+					Acc::set_int(rest_block, Int { rest_size });
+					Acc::set_int(current, Int { size });
 					free_list.insert(rest_block);
 				}
 				free_list.remove(current);
@@ -83,8 +83,8 @@ using namespace vm;
 			}
 			found = Heap_Ptr { Heap_Ptr::end };
 			Heap_Ptr::end += size;
-			Acc::set_int(found, size);
-		} else { size = Acc::get_int(found); }
+			Acc::set_int(found, Int { size });
+		} else { size = Acc::get_int(found).value; }
 
 		alloc_list.insert(found);
 
@@ -96,7 +96,7 @@ using namespace vm;
 	void Heap::free_block(Heap_Ptr block) {
 		block = block - heap_overhead;
 		alloc_list.remove(block);
-		int size { Acc::get_int(block) };
+		auto size { Acc::get_int(block).value };
 		if (size < std::max(node_size, heap_overhead)) {
 			err(Err::free_invalid_block);
 		}
@@ -115,7 +115,7 @@ using namespace vm;
 		if (Heap_Ptr::end - Ram_Ptr::begin) {
 			std::cout << "\n";
 			while (current < end) {
-				auto size { Acc::get_int(current) };
+				auto size { Acc::get_int(current).value };
 				if (current == next_allocated) {
 					std::cout << "  " << current.offset() <<
 							  ": block[" << size << "] {";
@@ -184,7 +184,7 @@ using namespace vm;
 			Heap_Ptr current { used_blocks.begin };
 			used_blocks.remove(current);
 			processed_blocks.insert(current);
-			Heap_Ptr end { current + Acc::get_int(current) };
+			Heap_Ptr end { current + Acc::get_int(current).value };
 			add_pointers(current + heap_overhead, end, used_blocks);
 		}
 

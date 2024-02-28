@@ -7,9 +7,9 @@
 namespace vm {
 	class Acc {
 		public:
-			template<typename P> static int get_int(const P& ptr);
+			template<typename P> static Int get_int(const P& ptr);
 
-			template<typename P> static void set_int(P ptr, int value);
+			template<typename P> static void set_int(P ptr, const Int& value);
 
 			template<typename P>
 			static signed char get_byte(const P& ptr);
@@ -27,8 +27,8 @@ namespace vm {
 			#endif
 
 			static Value pull();
-			static signed char pull_ch();
-			static int pull_int();
+			static Char pull_ch();
+			static Int pull_int();
 
 			#if CONFIG_WITH_HEAP
 				static Heap_Ptr pull_ptr();

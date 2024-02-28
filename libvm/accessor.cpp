@@ -5,23 +5,24 @@
 using namespace vm;
 
 #if CONFIG_WITH_INT
-	template<typename P> int Acc::get_int(const P& ptr) {
-		int value { 0 };
+	template<typename P> Int Acc::get_int(const P& ptr) {
+		Int::value_type value { 0 };
 		for (
 			auto i { ptr.ptr_ }, e { ptr.ptr_ + Int::raw_size };
 			i < e; ++i
 		) { value = (value << bits_per_byte) + (*i & byte_mask); }
-		return value;
+		return Int { value };
 	}
 
-	template<typename P> void Acc::set_int(P ptr, int value) {
+	template<typename P> void Acc::set_int(P ptr, const Int& value) {
+		auto v { value.value };
 		for (
 			auto i { ptr.ptr_ + Int::raw_size - 1 }; i >= ptr.ptr_; --i
 		) {
-			*i = static_cast<signed char>(value);
-			value >>= bits_per_byte;
+			*i = static_cast<signed char>(v);
+			v >>= bits_per_byte;
 		}
-		if (value != 0 && value != -1) { err(Err::int_overflow); }
+		if (v != 0 && v != -1) { err(Err::int_overflow); }
 	}
 #endif
 
@@ -50,7 +51,7 @@ template<typename P> Value Acc::get_value(const P& ptr) {
 		#if CONFIG_WITH_HEAP
 			case ptr_type: {
 				ptr.check(ptr_size);
-				int offset { get_int(ptr + 1) };
+				auto offset { get_int(ptr + 1).value };
 				return Value { Heap_Ptr {
 					offset >= 0 ? Ram_Ptr::begin + offset : nullptr
 				} };
@@ -60,9 +61,9 @@ template<typename P> Value Acc::get_value(const P& ptr) {
 			case stack_frame_type: {
 				ptr.check(stack_frame_size);
 				Stack_Frame frame;
-				frame.pc = Code_Ptr { Code_Ptr::begin + get_int(ptr + stack_frame_pc) };
-				frame.parent = Stack_Ptr { Ram_Ptr::begin + get_int(ptr + stack_frame_end) };
-				frame.outer = Stack_Ptr { Ram_Ptr::begin + get_int(ptr + stack_frame_outer) };
+				frame.pc = Code_Ptr { Code_Ptr::begin + get_int(ptr + stack_frame_pc).value };
+				frame.parent = Stack_Ptr { Ram_Ptr::begin + get_int(ptr + stack_frame_end).value };
+				frame.outer = Stack_Ptr { Ram_Ptr::begin + get_int(ptr + stack_frame_outer).value };
 				return frame;
 			}
 		#endif
@@ -87,7 +88,7 @@ void Acc::set_value(P ptr, const Value& value) {
 	#if CONFIG_WITH_INT
 		if (auto val = std::get_if<Int>(&value)) {
 			ptr.check(Int::typed_size); set_ptr_type(ptr.ptr_, Int::type_ch);
-			set_int(ptr + 1, val->value);
+			set_int(ptr + 1, *val);
 			return;
 		}
 	#endif
@@ -95,8 +96,8 @@ void Acc::set_value(P ptr, const Value& value) {
 		if (auto pt = std::get_if<Heap_Ptr>(&value)) {
 			ptr.check(ptr_size);
 			set_ptr_type(ptr.ptr_, ptr_type);
-			int v = *pt ? static_cast<int>(pt->ptr_ - Ram_Ptr::begin) : -1;
-			set_int(ptr + 1, v);
+			auto v = *pt ? static_cast<Int::value_type>(pt->ptr_ - Ram_Ptr::begin) : -1;
+			set_int(ptr + 1, Int { v });
 			return;
 		}
 	#endif
@@ -104,9 +105,9 @@ void Acc::set_value(P ptr, const Value& value) {
 		if (auto sf = std::get_if<Stack_Frame>(&value)) {
 			ptr.check(stack_frame_size);
 			set_ptr_type(ptr.ptr_, stack_frame_type);
-			set_int(ptr + stack_frame_pc, sf->pc.offset());
-			set_int(ptr + stack_frame_end, sf->parent.offset());
-			set_int(ptr + stack_frame_outer, sf->outer.offset());
+			set_int(ptr + stack_frame_pc, Int { sf->pc.offset() });
+			set_int(ptr + stack_frame_end, Int { sf->parent.offset() });
+			set_int(ptr + stack_frame_outer, Int { sf->outer.offset() });
 			return;
 		}
 	#endif
@@ -116,14 +117,14 @@ void Acc::set_value(P ptr, const Value& value) {
 #if CONFIG_WITH_HEAP
 	template<typename P> Heap_Ptr Acc::get_ptr(const P& ptr) {
 		if (!ptr) { err(Err::null_access); }
-		int value { get_int(ptr) };
-		return Heap_Ptr { value >= 0 ? Ram_Ptr::begin + value : nullptr };
+		auto value { get_int(ptr) };
+		return Heap_Ptr { value.value >= 0 ? Ram_Ptr::begin + value.value : nullptr };
 	}
 
 	template<typename P> void Acc::set_ptr(P ptr, const Heap_Ptr& value) {
 		auto got { value.ptr_ };
 		if (!ptr) { err(Err::null_access); }
-		set_int(ptr, got ? static_cast<int>(got - Ram_Ptr::begin) : -1);
+		set_int(ptr, Int { got ? static_cast<Int::value_type>(got - Ram_Ptr::begin) : -1 });
 	}
 #endif
 
@@ -134,16 +135,16 @@ Value Acc::pull() {
 }
 
 #if CONFIG_WITH_CHAR
-	signed char Acc::pull_ch() {
+	Char Acc::pull_ch() {
 		auto value { pull() };
 		auto ch = std::get_if<Char>(&value);
 		if (!ch) { err(Err::no_char); }
-		return ch->value;
+		return *ch;
 	}
 #endif
 
 #if CONFIG_WITH_INT
-	int Acc::pull_int() { return int_value(pull()); }
+	Int Acc::pull_int() { return int_value(pull()); }
 #endif
 
 #if CONFIG_WITH_HEAP
@@ -177,7 +178,7 @@ Stack_Ptr Acc::push(Value value, int after_values) {
 template signed char Acc::get_byte(const Code_Ptr&);
 
 #if CONFIG_WITH_INT
-	template int Acc::get_int(const Code_Ptr&);
+	template Int Acc::get_int(const Code_Ptr&);
 #endif
 
 #if CONFIG_WITH_HEAP

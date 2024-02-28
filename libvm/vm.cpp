@@ -20,29 +20,29 @@
 using namespace vm;
 
 namespace {
-	void fetch(int offset) {
+	void fetch(Int::value_type offset) {
 		Acc::push(Acc::get_value(Stack_Ptr { Stack_Ptr::begin + offset }));
 	}
 
-	void store(int offset) {
+	void store(Int::value_type offset) {
 		auto value { Acc::pull() };
 		Acc::set_value(Stack_Ptr { Stack_Ptr::begin + offset }, value);
 	}
 
-	void jump(int offset, int condition) {
+	void jump(Int::value_type offset, int condition) {
 		Code_Ptr target { pc + offset };
 		if (condition) { pc = target; }
 	}
 
 	#if CONFIG_WITH_CHAR
 		signed char negate_ch(signed char ch) {
-			return to_ch(~ch, Err::unexpected, Err::unexpected);
+			return to_ch(~ch, Err::unexpected, Err::unexpected).value;
 		}
 	#endif
 
 	#if CONFIG_WITH_NUMERIC
 		void jump_with_stack_condition(int offset, bool invert) {
-			auto condition { Acc::pull_int() };
+			auto condition { Acc::pull_int().value };
 			if (invert) { condition = ~condition; }
 			jump(offset, condition);
 		}
@@ -155,8 +155,8 @@ void vm::step() {
 		case op_break: err(Err::got_break);
 		#if CONFIG_WITH_CALL
 			case op_call: {
-				Code_Ptr new_pc { Code_Ptr::begin + Acc::pull_int() };
-				int num_args { Acc::pull_int() };
+				Code_Ptr new_pc { Code_Ptr::begin + Acc::pull_int().value };
+				int num_args { Acc::pull_int().value };
 				Stack_Frame sf;
 				sf.pc = pc;
 				sf.parent = Stack_Ptr { Stack_Ptr::end };
@@ -183,23 +183,23 @@ void vm::step() {
 				Acc::push(Char { a == b ? true_lit : false_lit });
 				break;
 			}
-			case op_fetch: fetch(Acc::pull_int()); break;
+			case op_fetch: fetch(Acc::pull_int().value); break;
 		#endif
 		#if CONFIG_WITH_HEAP
 			case op_free: Heap::free_block(Acc::pull_ptr()); break;
 		#endif
 		#if CONFIG_WITH_INT
 			case op_jmp: {
-				int value { Acc::get_int(pc) };
+				auto value { Acc::get_int(pc).value };
 				pc = pc + Int::raw_size; jump(value, true_lit); break;
 			}
 			case op_jmp_false: {
-				int value { Acc::get_int(pc) };
+				auto value { Acc::get_int(pc).value };
 				pc = pc + Int::raw_size;
 				jump_with_stack_condition(value, true); break;
 			}
 			case op_jmp_true: {
-				int value { Acc::get_int(pc) };
+				auto value { Acc::get_int(pc).value };
 				pc = pc + Int::raw_size;
 				jump_with_stack_condition(value, false); break;
 			}
@@ -229,7 +229,7 @@ void vm::step() {
 			case op_mult: { vm::ops::Mult { }(); break; }
 		#endif
 		#if CONFIG_WITH_HEAP
-			case op_new: Heap::alloc_block(Acc::pull_int()); break;
+			case op_new: Heap::alloc_block(Acc::pull_int().value); break;
 		#endif
 		case op_nop: break;
 		#if CONFIG_WITH_NUMERIC
@@ -256,7 +256,7 @@ void vm::step() {
 		#if CONFIG_WITH_HEAP
 			case op_receive: {
 				Heap_Ptr ptr { Acc::pull_ptr() };
-				ptr = ptr + Acc::pull_int();
+				ptr = ptr + Acc::pull_int().value;
 				Acc::push(Acc::get_value(ptr));
 				break;
 			}
@@ -281,13 +281,13 @@ void vm::step() {
 		#if CONFIG_WITH_HEAP
 			case op_send: {
 				Heap_Ptr ptr { Acc::pull_ptr() };
-				ptr = ptr + Acc::pull_int();
+				ptr = ptr + Acc::pull_int().value;
 				Acc::set_value(ptr, Acc::pull()); break;
 			}
 		#endif
 		#if CONFIG_WITH_NUMERIC
 			case op_sub: { vm::ops::Sub { }(); break; }
-			case op_store: store(Acc::pull_int()); break;
+			case op_store: store(Acc::pull_int().value); break;
 		#endif
 		case op_swap: {
 			auto a { Acc::pull() }; auto b { Acc::pull() };
@@ -295,17 +295,17 @@ void vm::step() {
 		}
 		#if CONFIG_WITH_CHAR
 			case op_to_ch:
-				Acc::push(Char { to_ch(
-					Acc::pull_int(), Err::to_ch_overflow,
+				Acc::push(to_ch(
+					Acc::pull_int().value, Err::to_ch_overflow,
 					Err::to_ch_underflow
-				) });
+				));
 				break;
 		#endif
 		#if CONFIG_WITH_INT
 			case op_to_int: Acc::push(Int { Acc::pull_int() }); break;
 		#endif
 		#if CONFIG_WITH_CHAR
-			case op_write_ch: std::cout << Acc::pull_ch(); break;
+			case op_write_ch: std::cout << Acc::pull_ch().value; break;
 		#endif
 		#if CONFIG_WITH_NUMERIC
 			case op_xor: { vm::ops::Xor { }(); break; }

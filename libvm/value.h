@@ -101,7 +101,7 @@ namespace vm {
 	int value_size(signed char type);
 	int value_size(const Value& value);
 
-	int int_value(const Value& value);
+	Int int_value(const Value& value);
 
-	signed char to_ch(int value, Err::Code overflow, Err::Code underflow);
+	Char to_ch(int value, Err::Code overflow, Err::Code underflow);
 }
