@@ -101,7 +101,11 @@ namespace vm {
 	int value_size(signed char type);
 	int value_size(const Value& value);
 
-	Int int_value(const Value& value);
+	#if CONFIG_WITH_INT
+		Int int_value(const Value& value);
+	#endif
 
-	Char to_ch(int value, Err::Code overflow, Err::Code underflow);
+	#if CONFIG_WITH_CHAR
+		Char to_ch(int value, Err::Code overflow, Err::Code underflow);
+	#endif
 }

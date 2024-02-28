@@ -20,16 +20,18 @@
 using namespace vm;
 
 namespace {
-	void fetch(Int::value_type offset) {
-		Acc::push(Acc::get_value(Stack_Ptr { Stack_Ptr::begin + offset }));
-	}
+	#if CONFIG_WITH_INT
+		void fetch(Int::value_type offset) {
+			Acc::push(Acc::get_value(Stack_Ptr { Stack_Ptr::begin + offset }));
+		}
 
-	void store(Int::value_type offset) {
-		auto value { Acc::pull() };
-		Acc::set_value(Stack_Ptr { Stack_Ptr::begin + offset }, value);
-	}
+		void store(Int::value_type offset) {
+			auto value { Acc::pull() };
+			Acc::set_value(Stack_Ptr { Stack_Ptr::begin + offset }, value);
+		}
+	#endif
 
-	void jump(Int::value_type offset, int condition) {
+	void jump(int offset, int condition) {
 		Code_Ptr target { pc + offset };
 		if (condition) { pc = target; }
 	}
