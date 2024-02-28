@@ -5,15 +5,11 @@
 
 namespace vm {
 	constexpr signed char ptr_type { 0x30 };
-	constexpr signed char stack_frame_type { 0x40 };
 
 	#if CONFIG_WITH_HEAP
 		constexpr int node_size { 3 * Int::raw_size + 1 };
 		constexpr int ptr_size { Int::raw_size + 1 };
 		constexpr int heap_overhead { node_size };
-	#endif
-	#if CONFIG_WITH_CALL
-		constexpr int stack_frame_size { 3 * Int::raw_size + 1 };
 	#endif
 
 	constexpr int bits_per_byte { 8 };

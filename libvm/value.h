@@ -64,8 +64,13 @@ namespace vm {
 	#if CONFIG_WITH_CALL
 		struct Stack_Frame {
 			Code_Ptr pc;
+			Code_Ptr catch_pc;
 			Stack_Ptr parent;
 			Stack_Ptr outer;
+
+			static constexpr signed char type_ch { 0x40 };
+			static constexpr int raw_size { 3 * Int::raw_size };
+			static constexpr int typed_size { raw_size + 1 };
 		};
 
 		bool operator==(const Stack_Frame& a, const Stack_Frame& b);

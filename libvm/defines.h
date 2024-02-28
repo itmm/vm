@@ -43,6 +43,9 @@
 	#if !CONFIG_WITH_INT
 		#error "call needs int"
 	#endif
+	#if !defined(CONFIG_WITH_EXCEPTIONS)
+		#define CONFIG_WITH_EXCEPTIONS true
+	#endif
 #endif
 
 #if !defined(CONFIG_WITH_HEAP)

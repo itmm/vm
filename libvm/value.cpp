@@ -33,7 +33,7 @@ int vm::value_size(signed char type) {
 			case ptr_type: return ptr_size;
 		#endif
 		#if CONFIG_WITH_CALL
-			case stack_frame_type: return stack_frame_size;
+			case Stack_Frame::type_ch: return Stack_Frame::typed_size;
 		#endif
 		default: err(Err::unknown_type);
 	}
@@ -57,7 +57,7 @@ int vm::value_size(const Value& value) {
 	#endif
 	#if CONFIG_WITH_CALL
 		if (std::get_if<Stack_Frame>(&value)) {
-			return stack_frame_size;
+			return Stack_Frame::typed_size;
 		}
 	#endif
 	err(Err::unknown_type);

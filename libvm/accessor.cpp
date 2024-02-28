@@ -32,8 +32,19 @@ template<typename P> signed char Acc::get_byte(const P& ptr) {
 
 #if CONFIG_WITH_CALL
 	static constexpr int stack_frame_pc { 1 };
-	static constexpr int stack_frame_end { 1 + Int::raw_size };
-	static constexpr int stack_frame_outer { 1 + 2 * Int::raw_size };
+	static constexpr int stack_frame_catch_pc { 1 + Int::raw_size };
+	static constexpr int stack_frame_end { 1 + 2 * Int::raw_size };
+	static constexpr int stack_frame_outer { 1 + 3 * Int::raw_size };
+
+	template<typename P> Code_Ptr get_code_ptr(const P& ptr) {
+		auto value { Acc::get_int(ptr) };
+		return Code_Ptr { value.value >= 0 ? Code_Ptr::begin + value : nullptr };
+	}
+
+	template<typename P> Stack_Ptr get_stack_ptr(const P& ptr) {
+		auto value { Acc::get_int(ptr) };
+		return Stack_Ptr { value.value >= 0 ? Stack_Ptr::begin + value : nullptr };
+	}
 #endif
 
 template<typename P> Value Acc::get_value(const P& ptr) {
@@ -58,12 +69,13 @@ template<typename P> Value Acc::get_value(const P& ptr) {
 			}
 		#endif
 		#if CONFIG_WITH_CALL
-			case stack_frame_type: {
-				ptr.check(stack_frame_size);
+			case Stack_Frame::type_ch: {
+				ptr.check(Stack_Frame::typed_size);
 				Stack_Frame frame;
-				frame.pc = Code_Ptr { Code_Ptr::begin + get_int(ptr + stack_frame_pc) };
-				frame.parent = Stack_Ptr { Ram_Ptr::begin + get_int(ptr + stack_frame_end) };
-				frame.outer = Stack_Ptr { Ram_Ptr::begin + get_int(ptr + stack_frame_outer) };
+				frame.pc = get_code_ptr(ptr + stack_frame_pc);
+				frame.catch_pc = get_code_ptr(ptr + stack_frame_catch_pc);
+				frame.parent = get_stack_ptr(ptr + stack_frame_end);
+				frame.outer = get_stack_ptr(ptr + stack_frame_outer);
 				return frame;
 			}
 		#endif
@@ -103,9 +115,10 @@ void Acc::set_value(P ptr, const Value& value) {
 	#endif
 	#if CONFIG_WITH_CALL
 		if (auto sf = std::get_if<Stack_Frame>(&value)) {
-			ptr.check(stack_frame_size);
-			set_ptr_type(ptr.ptr_, stack_frame_type);
+			ptr.check(Stack_Frame::typed_size);
+			set_ptr_type(ptr.ptr_, Stack_Frame::type_ch);
 			set_int(ptr + stack_frame_pc, Int { sf->pc.offset() });
+			set_int(ptr + stack_frame_catch_pc, Int { sf->catch_pc.offset() });
 			set_int(ptr + stack_frame_end, Int { sf->parent.offset() });
 			set_int(ptr + stack_frame_outer, Int { sf->outer.offset() });
 			return;

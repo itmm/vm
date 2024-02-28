@@ -126,7 +126,7 @@ template<typename P> void vm::dump_block(
 				std::cout << "pc == " << sf->pc.offset() << ", ";
 				std::cout << "parent == " << sf->parent.offset() << ", ";
 				std::cout << "outer == " << sf->outer.offset() << "}\n";
-				current = current + stack_frame_size;
+				current = current + Stack_Frame::typed_size;
 				continue;
 			}
 		#endif
@@ -175,6 +175,21 @@ void vm::step() {
 				Stack_Ptr::end = Ram_Ptr::begin + position.offset();
 				break;
 			}
+			#if CONFIG_WITH_EXCEPTIONS
+				case op_catch: {
+					// TODO: implement catch
+					/*
+					Code_Ptr catch_pc { Code_Ptr::begin + Acc::get_int(pc) };
+					pc = pc + Int::raw_size;
+					auto value { Acc::get_value(Stack_Ptr::end) };
+					if (auto sf { std::get_if<Stack_Frame>(&value) }) {
+						sf->catch_pc = catch_pc;
+						Acc::set_value(Stack_Ptr::end, *sf);
+					} else { err(Err::no_stack_frame); }
+					 */
+					break;
+				}
+			#endif
 		#endif
 		#if CONFIG_WITH_GC
 			case op_collect_garbage: Heap::collect_garbage(); break;
@@ -275,7 +290,7 @@ void vm::step() {
 				{
 					auto top { Stack_Ptr::end };
 					Temporarly_Increase_Stack_Size increase_stack_size {
-						stack_frame_size
+						Stack_Frame::typed_size
 					};
 					value = Acc::get_value(Stack_Ptr { top });
 				}

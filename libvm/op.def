@@ -10,6 +10,9 @@ OP(break)
 	OP(call)
 	OP(call_inner) // TODO: implement
 	OP(call_outer) // TODO: implement
+    #if CONFIG_WITH_EXCEPTIONS
+        OP(catch)
+    #endif
 #endif
 #if CONFIG_WITH_GC
 	OP(collect_garbage)
@@ -78,6 +81,9 @@ OP(pull)
 	OP(sub)
 #endif
 OP(swap)
+#if CONFIG_WITH_EXCEPTIONS
+    OP(throw)
+#endif
 #if CONFIG_WITH_CHAR
 	OP(to_ch)
 #endif
