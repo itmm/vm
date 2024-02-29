@@ -49,6 +49,40 @@ namespace {
 			jump(offset, condition);
 		}
 	#endif
+
+	#if CONFIG_WITH_CALL
+		Stack_Frame get_current_stack_frame() {
+			if (Stack_Ptr::end == Ram_Ptr::end) {
+				return Stack_Frame { };
+			}
+			auto top { Stack_Ptr::end };
+			Temporarly_Increase_Stack_Size increase_stack_size {
+				Stack_Frame::typed_size
+			};
+			auto value = Acc::get_value(Stack_Ptr { top });
+			if (auto sf = std::get_if<Stack_Frame>(&value)) {
+				return *sf;
+			}
+			err(Err::no_stack_frame);
+		}
+
+		#if CONFIG_WITH_EXCEPTIONS
+			void set_catch_pc(const Code_Ptr& catch_pc) {
+				if (Stack_Ptr::end == Ram_Ptr::end) {
+					global_catch_pc = catch_pc; return;
+				}
+				auto stack_frame { get_current_stack_frame() };
+				stack_frame.catch_pc = catch_pc;
+				Stack_Ptr old_end { Stack_Ptr::end };
+				{
+					Temporarly_Increase_Stack_Size increase_stack_size {
+						Stack_Frame::typed_size
+					};
+					Acc::set_value(old_end, stack_frame);
+				}
+			}
+		#endif
+	#endif
 }
 
 void check_range(
@@ -177,16 +211,9 @@ void vm::step() {
 			}
 			#if CONFIG_WITH_EXCEPTIONS
 				case op_catch: {
-					// TODO: implement catch
-					/*
 					Code_Ptr catch_pc { Code_Ptr::begin + Acc::get_int(pc) };
 					pc = pc + Int::raw_size;
-					auto value { Acc::get_value(Stack_Ptr::end) };
-					if (auto sf { std::get_if<Stack_Frame>(&value) }) {
-						sf->catch_pc = catch_pc;
-						Acc::set_value(Stack_Ptr::end, *sf);
-					} else { err(Err::no_stack_frame); }
-					 */
+					set_catch_pc(catch_pc);
 					break;
 				}
 			#endif
@@ -286,19 +313,10 @@ void vm::step() {
 		#endif
 		#if CONFIG_WITH_CALL
 			case op_return: {
-				Value value;
-				{
-					auto top { Stack_Ptr::end };
-					Temporarly_Increase_Stack_Size increase_stack_size {
-						Stack_Frame::typed_size
-					};
-					value = Acc::get_value(Stack_Ptr { top });
-				}
-				if (auto sf = std::get_if<Stack_Frame>(&value)) {
-					while (Stack_Ptr::begin < Stack_Ptr::end) { Acc::pull(); }
-					Stack_Ptr::end = Ram_Ptr::begin + sf->parent.offset();
-					Acc::pull(); pc = sf->pc;
-				} else { err(Err::no_stack_frame); }
+				auto stack_frame = get_current_stack_frame();
+				while (Stack_Ptr::begin < Stack_Ptr::end) { Acc::pull(); }
+				Stack_Ptr::end = Ram_Ptr::begin + stack_frame.parent.offset();
+				Acc::pull(); pc = stack_frame.pc;
 				break;
 			}
 		#endif

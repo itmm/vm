@@ -32,9 +32,11 @@ template<typename P> signed char Acc::get_byte(const P& ptr) {
 
 #if CONFIG_WITH_CALL
 	static constexpr int stack_frame_pc { 1 };
-	static constexpr int stack_frame_catch_pc { 1 + Int::raw_size };
-	static constexpr int stack_frame_end { 1 + 2 * Int::raw_size };
-	static constexpr int stack_frame_outer { 1 + 3 * Int::raw_size };
+	static constexpr int stack_frame_end { 1 + 1 * Int::raw_size };
+	static constexpr int stack_frame_outer { 1 + 2 * Int::raw_size };
+	#if CONFIG_WITH_EXCEPTIONS
+		static constexpr int stack_frame_catch_pc { 1 + 3 * Int::raw_size };
+	#endif
 
 	template<typename P> Code_Ptr get_code_ptr(const P& ptr) {
 		auto value { Acc::get_int(ptr) };
@@ -73,7 +75,9 @@ template<typename P> Value Acc::get_value(const P& ptr) {
 				ptr.check(Stack_Frame::typed_size);
 				Stack_Frame frame;
 				frame.pc = get_code_ptr(ptr + stack_frame_pc);
-				frame.catch_pc = get_code_ptr(ptr + stack_frame_catch_pc);
+				#if CONFIG_WITH_EXCEPTIONS
+					frame.catch_pc = get_code_ptr(ptr + stack_frame_catch_pc);
+				#endif
 				frame.parent = get_stack_ptr(ptr + stack_frame_end);
 				frame.outer = get_stack_ptr(ptr + stack_frame_outer);
 				return frame;
@@ -118,7 +122,9 @@ void Acc::set_value(P ptr, const Value& value) {
 			ptr.check(Stack_Frame::typed_size);
 			set_ptr_type(ptr.ptr_, Stack_Frame::type_ch);
 			set_int(ptr + stack_frame_pc, Int { sf->pc.offset() });
-			set_int(ptr + stack_frame_catch_pc, Int { sf->catch_pc.offset() });
+			#if CONFIG_WITH_EXCEPTIONS
+				set_int(ptr + stack_frame_catch_pc, Int { sf->catch_pc.offset() });
+			#endif
 			set_int(ptr + stack_frame_end, Int { sf->parent.offset() });
 			set_int(ptr + stack_frame_outer, Int { sf->outer.offset() });
 			return;

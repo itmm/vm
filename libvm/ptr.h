@@ -60,6 +60,9 @@ namespace vm {
 	};
 
 	extern Code_Ptr pc;
+	#if CONFIG_WITH_EXCEPTIONS
+		extern Code_Ptr global_catch_pc;
+	#endif
 
 	class Ptr : public Const_Ptr<signed char*> {
 		public:

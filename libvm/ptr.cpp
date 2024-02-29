@@ -2,7 +2,10 @@
 
 using namespace vm;
 
-vm::Code_Ptr vm::pc;
+Code_Ptr vm::pc;
+#if CONFIG_WITH_EXCEPTIONS
+	Code_Ptr vm::global_catch_pc;
+#endif
 
 template<typename T> void Const_Ptr<T>::internal_check(
 	int size, const signed char* begin, const signed char* end, Err::Code code

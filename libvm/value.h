@@ -63,13 +63,20 @@ namespace vm {
 
 	#if CONFIG_WITH_CALL
 		struct Stack_Frame {
-			Code_Ptr pc;
-			Code_Ptr catch_pc;
-			Stack_Ptr parent;
-			Stack_Ptr outer;
+			Stack_Frame() = default;
+			Code_Ptr pc { Code_Ptr::end };
+			#if CONFIG_WITH_EXCEPTIONS
+				Code_Ptr catch_pc { };
+			#endif
+			Stack_Ptr parent { };
+			Stack_Ptr outer { };
 
 			static constexpr signed char type_ch { 0x40 };
-			static constexpr int raw_size { 3 * Int::raw_size };
+			#if CONFIG_WITH_EXCEPTIONS
+				static constexpr int raw_size { 3 * Int::raw_size };
+			#else
+				static constexpr int raw_size { 2 * Int::raw_size };
+			#endif
 			static constexpr int typed_size { raw_size + 1 };
 		};
 
