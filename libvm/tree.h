@@ -5,6 +5,12 @@
 
 #if CONFIG_WITH_HEAP
 	namespace vm {
+		class Tree;
+
+		namespace testing {
+			int get_mark(const Heap_Ptr&);
+			void set_mark(Heap_Ptr, int);
+		}
 
 		class Tree {
 			public:
@@ -19,11 +25,24 @@
 				[[nodiscard]] Heap_Ptr smallest() const;
 				[[nodiscard]] Heap_Ptr greatest() const;
 
+				[[nodiscard]] static Int size(const Heap_Ptr& node);
+				static void set_size(
+					Heap_Ptr node, const Int& size, bool keep_mark = false
+				);
+
 			private:
+				friend int testing::get_mark(const Heap_Ptr&);
+				friend void testing::set_mark(Heap_Ptr, int);
+
 				Heap_Ptr root { };
 
 				void insert_all(Heap_Ptr node);
+				static void set_size_with_mark(
+					Heap_Ptr node, const Int& size, int mark
+				);
+				static int mark(const Heap_Ptr& node);
+				static void set_mark(Heap_Ptr& node, int mark);
 		};
-
 	}
+
 #endif

@@ -6,12 +6,14 @@ using namespace vm;
 
 #if CONFIG_WITH_HEAP
 	namespace {
+		constexpr int node_size_offset { 0 };
 		constexpr int node_smaller_offset { Int::raw_size };
 		constexpr int node_greater_offset { 2 * Int::raw_size };
 	}
 
 	void vm::Tree::insert(Heap_Ptr node) {
 		if (!node) { return; }
+		if (mark(node) < 0) { set_size_with_mark(node, size(node), 1); }
 		Acc::set_ptr(node + node_smaller_offset, Heap_Ptr { });
 		Acc::set_ptr(node + node_greater_offset, Heap_Ptr { });
 		auto current = root;
@@ -50,6 +52,7 @@ using namespace vm;
 		} else { root = Heap_Ptr(); }
 		insert_all(Acc::get_ptr(node + node_smaller_offset));
 		insert_all(Acc::get_ptr(node + node_greater_offset));
+		if (mark(node) < 0) { set_size_with_mark(node, size(node), 1); }
 	}
 
 	bool Tree::contains(Heap_Ptr node) const {
@@ -107,6 +110,38 @@ using namespace vm;
 			current = Acc::get_ptr(current + node_greater_offset);
 		}
 		return candidate;
+	}
+
+	Int Tree::size(const Heap_Ptr& node) {
+		if (!node) { return Int { -1 }; }
+		auto res { Acc::get_int(node + node_size_offset) };
+		if (res.value < 0) { res.value *= -1; }
+		return res;
+	}
+
+	void Tree::set_size_with_mark(
+		vm::Heap_Ptr node, const vm::Int& size, int mark
+	) {
+		if (!node || size.value < node_size || (mark != 1 && mark != -1)) {
+			return;
+		}
+
+		Acc::set_int(node + node_size_offset, Int { size.value * mark });
+	}
+
+	int Tree::mark(const Heap_Ptr& node) {
+		auto res { Acc::get_int(node + node_size_offset) };
+		return res.value >= 0 ? 1 : -1;
+	}
+
+	void Tree::set_size(Heap_Ptr node, const Int& size, bool keep_mark) {
+		int m = 1;
+		if (keep_mark) { m = mark(node); }
+		set_size_with_mark(node, size, m);
+	}
+
+	void Tree::set_mark(Heap_Ptr& node, int mark) {
+		set_size_with_mark(node, size(node), mark);
 	}
 
 #endif

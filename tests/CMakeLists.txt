@@ -22,6 +22,7 @@ add_executable(Tests
 	test-swap.cpp
 	test-to-ch.cpp
 	test-to-int.cpp
+	test-tree.cpp
 	vm-tests.cpp
 )
 

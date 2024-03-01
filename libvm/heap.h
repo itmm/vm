@@ -12,7 +12,10 @@
 
 				static void insert_into_free_list(Heap_Ptr block);
 				static Heap_Ptr find_on_free_list(int size);
-				static void alloc_block(int size, bool run_gc = true);
+				[[nodiscard]] static Heap_Ptr alloc_block(
+					int size, bool run_gc = true
+				);
+
 				static void free_block(Heap_Ptr block);
 
 				static void dump_heap();

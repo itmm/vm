@@ -123,7 +123,7 @@ void Acc::set_value(P ptr, const Value& value) {
 			set_ptr_type(ptr.ptr_, Stack_Frame::type_ch);
 			set_int(ptr + stack_frame_pc, Int { sf->pc.offset() });
 			#if CONFIG_WITH_EXCEPTIONS
-				set_int(ptr + stack_frame_catch_pc, Int { sf->catch_pc.offset() });
+			set_int(ptr + stack_frame_catch_pc, Int { sf->catch_pc.offset() });
 			#endif
 			set_int(ptr + stack_frame_end, Int { sf->parent.offset() });
 			set_int(ptr + stack_frame_outer, Int { sf->outer.offset() });

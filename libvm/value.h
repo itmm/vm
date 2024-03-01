@@ -17,7 +17,7 @@ namespace vm {
 			static constexpr bool is_multi_precision {
 				CONFIG_INT_MULTI_PRECISION
 			};
-			value_type value;
+			value_type value { 0 };
 		};
 
 		template<typename P> P operator+(const P& ptr, const Int& offset) {

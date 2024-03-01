@@ -14,12 +14,12 @@ using namespace vm;
 
 	void Heap::insert_into_free_list(Heap_Ptr block) {
 		free_list.insert(block);
-		auto size { Acc::get_int(block).value };
+		auto size { Tree::size(block).value };
 
 		if (auto smaller = free_list.smaller(block)) {
-			auto smaller_size { Acc::get_int(smaller).value };
+			auto smaller_size { Tree::size(smaller).value };
 			if (smaller + smaller_size == block) {
-				Acc::set_int(smaller, Int { smaller_size + size });
+				Tree::set_size(smaller, Int { smaller_size + size });
 				free_list.remove(block);
 				block = smaller; size += smaller_size;
 			}
@@ -27,7 +27,7 @@ using namespace vm;
 
 		if (auto greater = free_list.greater(block)) {
 			if (block + size == greater) {
-				Acc::set_int(block, Int { size + Acc::get_int(greater).value });
+				Tree::set_size(block, Int { size + Tree::size(greater).value });
 				free_list.remove(greater);
 			}
 		}
@@ -43,7 +43,7 @@ using namespace vm;
 			auto current = free_list.greatest();
 			current; current = free_list.smaller(current)
 		) {
-			int cur_size { Acc::get_int(current).value };
+			int cur_size { Tree::size(current).value };
 			bool found {
 				tight_fit ?
 					cur_size == size || cur_size > 3 * size :
@@ -53,8 +53,8 @@ using namespace vm;
 				int rest_size { cur_size - size };
 				if (rest_size > heap_overhead) {
 					Heap_Ptr rest_block { current + size };
-					Acc::set_int(rest_block, Int { rest_size });
-					Acc::set_int(current, Int { size });
+					Tree::set_size(rest_block, Int { rest_size });
+					Tree::set_size(current, Int { size });
 					free_list.insert(rest_block);
 				}
 				free_list.remove(current);
@@ -72,32 +72,33 @@ using namespace vm;
 
 	#pragma clang diagnostic push
 	#pragma ide diagnostic ignored "misc-no-recursion"
-	void Heap::alloc_block(int orig_size, bool run_gc) {
+	Heap_Ptr Heap::alloc_block(int orig_size, bool run_gc) {
 		int size = std::max(orig_size + heap_overhead, node_size);
 		auto found { find_on_free_list(size) };
 		if (!found) {
 			if (Heap_Ptr::end + size > Stack_Ptr::begin) {
 				if (run_gc) {
-					collect_garbage(); alloc_block(orig_size, false); return;
+					collect_garbage();
+					return alloc_block(orig_size, false);
 				}
 				err(Err::heap_overflow);
 			}
 			found = Heap_Ptr { Heap_Ptr::end };
 			Heap_Ptr::end += size;
-			Acc::set_int(found, Int { size });
-		} else { size = Acc::get_int(found).value; }
+			Tree::set_size(found, Int { size });
+		} else { size = Tree::size(found).value; }
 
 		alloc_list.insert(found);
 
 		std::memset((found + heap_overhead).ptr_, 0, size - heap_overhead);
-		Acc::push(found + heap_overhead);
+		return found + heap_overhead;
 	}
 	#pragma clang diagnostic pop
 
 	void Heap::free_block(Heap_Ptr block) {
 		block = block - heap_overhead;
 		alloc_list.remove(block);
-		auto size { Acc::get_int(block).value };
+		auto size { Tree::size(block).value };
 		if (size < std::max(node_size, heap_overhead)) {
 			err(Err::free_invalid_block);
 		}
@@ -116,7 +117,7 @@ using namespace vm;
 		if (Heap_Ptr::end - Ram_Ptr::begin) {
 			std::cout << "\n";
 			while (current < end) {
-				auto size { Acc::get_int(current).value };
+				auto size { Tree::size(current).value };
 				if (current == next_allocated) {
 					std::cout << "  " << current.offset() <<
 						": block[" << size << "] {";
@@ -193,7 +194,7 @@ using namespace vm;
 			Heap_Ptr current { used_blocks.smallest() };
 			used_blocks.remove(current);
 			processed_blocks.insert(current);
-			Heap_Ptr end { current + Acc::get_int(current) };
+			Heap_Ptr end { current + Tree::size(current) };
 			add_pointers(current + heap_overhead, end, used_blocks);
 		}
 

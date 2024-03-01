@@ -299,7 +299,8 @@ void vm::step() {
 			case op_mult: { vm::ops::Mult { }(); break; }
 		#endif
 		#if CONFIG_WITH_HEAP
-			case op_new: Heap::alloc_block(Acc::pull_int().value); break;
+			case op_new:
+				Acc::push(Heap::alloc_block(Acc::pull_int().value)); break;
 		#endif
 		case op_nop: break;
 		#if CONFIG_WITH_NUMERIC
