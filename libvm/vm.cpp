@@ -66,6 +66,14 @@ namespace {
 			err(Err::no_stack_frame);
 		}
 
+		void do_return() {
+			auto stack_frame = get_current_stack_frame();
+			while (Stack_Ptr::begin < Stack_Ptr::end) { Acc::pull(); }
+			Stack_Ptr::end = Ram_Ptr::begin + stack_frame.parent.offset();
+			Acc::pull();
+			pc = stack_frame.pc;
+		}
+
 		#if CONFIG_WITH_EXCEPTIONS
 			void set_catch_pc(const Code_Ptr& catch_pc) {
 				if (Stack_Ptr::end == Ram_Ptr::end) {
@@ -80,6 +88,17 @@ namespace {
 					};
 					Acc::set_value(old_end, stack_frame);
 				}
+			}
+
+			void perform_throw() {
+				Stack_Ptr current { Stack_Ptr::end };
+				while (Ram_Ptr::begin + current.offset() < Ram_Ptr::end) {
+					auto frame { get_current_stack_frame() };
+					if (frame.catch_pc) { pc = frame.catch_pc; return; }
+					do_return();
+				}
+				if (global_catch_pc) { pc = global_catch_pc; return; }
+				err(Err::uncatched_throw);
 			}
 		#endif
 	#endif
@@ -312,13 +331,7 @@ void vm::step() {
 			}
 		#endif
 		#if CONFIG_WITH_CALL
-			case op_return: {
-				auto stack_frame = get_current_stack_frame();
-				while (Stack_Ptr::begin < Stack_Ptr::end) { Acc::pull(); }
-				Stack_Ptr::end = Ram_Ptr::begin + stack_frame.parent.offset();
-				Acc::pull(); pc = stack_frame.pc;
-				break;
-			}
+			case op_return: do_return(); break;
 		#endif
 		#if CONFIG_WITH_HEAP
 			case op_send: {
@@ -335,6 +348,9 @@ void vm::step() {
 			auto a { Acc::pull() }; auto b { Acc::pull() };
 			Acc::push(a); Acc::push(b); break;
 		}
+		#if CONFIG_WITH_EXCEPTIONS
+			case op_throw: perform_throw(); break;
+		#endif
 		#if CONFIG_WITH_CHAR
 			case op_to_ch:
 				Acc::push(to_ch(

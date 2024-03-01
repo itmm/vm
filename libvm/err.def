@@ -34,4 +34,5 @@ ERR(unexpected)
 ERR(null_access)
 ERR(change_type)
 ERR(no_stack_frame)
+ERR(uncatched_throw)
 #undef ERR
