@@ -2,7 +2,7 @@ add_library(libvm
     accessor.cpp
     err.cpp
 	heap.cpp
-    list.cpp
+        tree.cpp
     ptr.cpp
     value.cpp
     vm.cpp

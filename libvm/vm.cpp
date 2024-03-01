@@ -3,7 +3,7 @@
 #include "accessor.h"
 #include "err.h"
 #include "heap.h"
-#include "list.h"
+#include "tree.h"
 #include "ptr.h"
 #include "value.h"
 #include "ops/add.h"
@@ -129,8 +129,8 @@ void vm::init(
 	#endif
 
 	#if CONFIG_WITH_HEAP
-		Heap::free_list = List { };
-		Heap::alloc_list = List { };
+		Heap::free_list = Tree { };
+		Heap::alloc_list = Tree { };
 	#endif
 
 	pc = Code_Ptr { Code_Ptr::begin };

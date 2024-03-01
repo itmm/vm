@@ -12,8 +12,7 @@ namespace vm {
 				template<typename P> static void set_int(P ptr, const Int& value);
 			#endif
 
-			template<typename P>
-			static signed char get_byte(const P& ptr);
+			template<typename P> static signed char get_byte(const P& ptr);
 
 			template<typename P> static Value get_value(const P& ptr);
 

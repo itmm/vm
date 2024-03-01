@@ -9,14 +9,14 @@
 using namespace vm;
 
 #if CONFIG_WITH_HEAP
-	List Heap::free_list;
-	List Heap::alloc_list;
+	Tree Heap::free_list;
+	Tree Heap::alloc_list;
 
 	void Heap::insert_into_free_list(Heap_Ptr block) {
 		free_list.insert(block);
 		auto size { Acc::get_int(block).value };
 
-		if (auto smaller = Acc::get_ptr(block + node_prev_offset)) {
+		if (auto smaller = free_list.smaller(block)) {
 			auto smaller_size { Acc::get_int(smaller).value };
 			if (smaller + smaller_size == block) {
 				Acc::set_int(smaller, Int { smaller_size + size });
@@ -25,7 +25,7 @@ using namespace vm;
 			}
 		}
 
-		if (auto greater = Acc::get_ptr(block + node_next_offset)) {
+		if (auto greater = free_list.greater(block)) {
 			if (block + size == greater) {
 				Acc::set_int(block, Int { size + Acc::get_int(greater).value });
 				free_list.remove(greater);
@@ -39,13 +39,15 @@ using namespace vm;
 	}
 
 	Heap_Ptr Heap::find_on_free_list(int size, bool tight_fit) {
-		auto current { free_list.end };
-		while (current) {
+		for (
+			auto current = free_list.greatest();
+			current; current = free_list.smaller(current)
+		) {
 			int cur_size { Acc::get_int(current).value };
 			bool found {
 				tight_fit ?
-				cur_size == size || cur_size > 3 * size :
-				cur_size >= size
+					cur_size == size || cur_size > 3 * size :
+					cur_size >= size
 			};
 			if (found) {
 				int rest_size { cur_size - size };
@@ -58,7 +60,6 @@ using namespace vm;
 				free_list.remove(current);
 				return current;
 			}
-			current = Acc::get_ptr(current + node_prev_offset);
 		}
 		return Heap_Ptr { };
 	}
@@ -109,8 +110,8 @@ using namespace vm;
 	void Heap::dump_heap() {
 		Heap_Ptr current { Ram_Ptr::begin };
 		Heap_Ptr end { Heap_Ptr::end };
-		Heap_Ptr next_allocated { alloc_list.begin };
-		Heap_Ptr next_freed { free_list.begin };
+		Heap_Ptr next_allocated { alloc_list.smallest() };
+		Heap_Ptr next_freed { free_list.smallest() };
 		std::cout << "heap[" << Heap_Ptr::end - Ram_Ptr::begin << "] {";
 		if (Heap_Ptr::end - Ram_Ptr::begin) {
 			std::cout << "\n";
@@ -126,13 +127,11 @@ using namespace vm;
 						);
 						std::cout << "  }\n";
 					} else { std::cout << " }\n"; }
-					next_allocated = Acc::get_ptr(
-						next_allocated + node_next_offset
-					);
+					next_allocated = alloc_list.greater(next_allocated);
 				} else if (current == next_freed) {
 					std::cout << "  " << current.offset() <<
 							  ": free[" << size << "] { }\n";
-					next_freed = Acc::get_ptr(next_freed + node_next_offset);
+					next_freed = free_list.greater(next_freed);
 				} else {
 					std::cout << "  ! INVALID BLOCK AT " <<
 						current.offset() << "\n";
@@ -148,7 +147,7 @@ using namespace vm;
 	}
 
 	template<typename P>
-	static void add_pointers(P begin, P end, List& used_blocks) {
+	static void add_pointers(P begin, P end, Tree& used_blocks) {
 		P current { begin };
 		while (current < end) {
 			auto value { Acc::get_value(current) };
@@ -179,8 +178,8 @@ using namespace vm;
 	};
 
 	void Heap::collect_garbage() {
-		List used_blocks;
-		List processed_blocks;
+		Tree used_blocks;
+		Tree processed_blocks;
 
 		{
 			Full_Stack full_stack;
@@ -191,7 +190,7 @@ using namespace vm;
 		}
 
 		while (!used_blocks.empty()) {
-			Heap_Ptr current { used_blocks.begin };
+			Heap_Ptr current { used_blocks.smallest() };
 			used_blocks.remove(current);
 			processed_blocks.insert(current);
 			Heap_Ptr end { current + Acc::get_int(current) };
@@ -199,10 +198,9 @@ using namespace vm;
 		}
 
 		while (!alloc_list.empty()) {
-			free_block(alloc_list.begin + heap_overhead);
+			free_block(alloc_list.smallest() + heap_overhead);
 		}
 
-		alloc_list.begin =  processed_blocks.begin;
-		alloc_list.end = processed_blocks.end;
+		alloc_list =  processed_blocks;
 	}
 #endif
