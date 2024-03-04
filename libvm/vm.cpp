@@ -20,21 +20,21 @@
 using namespace vm;
 
 namespace {
-	#if CONFIG_WITH_INT
-		void fetch(Int::value_type offset) {
+	#if CONFIG_WITH_NUMERIC
+		void fetch(Int::internal_type offset) {
 			Acc::push(Acc::get_value(Stack_Ptr { Stack_Ptr::begin + offset }));
 		}
 
-		void store(Int::value_type offset) {
+		void store(Int::internal_type offset) {
 			auto value { Acc::pull() };
 			Acc::set_value(Stack_Ptr { Stack_Ptr::begin + offset }, value);
 		}
-	#endif
 
-	void jump(int offset, int condition) {
-		Code_Ptr target { pc + offset };
-		if (condition) { pc = target; }
-	}
+		void jump(Int::internal_type offset, bool condition) {
+			Code_Ptr target { pc + offset };
+			if (condition) { pc = target; }
+		}
+	#endif
 
 	#if CONFIG_WITH_CHAR
 		Char negate_ch(const Char& ch) {
@@ -43,9 +43,9 @@ namespace {
 	#endif
 
 	#if CONFIG_WITH_NUMERIC
-		void jump_with_stack_condition(int offset, bool invert) {
-			auto condition { Acc::pull_int().value };
-			if (invert) { condition = ~condition; }
+		void jump_with_stack_condition(Int::internal_type offset, bool invert) {
+			bool condition { Acc::pull_internal_int() != 0 };
+			if (invert) { condition = !condition; }
 			jump(offset, condition);
 		}
 	#endif
@@ -195,7 +195,7 @@ template<typename P> void vm::dump_block(
 void vm::dump_stack() {
 	Stack_Ptr current { Stack_Ptr::begin };
 	Stack_Ptr end { stack_upper_limit() };
-	int size { end.offset() - current.offset() };
+	auto size { end.offset() - current.offset() };
 	std::cout << "stack[" << size << "] {";
 	if (size) {
 		std::cout << "\n";
@@ -218,7 +218,7 @@ void vm::step() {
 		#if CONFIG_WITH_CALL
 			case op_call: {
 				Code_Ptr new_pc { Code_Ptr::begin + Acc::pull_int() };
-				int num_args { Acc::pull_int().value };
+				auto num_args { Acc::pull_internal_int() };
 				Stack_Frame sf;
 				sf.pc = pc;
 				sf.parent = Stack_Ptr { Stack_Ptr::end };
@@ -280,11 +280,11 @@ void vm::step() {
 				Acc::push(Char { a < b ? true_lit : false_lit }); break;
 			}
 		#endif
-		case op_near_jmp: {
-			auto value { Acc::get_byte(pc) }; pc = pc + 1;
-			jump(value, true_lit); break;
-		}
 		#if CONFIG_WITH_NUMERIC
+			case op_near_jmp: {
+				auto value { Acc::get_byte(pc) }; pc = pc + 1;
+				jump(value, true_lit); break;
+			}
 			case op_near_jmp_false: {
 				auto value { Acc::get_byte(pc) }; pc = pc + 1;
 				jump_with_stack_condition(value, true); break;

@@ -43,8 +43,8 @@ OP(dup)
 	OP(mod)
 	OP(mult)
 #endif
-OP(near_jmp)
 #if CONFIG_WITH_NUMERIC
+	OP(near_jmp)
 	OP(near_jmp_false)
 	OP(near_jmp_true)
 #endif
