@@ -2,7 +2,11 @@
 
 #if !defined(CONFIG_INTERNAL_INT_TYPE)
 	#define CONFIG_INTERNAL_INT_TYPE int
-	#define CONFIG_SET_INTERNAL_INT_TYPE_TO_INT true
+	#define CONFIG_INTERNAL_INT_TYPE_IS_STD_INT true
+#endif
+
+#if !defined(CONFIG_INTERNAL_INT_TYPE_IS_STD_INT)
+	#define  CONFIG_INTERNAL_INT_TYPE_IS_STD_INT false
 #endif
 
 #if !defined(CONFIG_WITH_INT)
@@ -15,7 +19,7 @@
 	#endif
 	#if !defined(CONFIG_INT_TYPE)
 		#define CONFIG_INT_TYPE int
-		#define CONFIG_SET_INT_TYPE_TO_INT true
+		#define CONFIG_INT_TYPE_IS_STD_INT true
 	#endif
 	#if !defined(CONFIG_INT_USE_TYPE_FIELD)
 		#define CONFIG_INT_USE_TYPE_FIELD false
@@ -23,6 +27,10 @@
 	#if !defined(CONFIG_INT_MULTI_PRECISION)
 		#define CONFIG_INT_MULTI_PRECISION false
 	#endif
+#endif
+
+#if !defined(CONFIG_INT_TYPE_IS_STD_INT)
+	#define CONFIG_INT_TYPE_IS_STD_INT false
 #endif
 
 #if !defined(CONFIG_WITH_CHAR)
@@ -82,7 +90,7 @@
 #endif
 
 #if !defined(CONFIG_INTERNAL_INT_IS_INT)
-	#if CONFIG_SET_INTERNAL_INT_TYPE_TO_INT && CONFIG_SET_INT_TYPE_TO_INT
+	#if CONFIG_INTERNAL_INT_TYPE_IS_STD_INT && CONFIG_INT_TYPE_IS_STD_INT
 		#define CONFIG_INTERNAL_INT_IS_INT true
 	#else
 		#define CONFIG_INTERNAL_INT_IS_INT false
