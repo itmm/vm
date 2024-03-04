@@ -1,5 +1,10 @@
 #pragma once
 
+#if !defined(CONFIG_INTERNAL_INT_TYPE)
+	#define CONFIG_INTERNAL_INT_TYPE int
+	#define CONFIG_SET_INTERNAL_INT_TYPE_TO_INT true
+#endif
+
 #if !defined(CONFIG_WITH_INT)
 	#define CONFIG_WITH_INT true
 #endif
@@ -10,6 +15,7 @@
 	#endif
 	#if !defined(CONFIG_INT_TYPE)
 		#define CONFIG_INT_TYPE int
+		#define CONFIG_SET_INT_TYPE_TO_INT true
 	#endif
 	#if !defined(CONFIG_INT_USE_TYPE_FIELD)
 		#define CONFIG_INT_USE_TYPE_FIELD false
@@ -75,4 +81,11 @@
 	#define CONFIG_STACK_PTR_USE_TYPE_FIELD CONFIG_INT_USE_TYPE_FIELD
 #endif
 
+#if !defined(CONFIG_INTERNAL_INT_IS_INT)
+	#if CONFIG_SET_INTERNAL_INT_TYPE_TO_INT && CONFIG_SET_INT_TYPE_TO_INT
+		#define CONFIG_INTERNAL_INT_IS_INT true
+	#else
+		#define CONFIG_INTERNAL_INT_IS_INT false
+	#endif
+#endif
 #define CONFIG_WITH_NUMERIC (CONFIG_WITH_INT || CONFIG_WITH_CHAR)

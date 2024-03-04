@@ -63,18 +63,36 @@ int vm::value_size(const Value& value) {
 	err(Err::unknown_type);
 }
 
+#if CONFIG_WITH_NUMERIC
+	Int::internal_type vm::internal_int_value(const Value& value) {
+		#if CONFIG_WITH_CHAR
+			if (auto ch = std::get_if<Char>(&value)) {
+				return ch->value;
+			}
+		#endif
+		#if CONFIG_WITH_INT
+			if (auto val = std::get_if<Int>(&value)) {
+				return val->value;
+			}
+		#endif
+		err(Err::no_integer);
+	}
+#endif
+
 #if CONFIG_WITH_INT
-Int vm::int_value(const Value& value) {
-	#if CONFIG_WITH_CHAR
-		if (auto ch = std::get_if<Char>(&value)) {
-			return Int { ch->value };
+	#if !CONFIG_INTERNAL_INT_IS_INT
+		Int vm::int_value(const Value& value) {
+			#if CONFIG_WITH_CHAR
+				if (auto ch = std::get_if<Char>(&value)) {
+					return Int { ch->value };
+				}
+			#endif
+			if (auto val = std::get_if<Int>(&value)) {
+				return *val;
+			}
+			err(Err::no_integer);
 		}
 	#endif
-	if (auto val = std::get_if<Int>(&value)) {
-		return *val;
-	}
-	err(Err::no_integer);
-}
 #endif
 
 #if CONFIG_WITH_CHAR

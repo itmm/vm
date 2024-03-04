@@ -31,8 +31,17 @@ namespace vm {
 			#if CONFIG_WITH_CHAR
 				static Char pull_ch();
 			#endif
+			#if CONFIG_WITH_NUMERIC
+				static Int::internal_type pull_internal_int();
+			#endif
 			#if CONFIG_WITH_INT
-				static Int pull_int();
+				#if CONFIG_INTERNAL_INT_IS_INT
+					static Int pull_int() {
+						return Int { pull_internal_int() };
+					}
+				#else
+					static Int pull_int();
+				#endif
 			#endif
 
 			#if CONFIG_WITH_HEAP

@@ -7,19 +7,29 @@
 #include "ptr.h"
 
 namespace vm {
-	#if CONFIG_WITH_INT
+	#if CONFIG_WITH_NUMERIC
 		struct Int {
-			using value_type = CONFIG_INT_TYPE;
-			static constexpr signed char type_ch { 0x20 };
-			static constexpr int raw_size { CONFIG_INT_SIZE };
-			static constexpr int typed_size { raw_size + 1 };
-			static constexpr bool use_type_field { CONFIG_INT_USE_TYPE_FIELD };
-			static constexpr bool is_multi_precision {
-				CONFIG_INT_MULTI_PRECISION
-			};
-			value_type value { 0 };
-		};
+			using internal_type = CONFIG_INTERNAL_INT_TYPE;
 
+			#if CONFIG_WITH_INT
+				using value_type = CONFIG_INT_TYPE;
+				static constexpr signed char type_ch { 0x20 };
+				static constexpr int raw_size { CONFIG_INT_SIZE };
+				static constexpr int typed_size { raw_size + 1 };
+				static constexpr bool use_type_field {
+					CONFIG_INT_USE_TYPE_FIELD
+				};
+				static constexpr bool is_multi_precision {
+					CONFIG_INT_MULTI_PRECISION
+				};
+				value_type value { 0 };
+			#else
+				Int() = delete;
+			#endif
+		};
+	#endif
+
+	#if CONFIG_WITH_INT
 		template<typename P> P operator+(const P& ptr, const Int& offset) {
 			return ptr + offset.value;
 		}
@@ -121,8 +131,18 @@ namespace vm {
 	int value_size(signed char type);
 	int value_size(const Value& value);
 
+	#if CONFIG_WITH_NUMERIC
+		Int::internal_type internal_int_value(const Value& value);
+	#endif
+
 	#if CONFIG_WITH_INT
-		Int int_value(const Value& value);
+		#if CONFIG_INTERNAL_INT_IS_INT
+			inline Int int_value(const Value& value) {
+				return Int { internal_int_value(value) };
+			}
+		#else
+			Int int_value(const Value& value);
+		#endif
 	#endif
 
 	#if CONFIG_WITH_CHAR

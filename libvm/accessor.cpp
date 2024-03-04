@@ -162,8 +162,16 @@ Value Acc::pull() {
 	}
 #endif
 
+#if CONFIG_WITH_NUMERIC
+	Int::internal_type Acc::pull_internal_int() {
+		return internal_int_value(pull());
+	}
+#endif
+
 #if CONFIG_WITH_INT
-	Int Acc::pull_int() { return int_value(pull()); }
+	#if ! CONFIG_INTERNAL_INT_IS_INT
+		Int Acc::pull_int() { return int_value(pull()); }
+	#endif
 #endif
 
 #if CONFIG_WITH_HEAP
