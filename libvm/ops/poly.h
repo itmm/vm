@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../defines.h"
+
 #if CONFIG_WITH_NUMERIC
 	namespace vm::ops {
 		class Poly {
@@ -11,8 +13,7 @@
 				Poly() = default;
 
 				#if CONFIG_WITH_BYTE
-				// TODO: replace with Byte
-					virtual void perform_ch(signed char a, signed char b);
+					virtual void perform_byte(const Byte& a, const Byte& b);
 				#endif
 				#if CONFIG_WITH_INT
 					// TODO: replace with Int

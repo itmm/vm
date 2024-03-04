@@ -6,9 +6,9 @@
 using namespace vm;
 
 #if CONFIG_WITH_BYTE
-	void vm::ops::Sub::perform_ch(signed char a, signed char b) {
+	void vm::ops::Sub::perform_byte(const Byte& a, const Byte& b) {
 		Acc::push(Byte { to_ch(
-			a - b, Err::sub_overflow, Err::sub_underflow
+			a.value - b.value, Err::sub_overflow, Err::sub_underflow
 		) } );
 	}
 #endif

@@ -12,7 +12,7 @@ void ops::Poly::operator()() {
 		auto a_ch = std::get_if<Byte>(&a);
 		auto b_ch = std::get_if<Byte>(&b);
 
-		if (a_ch && b_ch) { perform_ch(a_ch->value, b_ch->value); return; }
+		if (a_ch && b_ch) { perform_byte(*a_ch, *b_ch); return; }
 	#endif
 
 	#if CONFIG_WITH_INT
@@ -36,8 +36,8 @@ void ops::Poly::operator()() {
 #endif
 
 #if CONFIG_WITH_BYTE
-	void ops::Poly::perform_ch(signed char a, signed char b) {
-		perform_int(a, b);
+	void ops::Poly::perform_byte(const Byte& a, const Byte& b) {
+		perform_int(a.value, b.value);
 	}
 #endif
 
