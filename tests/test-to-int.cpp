@@ -4,7 +4,7 @@
 
 using namespace vm;
 
-#if CONFIG_WITH_INT && CONFIG_WITH_CHAR
+#if CONFIG_WITH_INT && CONFIG_WITH_BYTE
 	TEST(to_int_tests, zero) {
 		signed char code[] { PUSH_SMALL_INT(0) };
 		signed char expected[] { RAW_INT(0) };

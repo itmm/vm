@@ -16,7 +16,7 @@ target_include_directories(libvm INTERFACE .)
 
 if("${Minimal}" STREQUAL "YES")
 	target_compile_options(libvm PUBLIC
-		-DCONFIG_WITH_INT=0 -DCONFIG_WITH_CHAR=0
+		-DCONFIG_WITH_INT=0 -DCONFIG_WITH_BYTE=0
 		-DCONFIG_WITH_CALL=0 -DCONFIG_WITH_HEAP=0
 	)
 endif()

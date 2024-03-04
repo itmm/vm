@@ -11,7 +11,7 @@ using namespace vm;
 		int raw_block_size { block_size + heap_overhead };
 
 		signed char code[] {
-			PUSH_CH(block_size), op_new, PUSH_CH(block_size), op_new,
+			PUSH_BYTE(block_size), op_new, PUSH_BYTE(block_size), op_new,
 			op_swap, op_free, op_pull, op_collect_garbage
 		};
 		signed char expected[] { };
@@ -25,8 +25,8 @@ using namespace vm;
 		int raw_block_size { block_size + heap_overhead };
 
 		signed char code[] {
-			PUSH_CH(block_size), op_new, op_pull,
-			PUSH_CH(block_size), op_new
+			PUSH_BYTE(block_size), op_new, op_pull,
+			PUSH_BYTE(block_size), op_new
 		};
 		signed char expected[] { RAW_PTR(heap_overhead) };
 		//Enable_Dump enable_dump { true, true, true };

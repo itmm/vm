@@ -36,8 +36,8 @@ namespace {
 		}
 	#endif
 
-	#if CONFIG_WITH_CHAR
-		Char negate_ch(const Char& ch) {
+	#if CONFIG_WITH_BYTE
+		Byte negate_ch(const Byte& ch) {
 			return to_ch(~ch.value, Err::unexpected, Err::unexpected);
 		}
 	#endif
@@ -148,11 +148,11 @@ template<typename P> void vm::dump_block(
 				current.offset() << "\n";
 			break;
 		}
-		#if CONFIG_WITH_CHAR
-			if (auto ch { std::get_if<Char>(&value) }) {
+		#if CONFIG_WITH_BYTE
+			if (auto ch { std::get_if<Byte>(&value) }) {
 				std::cout << indent << current.offset() <<
 					": char == " << static_cast<int>(ch->value) << "\n";
-				current = current + Char::typed_size;
+				current = current + Byte::typed_size;
 				continue;
 			}
 		#endif
@@ -250,7 +250,7 @@ void vm::step() {
 		#if CONFIG_WITH_NUMERIC
 			case op_equals: {
 				auto b { Acc::pull() }; auto a { Acc::pull() };
-				Acc::push(Char { a == b ? true_lit : false_lit });
+				Acc::push(Byte { a == b ? true_lit : false_lit });
 				break;
 			}
 			case op_fetch: fetch(Acc::pull_int().value); break;
@@ -277,7 +277,13 @@ void vm::step() {
 		#if CONFIG_WITH_NUMERIC
 			case op_less: {
 				auto b { Acc::pull() }; auto a { Acc::pull() };
-				Acc::push(Char { a < b ? true_lit : false_lit }); break;
+				#if CONFIG_WITH_BYTE
+					Acc::push(Byte { a < b ? true_lit : false_lit }); break;
+				#elif CONFIG_WITH_INT
+					Acc::push(Int { a < b ? true_lit : false_lit }); break;
+				#else
+					#error "unsupported numeric"
+				#endif
 			}
 		#endif
 		#if CONFIG_WITH_NUMERIC
@@ -306,7 +312,7 @@ void vm::step() {
 		#if CONFIG_WITH_NUMERIC
 			case op_not: {
 				auto value { Acc::pull() };
-				auto ch { std::get_if<Char>(&value) };
+				auto ch { std::get_if<Byte>(&value) };
 				if (ch) { Acc::push(negate_ch(*ch)); break; }
 				auto val { std::get_if<Int>(&value) };
 				if (val) { Acc::push(Int { ~val->value }); break; }
@@ -315,9 +321,9 @@ void vm::step() {
 			case op_or: { vm::ops::Or { }(); break; }
 		#endif
 		case op_pull: Acc::pull(); break;
-		#if CONFIG_WITH_CHAR
+		#if CONFIG_WITH_BYTE
 			case op_push_ch:
-				Acc::push(Char { Acc::get_byte(pc) }); pc = pc + 1; break;
+				Acc::push(Byte { Acc::get_byte(pc) }); pc = pc + 1; break;
 		#endif
 		#if CONFIG_WITH_INT
 			case op_push_int:
@@ -352,7 +358,7 @@ void vm::step() {
 		#if CONFIG_WITH_EXCEPTIONS
 			case op_throw: perform_throw(); break;
 		#endif
-		#if CONFIG_WITH_CHAR
+		#if CONFIG_WITH_BYTE
 			case op_to_ch:
 				Acc::push(to_ch(
 					Acc::pull_int().value, Err::to_ch_overflow,
@@ -363,7 +369,7 @@ void vm::step() {
 		#if CONFIG_WITH_INT
 			case op_to_int: Acc::push(Int { Acc::pull_int() }); break;
 		#endif
-		#if CONFIG_WITH_CHAR
+		#if CONFIG_WITH_BYTE
 			case op_write_ch: std::cout << Acc::pull_ch().value; break;
 		#endif
 		#if CONFIG_WITH_NUMERIC

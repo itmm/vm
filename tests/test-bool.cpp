@@ -4,17 +4,17 @@
 
 using namespace vm;
 
-#if CONFIG_WITH_CHAR
+#if CONFIG_WITH_BYTE
 	TEST(bool_tests, not_true_ch) {
-		signed char code[] { PUSH_CH(true_lit), op_not };
-		signed char expected[] { RAW_CH(false_lit) };
-		EXPECT_LIMITED_STACK(code, Char::typed_size, expected);
+		signed char code[] { PUSH_BYTE(true_lit), op_not };
+		signed char expected[] { RAW_BYTE(false_lit) };
+		EXPECT_LIMITED_STACK(code, Byte::typed_size, expected);
 	}
 
 	TEST(bool_tests, not_false_ch) {
-		signed char code[] { PUSH_CH(false_lit), op_not };
-		signed char expected[] { RAW_CH(true_lit) };
-		EXPECT_LIMITED_STACK(code, Char::typed_size, expected);
+		signed char code[] { PUSH_BYTE(false_lit), op_not };
+		signed char expected[] { RAW_BYTE(true_lit) };
+		EXPECT_LIMITED_STACK(code, Byte::typed_size, expected);
 	}
 
 	TEST(bool_tests, not_underflow_ch) {
@@ -37,33 +37,33 @@ using namespace vm;
 	}
 #endif
 
-#if CONFIG_WITH_CHAR
+#if CONFIG_WITH_BYTE
 	TEST(bool_tests, and00_ch) {
-		signed char code[] { PUSH_CH(false_lit), PUSH_CH(false_lit), op_and };
-		signed char expected[] { RAW_CH(false_lit) };
-		EXPECT_LIMITED_STACK(code, 2 * Char::typed_size, expected);
+		signed char code[] { PUSH_BYTE(false_lit), PUSH_BYTE(false_lit), op_and };
+		signed char expected[] { RAW_BYTE(false_lit) };
+		EXPECT_LIMITED_STACK(code, 2 * Byte::typed_size, expected);
 	}
 
 	TEST(bool_tests, and01_ch) {
-		signed char code[] { PUSH_CH(true_lit), PUSH_CH(false_lit), op_and };
-		signed char expected[] { RAW_CH(false_lit) };
-		EXPECT_LIMITED_STACK(code, 2 * Char::typed_size, expected);
+		signed char code[] { PUSH_BYTE(true_lit), PUSH_BYTE(false_lit), op_and };
+		signed char expected[] { RAW_BYTE(false_lit) };
+		EXPECT_LIMITED_STACK(code, 2 * Byte::typed_size, expected);
 	}
 
 	TEST(bool_tests, and10_ch) {
-		signed char code[] { PUSH_CH(false_lit), PUSH_CH(true_lit), op_and };
-		signed char expected[] { RAW_CH(false_lit) };
-		EXPECT_LIMITED_STACK(code, 2 * Char::typed_size, expected);
+		signed char code[] { PUSH_BYTE(false_lit), PUSH_BYTE(true_lit), op_and };
+		signed char expected[] { RAW_BYTE(false_lit) };
+		EXPECT_LIMITED_STACK(code, 2 * Byte::typed_size, expected);
 	}
 
 	TEST(bool_tests, and11_ch) {
-		signed char code[] { PUSH_CH(true_lit), PUSH_CH(true_lit), op_and };
-		signed char expected[] { RAW_CH(true_lit) };
-		EXPECT_LIMITED_STACK(code, 2 * Char::typed_size, expected);
+		signed char code[] { PUSH_BYTE(true_lit), PUSH_BYTE(true_lit), op_and };
+		signed char expected[] { RAW_BYTE(true_lit) };
+		EXPECT_LIMITED_STACK(code, 2 * Byte::typed_size, expected);
 	}
 
 	TEST(bool_tests, and_underflow_ch) {
-		signed char code[] { PUSH_CH(true_lit), op_and };
+		signed char code[] { PUSH_BYTE(true_lit), op_and };
 		EXPECT_ERROR(code, Err::leave_stack_segment);
 	}
 #endif
@@ -107,33 +107,33 @@ using namespace vm;
 	}
 #endif
 
-#if CONFIG_WITH_CHAR
+#if CONFIG_WITH_BYTE
 	TEST(bool_tests, or00_ch) {
-		signed char code[] { PUSH_CH(false_lit), PUSH_CH(false_lit), op_or };
-		signed char expected[] { RAW_CH(false_lit) };
-		EXPECT_LIMITED_STACK(code, 2 * Char::typed_size, expected);
+		signed char code[] { PUSH_BYTE(false_lit), PUSH_BYTE(false_lit), op_or };
+		signed char expected[] { RAW_BYTE(false_lit) };
+		EXPECT_LIMITED_STACK(code, 2 * Byte::typed_size, expected);
 	}
 
 	TEST(bool_tests, or01_ch) {
-		signed char code[] { PUSH_CH(true_lit), PUSH_CH(false_lit), op_or };
-		signed char expected[] { RAW_CH(true_lit) };
-		EXPECT_LIMITED_STACK(code, 2 * Char::typed_size, expected);
+		signed char code[] { PUSH_BYTE(true_lit), PUSH_BYTE(false_lit), op_or };
+		signed char expected[] { RAW_BYTE(true_lit) };
+		EXPECT_LIMITED_STACK(code, 2 * Byte::typed_size, expected);
 	}
 
 	TEST(bool_tests, or10_ch) {
-		signed char code[] { PUSH_CH(false_lit), PUSH_CH(true_lit), op_or };
-		signed char expected[] { RAW_CH(true_lit) };
-		EXPECT_LIMITED_STACK(code, 2 * Char::typed_size, expected);
+		signed char code[] { PUSH_BYTE(false_lit), PUSH_BYTE(true_lit), op_or };
+		signed char expected[] { RAW_BYTE(true_lit) };
+		EXPECT_LIMITED_STACK(code, 2 * Byte::typed_size, expected);
 	}
 
 	TEST(bool_tests, or11_ch) {
-		signed char code[] { PUSH_CH(true_lit), PUSH_CH(true_lit), op_or };
-		signed char expected[] { RAW_CH(true_lit) };
-		EXPECT_LIMITED_STACK(code, 2 * Char::typed_size, expected);
+		signed char code[] { PUSH_BYTE(true_lit), PUSH_BYTE(true_lit), op_or };
+		signed char expected[] { RAW_BYTE(true_lit) };
+		EXPECT_LIMITED_STACK(code, 2 * Byte::typed_size, expected);
 	}
 
 	TEST(bool_tests, or_underflow_ch) {
-		signed char code[] { PUSH_CH(true_lit), op_or };
+		signed char code[] { PUSH_BYTE(true_lit), op_or };
 		EXPECT_ERROR(code, Err::leave_stack_segment);
 	}
 #endif
@@ -177,33 +177,33 @@ using namespace vm;
 	}
 #endif
 
-#if CONFIG_WITH_CHAR
+#if CONFIG_WITH_BYTE
 	TEST(bool_tests, xor00_ch) {
-		signed char code[] { PUSH_CH(false_lit), PUSH_CH(false_lit), op_xor };
-		signed char expected[] { RAW_CH(false_lit) };
-		EXPECT_LIMITED_STACK(code, 2 * Char::typed_size, expected);
+		signed char code[] { PUSH_BYTE(false_lit), PUSH_BYTE(false_lit), op_xor };
+		signed char expected[] { RAW_BYTE(false_lit) };
+		EXPECT_LIMITED_STACK(code, 2 * Byte::typed_size, expected);
 	}
 
 	TEST(bool_tests, xor01_ch) {
-		signed char code[] { PUSH_CH(true_lit), PUSH_CH(false_lit), op_xor };
-		signed char expected[] { RAW_CH(true_lit) };
-		EXPECT_LIMITED_STACK(code, 2 * Char::typed_size, expected);
+		signed char code[] { PUSH_BYTE(true_lit), PUSH_BYTE(false_lit), op_xor };
+		signed char expected[] { RAW_BYTE(true_lit) };
+		EXPECT_LIMITED_STACK(code, 2 * Byte::typed_size, expected);
 	}
 
 	TEST(bool_tests, xor10_ch) {
-		signed char code[] { PUSH_CH(false_lit), PUSH_CH(true_lit), op_xor };
-		signed char expected[] { RAW_CH(true_lit) };
-		EXPECT_LIMITED_STACK(code, 2 * Char::typed_size, expected);
+		signed char code[] { PUSH_BYTE(false_lit), PUSH_BYTE(true_lit), op_xor };
+		signed char expected[] { RAW_BYTE(true_lit) };
+		EXPECT_LIMITED_STACK(code, 2 * Byte::typed_size, expected);
 	}
 
 	TEST(bool_tests, xor11_ch) {
-		signed char code[] { PUSH_CH(true_lit), PUSH_CH(true_lit), op_xor };
-		signed char expected[] { RAW_CH(false_lit) };
-		EXPECT_LIMITED_STACK(code, 2 * Char::typed_size, expected);
+		signed char code[] { PUSH_BYTE(true_lit), PUSH_BYTE(true_lit), op_xor };
+		signed char expected[] { RAW_BYTE(false_lit) };
+		EXPECT_LIMITED_STACK(code, 2 * Byte::typed_size, expected);
 	}
 
 	TEST(bool_tests, xor_underflow_ch) {
-		signed char code[] { PUSH_CH(true_lit), op_xor };
+		signed char code[] { PUSH_BYTE(true_lit), op_xor };
 		EXPECT_ERROR(code, Err::leave_stack_segment);
 	}
 #endif

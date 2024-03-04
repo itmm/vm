@@ -33,19 +33,19 @@
 	#define CONFIG_INT_TYPE_IS_STD_INT false
 #endif
 
-#if !defined(CONFIG_WITH_CHAR)
-	#define CONFIG_WITH_CHAR true
+#if !defined(CONFIG_WITH_BYTE)
+	#define CONFIG_WITH_BYTE true
 #endif
 
-#if CONFIG_WITH_CHAR
-	#if !defined(CONFIG_CHAR_SIZE)
-		#define CONFIG_CHAR_SIZE 1
+#if CONFIG_WITH_BYTE
+	#if !defined(CONFIG_BYTE_SIZE)
+		#define CONFIG_BYTE_SIZE 1
 	#endif
-	#if !defined(CONFIG_CHAR_TYPE)
-		#define CONFIG_CHAR_TYPE signed char
+	#if !defined(CONFIG_BYTE_TYPE)
+		#define CONFIG_BYTE_TYPE signed char
 	#endif
-	#if !defined(CONFIG_CHAR_USE_TYPE_FIELD)
-		#define CONFIG_CHAR_USE_TYPE_FIELD false
+	#if !defined(CONFIG_BYTE_USE_TYPE_FIELD)
+		#define CONFIG_BYTE_USE_TYPE_FIELD false
 	#endif
 #endif
 
@@ -96,4 +96,4 @@
 		#define CONFIG_INTERNAL_INT_IS_INT false
 	#endif
 #endif
-#define CONFIG_WITH_NUMERIC (CONFIG_WITH_INT || CONFIG_WITH_CHAR)
+#define CONFIG_WITH_NUMERIC (CONFIG_WITH_INT || CONFIG_WITH_BYTE)

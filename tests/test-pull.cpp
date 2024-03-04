@@ -4,11 +4,11 @@
 
 using namespace vm;
 
-#if CONFIG_WITH_CHAR
+#if CONFIG_WITH_BYTE
 	TEST(pull_tests, pull_ch) {
-		signed char code[] { PUSH_CH(10), PUSH_CH(11), op_pull };
-		signed char expected[] { RAW_CH(10) };
-		EXPECT_LIMITED_STACK(code, 2 * Char::typed_size, expected);
+		signed char code[] { PUSH_BYTE(10), PUSH_BYTE(11), op_pull };
+		signed char expected[] { RAW_BYTE(10) };
+		EXPECT_LIMITED_STACK(code, 2 * Byte::typed_size, expected);
 	}
 #endif
 

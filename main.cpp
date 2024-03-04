@@ -7,8 +7,8 @@
 int main() {
 	signed char ram[4096];
 	signed char code[] {
-		#if CONFIG_WITH_CHAR
-			PUSH_CH('?'), vm::op_write_ch,
+		#if CONFIG_WITH_BYTE
+			PUSH_BYTE('?'), vm::op_write_ch,
 		#endif
 		vm::op_break
 	};

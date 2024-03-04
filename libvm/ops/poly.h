@@ -10,10 +10,12 @@
 			protected:
 				Poly() = default;
 
-				#if CONFIG_WITH_CHAR
+				#if CONFIG_WITH_BYTE
+				// TODO: replace with Byte
 					virtual void perform_ch(signed char a, signed char b);
 				#endif
 				#if CONFIG_WITH_INT
+					// TODO: replace with Int
 					virtual void perform_int(int a, int b);
 				#endif
 				// TODO: multiprecision operators

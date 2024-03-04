@@ -51,10 +51,10 @@ template<typename P> signed char Acc::get_byte(const P& ptr) {
 
 template<typename P> Value Acc::get_value(const P& ptr) {
 	ptr.check(1); switch (*ptr.ptr_) {
-		#if CONFIG_WITH_CHAR
-			case Char::type_ch:
-				ptr.check(Char::typed_size);
-				return Value { Char { ptr.ptr_[1] } };
+		#if CONFIG_WITH_BYTE
+			case Byte::type_ch:
+				ptr.check(Byte::typed_size);
+				return Value { Byte { ptr.ptr_[1] } };
 		#endif
 		#if CONFIG_WITH_INT
 			case Int::type_ch:
@@ -94,9 +94,9 @@ static void set_ptr_type(signed char* ptr, signed char type) {
 
 template<typename P>
 void Acc::set_value(P ptr, const Value& value) {
-	#if CONFIG_WITH_CHAR
-		if (auto ch = std::get_if<Char>(&value)) {
-			ptr.check(Char::typed_size); set_ptr_type(ptr.ptr_, Char::type_ch);
+	#if CONFIG_WITH_BYTE
+		if (auto ch = std::get_if<Byte>(&value)) {
+			ptr.check(Byte::typed_size); set_ptr_type(ptr.ptr_, Byte::type_ch);
 			ptr.ptr_[1] = ch->value;
 			return;
 		}
@@ -153,10 +153,10 @@ Value Acc::pull() {
 	return value;
 }
 
-#if CONFIG_WITH_CHAR
-	Char Acc::pull_ch() {
+#if CONFIG_WITH_BYTE
+	Byte Acc::pull_ch() {
 		auto value { pull() };
-		auto ch = std::get_if<Char>(&value);
+		auto ch = std::get_if<Byte>(&value);
 		if (!ch) { err(Err::no_char); }
 		return *ch;
 	}

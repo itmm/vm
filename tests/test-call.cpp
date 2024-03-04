@@ -9,25 +9,25 @@ using namespace vm;
 		signed char code[] {
 			op_near_jmp, 1,
 			op_return,
-			PUSH_CH(0), PUSH_CH(2), op_call,
-			PUSH_CH(0), PUSH_CH(2), op_call
+			PUSH_BYTE(0), PUSH_BYTE(2), op_call,
+			PUSH_BYTE(0), PUSH_BYTE(2), op_call
 		};
 		signed char expected[] { };
 		EXPECT_LIMITED_STACK(
-			code, Stack_Frame::typed_size + Char::typed_size, expected
+			code, Stack_Frame::typed_size + Byte::typed_size, expected
 		);
 	}
 
 	TEST(call_tests, return_with_noempty_stack) {
 		signed char code[] {
 			op_near_jmp, 3,
-			PUSH_CH(10), op_return,
-			PUSH_CH(0), PUSH_CH(2), op_call,
-			PUSH_CH(0), PUSH_CH(2), op_call
+			PUSH_BYTE(10), op_return,
+			PUSH_BYTE(0), PUSH_BYTE(2), op_call,
+			PUSH_BYTE(0), PUSH_BYTE(2), op_call
 		};
 		signed char expected[] { };
 		EXPECT_LIMITED_STACK(
-			code, Stack_Frame::typed_size + 2 * Char::typed_size, expected
+			code, Stack_Frame::typed_size + 2 * Byte::typed_size, expected
 		);
 	}
 #endif

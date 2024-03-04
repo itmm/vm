@@ -4,45 +4,45 @@
 
 using namespace vm;
 
-#if CONFIG_WITH_CHAR
+#if CONFIG_WITH_BYTE
 	TEST(jmp_tests, small_jmp) {
-		signed char code[] { op_near_jmp, Char::raw_size + 1, PUSH_CH(10) };
+		signed char code[] { op_near_jmp, Byte::raw_size + 1, PUSH_BYTE(10) };
 		signed char expected[] { };
-		EXPECT_LIMITED_STACK(code, Char::typed_size, expected);
+		EXPECT_LIMITED_STACK(code, Byte::typed_size, expected);
 	}
 
 	TEST(jmp_tests, small_jmp_true) {
 		signed char code[] {
-			PUSH_CH(true_lit), op_near_jmp_true, Char::raw_size + 1, PUSH_CH(10)
+			PUSH_BYTE(true_lit), op_near_jmp_true, Byte::raw_size + 1, PUSH_BYTE(10)
 		};
 		signed char expected[] { };
-		EXPECT_LIMITED_STACK(code, Char::typed_size, expected);
+		EXPECT_LIMITED_STACK(code, Byte::typed_size, expected);
 	}
 
 	TEST(jmp_tests, dont_small_jmp_true) {
 		signed char code[] {
-			PUSH_CH(false_lit), op_near_jmp_true, Char::raw_size + 1, PUSH_CH(10)
+			PUSH_BYTE(false_lit), op_near_jmp_true, Byte::raw_size + 1, PUSH_BYTE(10)
 		};
-		signed char expected[] { RAW_CH(10) };
-		EXPECT_LIMITED_STACK(code, Char::typed_size, expected);
+		signed char expected[] { RAW_BYTE(10) };
+		EXPECT_LIMITED_STACK(code, Byte::typed_size, expected);
 	}
 
 	TEST(jmp_tests, small_jmp_false) {
 		signed char code[] {
-			PUSH_CH(false_lit), op_near_jmp_false, Char::raw_size + 1,
-			PUSH_CH(10)
+			PUSH_BYTE(false_lit), op_near_jmp_false, Byte::raw_size + 1,
+			PUSH_BYTE(10)
 		};
 		signed char expected[] { };
-		EXPECT_LIMITED_STACK(code, Char::typed_size, expected);
+		EXPECT_LIMITED_STACK(code, Byte::typed_size, expected);
 	}
 
 	TEST(jmp_tests, dont_small_jmp_false) {
 		signed char code[] {
-			PUSH_CH(true_lit), op_near_jmp_false, Char::raw_size + 1,
-			PUSH_CH(10)
+			PUSH_BYTE(true_lit), op_near_jmp_false, Byte::raw_size + 1,
+			PUSH_BYTE(10)
 		};
-		signed char expected[] { RAW_CH(10) };
-		EXPECT_LIMITED_STACK(code, Char::typed_size, expected);
+		signed char expected[] { RAW_BYTE(10) };
+		EXPECT_LIMITED_STACK(code, Byte::typed_size, expected);
 	}
 #endif
 
@@ -50,7 +50,7 @@ using namespace vm;
 	TEST(jmp_tests, jmp) {
 		signed char code[] { op_jmp, RAW_INT_(Int::raw_size + 1), PUSH_INT(10) };
 		signed char expected[] { };
-		EXPECT_LIMITED_STACK(code, Char::typed_size, expected);
+		EXPECT_LIMITED_STACK(code, Byte::typed_size, expected);
 	}
 
 	TEST(jmp_tests, jmp_true) {

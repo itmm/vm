@@ -57,7 +57,7 @@ OP(nop)
 	OP(or)
 #endif
 OP(pull)
-#if CONFIG_WITH_CHAR
+#if CONFIG_WITH_BYTE
 	OP(push_ch)
 #endif
 #if CONFIG_WITH_INT
@@ -84,13 +84,13 @@ OP(swap)
 #if CONFIG_WITH_EXCEPTIONS
     OP(throw)
 #endif
-#if CONFIG_WITH_CHAR
+#if CONFIG_WITH_BYTE
 	OP(to_ch)
 #endif
 #if CONFIG_WITH_INT
 	OP(to_int)
 #endif
-#if CONFIG_WITH_CHAR
+#if CONFIG_WITH_BYTE
 	OP(write_ch)
 #endif
 #if CONFIG_WITH_NUMERIC

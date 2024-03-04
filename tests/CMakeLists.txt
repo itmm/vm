@@ -20,7 +20,7 @@ add_executable(Tests
 	test-store.cpp
 	test-sub.cpp
 	test-swap.cpp
-	test-to-ch.cpp
+        test-to-byte.cpp
 	test-to-int.cpp
 	test-tree.cpp
 	vm-tests.cpp

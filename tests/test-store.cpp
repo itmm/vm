@@ -5,21 +5,21 @@
 using namespace vm;
 
 #if CONFIG_WITH_INT
-	#if CONFIG_WITH_CHAR
+	#if CONFIG_WITH_BYTE
 		TEST(store_tests, small_store_ch) {
 			signed char code[] {
-				PUSH_CH(10), PUSH_CH(11), PUSH_CH(20), PUSH_CH(Char::typed_size), op_store
+				PUSH_BYTE(10), PUSH_BYTE(11), PUSH_BYTE(20), PUSH_BYTE(Byte::typed_size), op_store
 			};
-			signed char expected[] { RAW_CH(11), RAW_CH(20) };
-			EXPECT_LIMITED_STACK(code, 4 * Char::typed_size, expected);
+			signed char expected[] { RAW_BYTE(11), RAW_BYTE(20) };
+			EXPECT_LIMITED_STACK(code, 4 * Byte::typed_size, expected);
 		}
 
 		TEST(store_tests, store_ch) {
 			signed char code[] {
-				PUSH_CH(10), PUSH_CH(11), PUSH_CH(20), PUSH_SMALL_INT(Char::typed_size), op_store
+				PUSH_BYTE(10), PUSH_BYTE(11), PUSH_BYTE(20), PUSH_SMALL_INT(Byte::typed_size), op_store
 			};
-			signed char expected[] { RAW_CH(11), RAW_CH(20) };
-			EXPECT_LIMITED_STACK(code, 3 * Char::typed_size + Int::typed_size, expected);
+			signed char expected[] { RAW_BYTE(11), RAW_BYTE(20) };
+			EXPECT_LIMITED_STACK(code, 3 * Byte::typed_size + Int::typed_size, expected);
 		}
 	#endif
 

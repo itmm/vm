@@ -23,8 +23,8 @@ using namespace vm;
 
 int vm::value_size(signed char type) {
 	switch (type) {
-		#if CONFIG_WITH_CHAR
-			case Char::type_ch: return Char::typed_size;
+		#if CONFIG_WITH_BYTE
+			case Byte::type_ch: return Byte::typed_size;
 		#endif
 		#if CONFIG_WITH_INT
 			case Int::type_ch: return Int::typed_size;
@@ -40,9 +40,9 @@ int vm::value_size(signed char type) {
 }
 
 int vm::value_size(const Value& value) {
-	#if CONFIG_WITH_CHAR
-		if (std::get_if<Char>(&value)) {
-			return Char::typed_size;
+	#if CONFIG_WITH_BYTE
+		if (std::get_if<Byte>(&value)) {
+			return Byte::typed_size;
 		}
 	#endif
 	#if CONFIG_WITH_INT
@@ -65,8 +65,8 @@ int vm::value_size(const Value& value) {
 
 #if CONFIG_WITH_NUMERIC
 	Int::internal_type vm::internal_int_value(const Value& value) {
-		#if CONFIG_WITH_CHAR
-			if (auto ch = std::get_if<Char>(&value)) {
+		#if CONFIG_WITH_BYTE
+			if (auto ch = std::get_if<Byte>(&value)) {
 				return ch->value;
 			}
 		#endif
@@ -82,8 +82,8 @@ int vm::value_size(const Value& value) {
 #if CONFIG_WITH_INT
 	#if !CONFIG_INTERNAL_INT_IS_INT
 		Int vm::int_value(const Value& value) {
-			#if CONFIG_WITH_CHAR
-				if (auto ch = std::get_if<Char>(&value)) {
+			#if CONFIG_WITH_BYTE
+				if (auto ch = std::get_if<Byte>(&value)) {
 					return Int { ch->value };
 				}
 			#endif
@@ -95,10 +95,10 @@ int vm::value_size(const Value& value) {
 	#endif
 #endif
 
-#if CONFIG_WITH_CHAR
-	Char vm::to_ch(int value, Err::Code overflow, Err::Code underflow) {
+#if CONFIG_WITH_BYTE
+	Byte vm::to_ch(int value, Err::Code overflow, Err::Code underflow) {
 		if (value > std::numeric_limits<signed char>::max()) { err(overflow); }
 		if (value < std::numeric_limits<signed char>::min()) { err(underflow); }
-		return Char { static_cast<signed char>(value) };
+		return Byte { static_cast<signed char>(value) };
 	}
 #endif

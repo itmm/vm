@@ -3,9 +3,9 @@
 
 using namespace vm;
 
-#if CONFIG_WITH_CHAR
+#if CONFIG_WITH_BYTE
 	void vm::ops::And::perform_ch(signed char a, signed char b) {
-		Acc::push(Char { to_ch(a & b, Err::unexpected, Err::unexpected) });
+		Acc::push(Byte { to_ch(a & b, Err::unexpected, Err::unexpected) });
 	}
 #endif
 

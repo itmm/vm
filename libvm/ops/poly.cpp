@@ -8,9 +8,9 @@ using namespace vm;
 void ops::Poly::operator()() {
 	auto b { Acc::pull() }; auto a { Acc::pull() };
 
-	#if CONFIG_WITH_CHAR
-		auto a_ch = std::get_if<Char>(&a);
-		auto b_ch = std::get_if<Char>(&b);
+	#if CONFIG_WITH_BYTE
+		auto a_ch = std::get_if<Byte>(&a);
+		auto b_ch = std::get_if<Byte>(&b);
 
 		if (a_ch && b_ch) { perform_ch(a_ch->value, b_ch->value); return; }
 	#endif
@@ -19,7 +19,7 @@ void ops::Poly::operator()() {
 		auto a_int = std::get_if<Int>(&a);
 		auto b_int = std::get_if<Int>(&b);
 
-		#if CONFIG_WITH_CHAR
+		#if CONFIG_WITH_BYTE
 			if ((a_int || a_ch) && (b_int || b_ch)) {
 				perform_int(
 					a_int ? a_int->value : a_ch->value,
@@ -35,7 +35,7 @@ void ops::Poly::operator()() {
 }
 #endif
 
-#if CONFIG_WITH_CHAR
+#if CONFIG_WITH_BYTE
 	void ops::Poly::perform_ch(signed char a, signed char b) {
 		perform_int(a, b);
 	}

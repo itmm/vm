@@ -4,11 +4,11 @@
 
 using namespace vm;
 
-#if CONFIG_WITH_CHAR
+#if CONFIG_WITH_BYTE
 	TEST(dup_tests, dup_ch) {
-		signed char code[] { PUSH_CH(10), op_dup };
-		signed char expected[] { RAW_CH(10), RAW_CH(10) };
-		EXPECT_LIMITED_STACK(code, 2 * Char::typed_size, expected);
+		signed char code[] { PUSH_BYTE(10), op_dup };
+		signed char expected[] { RAW_BYTE(10), RAW_BYTE(10) };
+		EXPECT_LIMITED_STACK(code, 2 * Byte::typed_size, expected);
 	}
 #endif
 
@@ -17,10 +17,10 @@ TEST(dup_tests, empty) {
 	EXPECT_ERROR(code, Err::leave_stack_segment);
 }
 
-#if CONFIG_WITH_CHAR
+#if CONFIG_WITH_BYTE
 	TEST(dup_tests, ch_no_ram) {
-		signed char code[] { PUSH_CH(22), op_dup };
-		EXPECT_STACK_OVERFLOW(code, 2 * Char::typed_size - 1);
+		signed char code[] { PUSH_BYTE(22), op_dup };
+		EXPECT_STACK_OVERFLOW(code, 2 * Byte::typed_size - 1);
 	}
 #endif
 

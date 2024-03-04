@@ -9,10 +9,10 @@ TEST(push_pull_tests, empty) {
 	EXPECT_STACK(code, expected);
 }
 
-#if CONFIG_WITH_CHAR
+#if CONFIG_WITH_BYTE
 	TEST(push_pull_tests, push_3) {
-		signed char code[] { PUSH_CH(10), PUSH_CH(20), PUSH_CH(30) };
-		signed char expected[] { RAW_CH(30), RAW_CH(20), RAW_CH(10) };
+		signed char code[] { PUSH_BYTE(10), PUSH_BYTE(20), PUSH_BYTE(30) };
+		signed char expected[] { RAW_BYTE(30), RAW_BYTE(20), RAW_BYTE(10) };
 		EXPECT_STACK(code, expected);
 	}
 #endif
