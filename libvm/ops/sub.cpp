@@ -14,13 +14,13 @@ using namespace vm;
 #endif
 
 #if CONFIG_WITH_INT
-	void vm::ops::Sub::perform_int(int a, int b) {
-		if (a > 0 && b < 0 && a > std::numeric_limits<int>::max() + b) {
+	void vm::ops::Sub::perform_int(const Int& a, const Int& b) {
+		if (a.value > 0 && b.value < 0 && a.value > std::numeric_limits<Int::value_type>::max() + b.value) {
 			err(Err::sub_overflow);
 		}
-		if (a < 0 && b > 0 && a < std::numeric_limits<int>::min() + b) {
+		if (a.value < 0 && b.value > 0 && a.value < std::numeric_limits<Int::value_type>::min() + b.value) {
 			err(Err::sub_underflow);
 		}
-		Acc::push(Int { a - b });
+		Acc::push(Int { a.value - b.value });
 	}
 #endif

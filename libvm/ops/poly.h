@@ -16,10 +16,8 @@
 					virtual void perform_byte(const Byte& a, const Byte& b);
 				#endif
 				#if CONFIG_WITH_INT
-					// TODO: replace with Int
-					virtual void perform_int(int a, int b);
+					virtual void perform_int(const Int& a, const Int& b);
 				#endif
-				// TODO: multiprecision operators
 		};
 	}
 #endif

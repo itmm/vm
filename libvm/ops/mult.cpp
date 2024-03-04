@@ -4,11 +4,11 @@
 using namespace vm;
 
 #if CONFIG_WITH_INT
-	void vm::ops::Mult::perform_int(int a, int b) {
-		if (a == 0x80000000 && b == -1) { err(Err::mult_overflow); }
-		int value { a * b };
-		if (b != 0 && value / b != a) {
-			if ((a < 0 && b > 0) || (a > 0 && b < 0)) {
+	void vm::ops::Mult::perform_int(const Int& a, const Int& b) {
+		if (a.value == 0x80000000 && b.value == -1) { err(Err::mult_overflow); }
+		int value { a.value * b.value };
+		if (b.value != 0 && value / b.value != a.value) {
+			if ((a.value < 0 && b.value > 0) || (a.value > 0 && b.value < 0)) {
 				err(Err::mult_underflow);
 			}
 			err(Err::mult_overflow);

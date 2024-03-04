@@ -10,5 +10,7 @@ using namespace vm;
 #endif
 
 #if CONFIG_WITH_INT
-	void vm::ops::Xor::perform_int(int a, int b) { Acc::push(Int { a ^ b }); }
+	void vm::ops::Xor::perform_int(const Int& a, const Int& b) {
+		Acc::push(Int { a.value ^ b.value });
+	}
 #endif

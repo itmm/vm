@@ -8,7 +8,7 @@
 		public:
 			Div() = default;
 
-			void perform_int(int a, int b) override;
+			void perform_int(const Int& a, const Int& b) override;
 		};
 	}
 #endif
