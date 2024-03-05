@@ -123,6 +123,8 @@ namespace vm {
 		#endif
 		#if !defined(VARIANT_SEP)
 			nullptr_t
+		#else
+			#undef VARIANT_SEP
 		#endif
 	>;
 

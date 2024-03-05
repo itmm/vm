@@ -204,11 +204,13 @@ void vm::dump_stack() {
 	} else { std::cout << " }\n"; }
 }
 
-static void perform_op(const vm::ops::Poly& op) {
-	auto b { Acc::pull() };
-	auto a { Acc::pull() };
-	Acc::push(op(a, b));
-}
+#if CONFIG_WITH_NUMERIC
+	static void perform_op(const vm::ops::Poly& op) {
+		auto b { Acc::pull() };
+		auto a { Acc::pull() };
+		Acc::push(op(a, b));
+	}
+#endif
 
 void vm::step() {
 	// dump_stack();
