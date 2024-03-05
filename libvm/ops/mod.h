@@ -8,7 +8,7 @@
 		public:
 			Mod() = default;
 
-			void perform_int(const Int& a, const Int& b) override;
+			Value perform_int(const Int& a, const Int& b) const override;
 		};
 	}
 #endif

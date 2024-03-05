@@ -1,17 +1,14 @@
-#include "../accessor.h"
 #include "poly.h"
 
 using namespace vm;
 
 #if CONFIG_WITH_NUMERIC
-	void ops::Poly::operator()() {
-		auto b { Acc::pull() }; auto a { Acc::pull() };
-
+	Value ops::Poly::operator()(const Value& a, const Value& b) const {
 		#if CONFIG_WITH_BYTE
 			auto a_ch = std::get_if<Byte>(&a);
 			auto b_ch = std::get_if<Byte>(&b);
 
-			if (a_ch && b_ch) { perform_byte(*a_ch, *b_ch); return; }
+			if (a_ch && b_ch) { return perform_byte(*a_ch, *b_ch); }
 		#endif
 
 		#if CONFIG_WITH_INT
@@ -20,14 +17,13 @@ using namespace vm;
 
 			#if CONFIG_WITH_BYTE
 				if ((a_int || a_ch) && (b_int || b_ch)) {
-					perform_int(
+					return perform_int(
 						a_int ? *a_int : Int { a_ch->value },
 						b_int ? *b_int : Int { b_ch->value }
 					);
-					return;
 				}
 			#else
-				if (a_int && b_int) { perform_int(a_int, b_int); return; }
+				if (a_int && b_int) { return perform_int(a_int, b_int); }
 			#endif
 		#endif
 		err(Err::unknown_type);
@@ -35,13 +31,13 @@ using namespace vm;
 #endif
 
 #if CONFIG_WITH_BYTE
-	void ops::Poly::perform_byte(const Byte& a, const Byte& b) {
-		perform_int(Int { a.value }, Int { b.value });
+	Value ops::Poly::perform_byte(const Byte& a, const Byte& b) const {
+		return perform_int(Int { a.value }, Int { b.value });
 	}
 #endif
 
 #if CONFIG_WITH_INT
-	void ops::Poly::perform_int(const Int& a, const Int& b) {
+	Value ops::Poly::perform_int(const Int& a, const Int& b) const {
 		err(vm::Err::unknown_type);
 	}
 #endif

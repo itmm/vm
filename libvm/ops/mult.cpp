@@ -4,7 +4,7 @@
 using namespace vm;
 
 #if CONFIG_WITH_INT
-	void vm::ops::Mult::perform_int(const Int& a, const Int& b) {
+	Value vm::ops::Mult::perform_int(const Int& a, const Int& b) const {
 		if (a.value == 0x80000000 && b.value == -1) { err(Err::mult_overflow); }
 		int value { a.value * b.value };
 		if (b.value != 0 && value / b.value != a.value) {
@@ -13,6 +13,6 @@ using namespace vm;
 			}
 			err(Err::mult_overflow);
 		}
-		Acc::push(Int { value });
+		return Int { value };
 	}
 #endif

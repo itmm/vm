@@ -206,13 +206,19 @@ void vm::dump_stack() {
 	} else { std::cout << " }\n"; }
 }
 
+static void perform_op(const vm::ops::Poly& op) {
+	auto b { Acc::pull() };
+	auto a { Acc::pull() };
+	Acc::push(op(a, b));
+}
+
 void vm::step() {
 	// dump_stack();
 	signed char op { Acc::get_byte(pc) }; pc = pc + 1;
 	switch (op) {
 		#if CONFIG_WITH_NUMERIC
-			case op_add: { vm::ops::Add { }(); break; }
-			case op_and: { vm::ops::And { }(); break; }
+			case op_add: perform_op(vm::ops::Add { }); break;
+			case op_and: perform_op(vm::ops::And { }); break;
 		#endif
 		case op_break: err(Err::got_break);
 		#if CONFIG_WITH_CALL
@@ -241,7 +247,7 @@ void vm::step() {
 			case op_collect_garbage: Heap::collect_garbage(); break;
 		#endif
 		#if CONFIG_WITH_INT
-			case op_div: { vm::ops::Div { }(); break; }
+			case op_div: perform_op(vm::ops::Div { }); break;
 		#endif
 		case op_dup: {
 			auto value { Acc::pull() };
@@ -301,8 +307,8 @@ void vm::step() {
 			}
 		#endif
 		#if CONFIG_WITH_INT
-			case op_mod: { vm::ops::Mod { }(); break; }
-			case op_mult: { vm::ops::Mult { }(); break; }
+			case op_mod: perform_op(vm::ops::Mod { }); break;
+			case op_mult: perform_op(vm::ops::Mult { }); break;
 		#endif
 		#if CONFIG_WITH_HEAP
 			case op_new:
@@ -318,7 +324,7 @@ void vm::step() {
 				if (val) { Acc::push(Int { ~val->value }); break; }
 				err(Err::unknown_type);
 			}
-			case op_or: { vm::ops::Or { }(); break; }
+			case op_or: perform_op(vm::ops::Or { }); break;
 		#endif
 		case op_pull: Acc::pull(); break;
 		#if CONFIG_WITH_BYTE
@@ -348,7 +354,7 @@ void vm::step() {
 			}
 		#endif
 		#if CONFIG_WITH_NUMERIC
-			case op_sub: { vm::ops::Sub { }(); break; }
+			case op_sub: perform_op(vm::ops::Sub { }); break;
 			case op_store: store(Acc::pull_int().value); break;
 		#endif
 		case op_swap: {
@@ -373,7 +379,7 @@ void vm::step() {
 			case op_write_ch: std::cout << Acc::pull_ch().value; break;
 		#endif
 		#if CONFIG_WITH_NUMERIC
-			case op_xor: { vm::ops::Xor { }(); break; }
+			case op_xor: perform_op(vm::ops::Xor { }); break;
 		#endif
 		default: err(Err::unknown_opcode);
 	}

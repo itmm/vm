@@ -1,23 +1,23 @@
 #pragma once
 
-#include "../defines.h"
+#include "../value.h"
 
 #if CONFIG_WITH_NUMERIC
 	namespace vm::ops {
 		class Poly {
 			public:
-				void operator()();
+				Value operator()(const Value& a, const Value&b) const;
 				virtual ~Poly() = default;
+
+				#if CONFIG_WITH_BYTE
+					virtual Value perform_byte(const Byte& a, const Byte& b) const;
+				#endif
+				#if CONFIG_WITH_INT
+					virtual Value perform_int(const Int& a, const Int& b) const;
+				#endif
 
 			protected:
 				Poly() = default;
-
-				#if CONFIG_WITH_BYTE
-					virtual void perform_byte(const Byte& a, const Byte& b);
-				#endif
-				#if CONFIG_WITH_INT
-					virtual void perform_int(const Int& a, const Int& b);
-				#endif
 		};
 	}
 #endif
