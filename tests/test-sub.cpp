@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 
+#include "ops/sub.h"
 #include "vm-tests.h"
 
 using namespace vm;
@@ -12,15 +13,14 @@ using namespace vm;
 	}
 
 	TEST(sub_tests, negative) {
-		signed char code[] { PUSH_SMALL_INT(-10), PUSH_SMALL_INT(20), op_sub };
-		signed char expected[] { RAW_INT(-30) };
-		EXPECT_STACK(code, expected);
+		EXPECT_EQ(ops::Sub { } (Int { -10 }, Int { 20 }), Value { Int { -30 }});
 	}
 
 	TEST(sub_tests, big_ok_a) {
-		signed char code[] { PUSH_INT(0x7ffffffd), PUSH_SMALL_INT(-2), op_sub };
-		signed char expected[] { RAW_INT(0x7fffffff) };
-		EXPECT_STACK(code, expected);
+		EXPECT_EQ(
+			ops::Sub { } (Int { 0x7ffffffd }, Int { -2 }),
+			Value { Int { 0x7fffffff } }
+		);
 	}
 
 	TEST(sub_tests, big_overflow_a) {
@@ -29,9 +29,10 @@ using namespace vm;
 	}
 
 	TEST(sub_tests, big_ok_b) {
-		signed char code[] { PUSH_SMALL_INT(2), PUSH_INT(-0x7ffffffd), op_sub };
-		signed char expected[] { RAW_INT(0x7fffffff) };
-		EXPECT_STACK(code, expected);
+		EXPECT_EQ(
+			ops::Sub { } (Int { 2 }, Int { -0x7ffffffd }),
+			Value { Int { 0x7fffffff } }
+		);
 	}
 
 	TEST(sub_tests, big_overflow_b) {
@@ -40,9 +41,10 @@ using namespace vm;
 	}
 
 	TEST(sub_tests, two_bigs) {
-		signed char code[] { PUSH_INT(0x7fffffff), PUSH_INT(0x7ffffffd), op_sub };
-		signed char expected[] { RAW_INT(2) };
-		EXPECT_STACK(code, expected);
+		EXPECT_EQ(
+			ops::Sub { } (Int { 0x7fffffff }, Int { 0x7ffffffd }),
+			Value { Int { 2} }
+		);
 	}
 
 	TEST(sub_tests, underflow) {

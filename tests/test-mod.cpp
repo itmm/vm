@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 
+#include "ops/mod.h"
 #include "vm-tests.h"
 
 using namespace vm;
@@ -12,37 +13,31 @@ using namespace vm;
 	}
 
 	TEST(mod_tests, exact) {
-		signed char code[] { PUSH_SMALL_INT(20), PUSH_SMALL_INT(4), op_mod };
-		signed char expected[] { RAW_INT(0) };
-		EXPECT_STACK(code, expected);
+		EXPECT_EQ(ops::Mod { } (Int { 20 }, Int { 4 }), Value { Int { 0 } });
 	}
 
 	TEST(mod_tests, negative) {
-		signed char code[] { PUSH_SMALL_INT(-23), PUSH_SMALL_INT(5), op_mod };
 		#if CONFIG_OBERON_MATH
-			signed char expected[] { RAW_INT(2) };
+			Int expected { 2 };
 		#else
-			signed char expected[] { RAW_INT(-3) };
+			Int expected { -3 };
 		#endif
-		EXPECT_STACK(code, expected);
+		EXPECT_EQ(ops::Mod { } (Int { -23 }, Int { 5 }), Value { expected });
 	}
 
 	TEST(mod_tests, negative_exact) {
-		signed char code[] { PUSH_SMALL_INT(-20), PUSH_SMALL_INT(5), op_mod };
-		signed char expected[] { RAW_INT(0) };
-		EXPECT_STACK(code, expected);
+		EXPECT_EQ(ops::Mod { } (Int { -20 }, Int { 5 }), Value { Int { 0 } });
 	}
 
 	TEST(mod_tests, big_positive) {
-		signed char code[] { PUSH_INT(0x7fffffff), PUSH_SMALL_INT(2), op_mod };
-		signed char expected[] { RAW_INT(1) };
-		EXPECT_STACK(code, expected);
+		EXPECT_EQ(
+			ops::Mod { } (Int { 0x7fffffff }, Int { 2 }), Value { Int { 1 } }
+		);
 	}
 
 	TEST(mod_tests, big_negative) {
-		signed char code[] { PUSH_INT(0x80000000), PUSH_SMALL_INT(2), op_mod };
-		signed char expected[] { RAW_INT(0) };
-		EXPECT_STACK(code, expected);
+		Int big_neg { static_cast<int>(0x80000000) };
+		EXPECT_EQ(ops::Mod { } (big_neg, Int { 2 }), Value { Int { 0 } });
 	}
 
 	TEST(mod_tests, overflow) {

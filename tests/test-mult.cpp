@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 
+#include "ops/mult.h"
 #include "vm-tests.h"
 
 using namespace vm;
@@ -12,15 +13,14 @@ using namespace vm;
 	}
 
 	TEST(mult_tests, negative) {
-		signed char code[] { PUSH_SMALL_INT(-20), PUSH_SMALL_INT(30), op_mult };
-		signed char expected[] { RAW_INT(-600) };
-		EXPECT_STACK(code, expected);
+		EXPECT_EQ(
+			ops::Mult { } (Int { -20 }, Int { 30 }), Value { Int { -600 } }
+		);
 	}
 
 	TEST(mult_tests, big_ok_a) {
-		signed char code[] { PUSH_INT(0x7fffffff), PUSH_SMALL_INT(1), op_mult };
-		signed char expected[] { RAW_INT(0x7fffffff) };
-		EXPECT_STACK(code, expected);
+		Int big { 0x7fffffff };
+		EXPECT_EQ(ops::Mult { } (big, Int { 1 }), Value { big });
 	}
 
 	TEST(mult_tests, overflow) {
@@ -34,9 +34,8 @@ using namespace vm;
 	}
 
 	TEST(mult_tests, big_ok_b) {
-		signed char code[] { PUSH_SMALL_INT(1), PUSH_INT(0x7fffffff), op_mult };
-		signed char expected[] { RAW_INT(0x7fffffff) };
-		EXPECT_STACK(code, expected);
+		Int big { 0x7fffffff };
+		EXPECT_EQ(ops::Mult { } (Int { 1 }, big), Value { big });
 	}
 
 	TEST(mult_tests, big_overflow_b) {
@@ -50,9 +49,10 @@ using namespace vm;
 	}
 
 	TEST(mult_tests, max_neg) {
-		signed char code[] { PUSH_INT(0x8000), PUSH_INT(-0x10000), op_mult };
-		signed char expected[] { RAW_INT(0x80000000) };
-		EXPECT_STACK(code, expected);
+		EXPECT_EQ(
+			ops::Mult { } (Int { 0x8000 }, Int { -0x10000 }),
+			Value { Int { static_cast<int>(0x80000000) } }
+		);
 	}
 
 	TEST(mult_tests, underflow) {
