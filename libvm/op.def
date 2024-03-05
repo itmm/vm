@@ -85,7 +85,7 @@ OP(swap)
     OP(throw)
 #endif
 #if CONFIG_WITH_BYTE
-	OP(to_ch)
+	OP(to_byte)
 #endif
 #if CONFIG_WITH_INT
 	OP(to_int)

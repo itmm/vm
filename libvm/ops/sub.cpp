@@ -6,7 +6,7 @@ using namespace vm;
 
 #if CONFIG_WITH_BYTE
 	Value vm::ops::Sub::perform_byte(const Byte& a, const Byte& b) const {
-		return Byte { to_ch(
+		return Byte { to_byte(
 			a.value - b.value, Err::sub_overflow, Err::sub_underflow
 		) };
 	}

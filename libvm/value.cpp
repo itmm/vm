@@ -96,7 +96,7 @@ int vm::value_size(const Value& value) {
 #endif
 
 #if CONFIG_WITH_BYTE
-	Byte vm::to_ch(int value, Err::Code overflow, Err::Code underflow) {
+	Byte vm::to_byte(int value, Err::Code overflow, Err::Code underflow) {
 		if (value > std::numeric_limits<signed char>::max()) { err(overflow); }
 		if (value < std::numeric_limits<signed char>::min()) { err(underflow); }
 		return Byte { static_cast<signed char>(value) };

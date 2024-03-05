@@ -37,9 +37,7 @@ namespace {
 	#endif
 
 	#if CONFIG_WITH_BYTE
-		Byte negate_ch(const Byte& ch) {
-			return to_ch(~ch.value, Err::unexpected, Err::unexpected);
-		}
+		Byte negate_byte(const Byte& byte) { return to_byte(~byte.value); }
 	#endif
 
 	#if CONFIG_WITH_NUMERIC
@@ -319,7 +317,7 @@ void vm::step() {
 			case op_not: {
 				auto value { Acc::pull() };
 				auto ch { std::get_if<Byte>(&value) };
-				if (ch) { Acc::push(negate_ch(*ch)); break; }
+				if (ch) { Acc::push(negate_byte(*ch)); break; }
 				auto val { std::get_if<Int>(&value) };
 				if (val) { Acc::push(Int { ~val->value }); break; }
 				err(Err::unknown_type);
@@ -365,10 +363,10 @@ void vm::step() {
 			case op_throw: perform_throw(); break;
 		#endif
 		#if CONFIG_WITH_BYTE
-			case op_to_ch:
-				Acc::push(to_ch(
-					Acc::pull_int().value, Err::to_ch_overflow,
-					Err::to_ch_underflow
+			case op_to_byte:
+				Acc::push(to_byte(
+					Acc::pull_int().value, Err::to_byte_overflow,
+					Err::to_byte_underflow
 				));
 				break;
 		#endif

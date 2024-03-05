@@ -144,6 +144,9 @@ namespace vm {
 	#endif
 
 	#if CONFIG_WITH_BYTE
-		Byte to_ch(int value, Err::Code overflow, Err::Code underflow);
+		Byte to_byte(
+			int value, Err::Code overflow = Err::unexpected,
+			Err::Code underflow = Err::unexpected
+		);
 	#endif
 }

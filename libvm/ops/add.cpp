@@ -7,7 +7,7 @@ using namespace vm;
 
 #if CONFIG_WITH_BYTE
 	Value vm::ops::Add::perform_byte(const Byte& a, const Byte& b) const {
-		return Byte { to_ch(
+		return Byte { to_byte(
 			a.value + b.value, Err::add_overflow, Err::add_underflow
 		) };
 	}
