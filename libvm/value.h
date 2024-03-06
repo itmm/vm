@@ -81,9 +81,9 @@ namespace vm {
 
 			static constexpr signed char type_ch { 0x40 };
 			#if CONFIG_WITH_EXCEPTIONS
-				static constexpr int raw_size { 3 * Int::raw_size };
+				static constexpr int raw_size { 4 * Int::raw_size };
 			#else
-				static constexpr int raw_size { 2 * Int::raw_size };
+				static constexpr int raw_size { 3 * Int::raw_size };
 			#endif
 			static constexpr int typed_size { raw_size + 1 };
 		};

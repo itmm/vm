@@ -345,6 +345,11 @@ void vm::step() {
 		#endif
 		#if CONFIG_WITH_CALL
 			case op_return: do_return(); break;
+			case op_return_value: {
+				auto value { Acc::pull() };
+				do_return(); Acc::push(value);
+				break;
+			}
 		#endif
 		#if CONFIG_WITH_HEAP
 			case op_send: {

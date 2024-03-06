@@ -68,7 +68,7 @@ OP(pull)
 #endif
 #if CONFIG_WITH_CALL
 	OP(return)
-	OP(return_value) // TODO: implement
+	OP(return_value)
 #endif
 #if CONFIG_WITH_HEAP
 	OP(send)
