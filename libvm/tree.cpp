@@ -1,6 +1,7 @@
-#include "tree.h"
+#include <cassert>
 
 #include "accessor.h"
+#include "tree.h"
 
 using namespace vm;
 
@@ -52,7 +53,7 @@ using namespace vm;
 		} else { root = Heap_Ptr(); }
 		insert_all(Acc::get_ptr(node + node_smaller_offset));
 		insert_all(Acc::get_ptr(node + node_greater_offset));
-		if (mark(node) < 0) { set_size_with_mark(node, size(node), 1); }
+		if (mark(node) == red_mark) { set_mark(node, black_mark); }
 	}
 
 	bool Tree::contains(Heap_Ptr node) const {
@@ -144,4 +145,37 @@ using namespace vm;
 		set_size_with_mark(node, size(node), mark);
 	}
 
+	Heap_Ptr Tree::rotate_left(Heap_Ptr node) {
+		assert(node);
+		Heap_Ptr x { Acc::get_ptr(node + node_greater_offset) };
+		assert(x);
+		Acc::set_ptr(
+			node + node_greater_offset, Acc::get_ptr(x + node_smaller_offset)
+		);
+		Acc::set_ptr(x + node_smaller_offset, node);
+		set_mark(x, mark(node));
+		set_mark(node, red_mark);
+		return x;
+	}
+
+	Heap_Ptr Tree::rotate_right(Heap_Ptr node) {
+		assert(node);
+		Heap_Ptr x { Acc::get_ptr(node + node_smaller_offset) };
+		assert(x);
+		Acc::set_ptr(node + node_smaller_offset, Acc::get_ptr(x + node_greater_offset));
+		Acc::set_ptr(x + node_greater_offset, node);
+		set_mark(x, mark(node));
+		set_mark(node, red_mark);
+		return x;
+	}
+
+	void Tree::flip_colors(Heap_Ptr node) {
+		assert(node);
+		Heap_Ptr smaller { Acc::get_ptr(node + node_smaller_offset) };
+		Heap_Ptr greater { Acc::get_ptr(node + node_greater_offset) };
+		assert(smaller); assert(greater);
+		set_mark(node, red_mark);
+		set_mark(smaller, black_mark);
+		set_mark(greater, black_mark);
+	}
 #endif

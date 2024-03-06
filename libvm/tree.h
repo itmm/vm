@@ -30,9 +30,16 @@
 					Heap_Ptr node, const Int& size, bool keep_mark = false
 				);
 
+				static Heap_Ptr rotate_left(Heap_Ptr node);
+				static Heap_Ptr rotate_right(Heap_Ptr node);
+				static void flip_colors(Heap_Ptr node);
+
 			private:
 				friend int testing::get_mark(const Heap_Ptr&);
 				friend void testing::set_mark(Heap_Ptr, int);
+
+				static constexpr int black_mark { 1 };
+				static constexpr int red_mark { -1 };
 
 				Heap_Ptr root { };
 
