@@ -17,6 +17,7 @@
 				// TODO: use red-black tree
 
 				void insert(Heap_Ptr node);
+				static Heap_Ptr insert(Heap_Ptr node, Heap_Ptr parent);
 				void remove(Heap_Ptr node);
 				[[nodiscard]] bool contains(Heap_Ptr node) const;
 				[[nodiscard]] bool empty() const { return !root; }
@@ -30,6 +31,7 @@
 					Heap_Ptr node, const Int& size, bool keep_mark = false
 				);
 
+				static bool is_red(Heap_Ptr node);
 				static Heap_Ptr rotate_left(Heap_Ptr node);
 				static Heap_Ptr rotate_right(Heap_Ptr node);
 				static void flip_colors(Heap_Ptr node);

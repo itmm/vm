@@ -13,24 +13,41 @@ using namespace vm;
 	}
 
 	void vm::Tree::insert(Heap_Ptr node) {
-		if (!node) { return; }
-		if (mark(node) < 0) { set_size_with_mark(node, size(node), 1); }
-		Acc::set_ptr(node + node_smaller_offset, Heap_Ptr { });
-		Acc::set_ptr(node + node_greater_offset, Heap_Ptr { });
-		auto current = root;
-		if (!current) { root = node; return; }
-		do {
-			if (node < current) {
-				auto smaller { Acc::get_ptr(current + node_smaller_offset) };
-				if (smaller) { current = smaller; continue; }
-				Acc::set_ptr(current + node_smaller_offset, node);
-			} else {
-				auto greater { Acc::get_ptr(current + node_greater_offset) };
-				if (greater) { current = greater; continue; }
-				Acc::set_ptr(current + node_greater_offset, node);
+		root = insert(node, root);
+		set_mark(root, black_mark);
+	}
 
-			}
-		} while (false);
+	bool vm::Tree::is_red(Heap_Ptr node) {
+		return node && mark(node) == red_mark;
+	}
+
+	Heap_Ptr vm::Tree::insert(Heap_Ptr node, Heap_Ptr parent) {
+		if (!node) { return parent; }
+		if (!parent) { set_mark(node, red_mark); return node; }
+		if (node.offset() < parent.offset()) {
+			Acc::set_ptr(
+				parent + node_smaller_offset,
+				insert(node, Acc::get_ptr(parent + node_smaller_offset))
+			);
+		} else {
+			Acc::set_ptr(
+				parent + node_greater_offset,
+				insert(node, Acc::get_ptr(parent + node_greater_offset))
+			);
+		}
+		if (
+			is_red(Acc::get_ptr(parent + node_greater_offset)) &&
+			!is_red(Acc::get_ptr(parent + node_smaller_offset))
+		) { parent = rotate_left(parent); }
+		if (
+			is_red(Acc::get_ptr(parent + node_smaller_offset)) &&
+			is_red(Acc::get_ptr(Acc::get_ptr(parent + node_smaller_offset)) + node_smaller_offset)
+		) { parent = rotate_right(parent); }
+		if (
+			is_red(Acc::get_ptr(parent + node_greater_offset)) &&
+			is_red(Acc::get_ptr(parent + node_smaller_offset))
+		) { flip_colors(parent); }
+		return parent;
 	}
 
 	void Tree::insert_all(vm::Heap_Ptr node) {
