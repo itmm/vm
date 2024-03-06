@@ -34,8 +34,12 @@ template<typename P> signed char Acc::get_byte(const P& ptr) {
 	static constexpr int stack_frame_pc { 1 };
 	static constexpr int stack_frame_end { 1 + 1 * Int::raw_size };
 	static constexpr int stack_frame_outer { 1 + 2 * Int::raw_size };
+	static_assert(stack_frame_outer + Int::raw_size <= Stack_Frame::typed_size);
 	#if CONFIG_WITH_EXCEPTIONS
 		static constexpr int stack_frame_catch_pc { 1 + 3 * Int::raw_size };
+		static_assert(
+			stack_frame_catch_pc + Int::raw_size <= Stack_Frame::typed_size
+		);
 	#endif
 
 	template<typename P> Code_Ptr get_code_ptr(const P& ptr) {
