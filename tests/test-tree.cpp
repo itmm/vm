@@ -18,8 +18,8 @@ using namespace vm;
 	}
 
 	namespace vm::testing {
-		int get_mark(const Heap_Ptr& node) { return Tree::mark(node); }
-		void set_mark(Heap_Ptr node, int mark) { Tree::set_mark(node, mark); }
+		int get_mark(const Heap_Ptr& node) { return Balanced_Tree::mark(node); }
+		void set_mark(Heap_Ptr node, int mark) { Balanced_Tree::set_mark(node, mark); }
 	}
 
 	TEST(tree_tests, switch_mark) {
@@ -31,11 +31,11 @@ using namespace vm;
 		EXPECT_EQ(raw + heap_overhead, got);
 		EXPECT_EQ(Heap::alloc_list.greater(raw), Heap_Ptr { });
 		EXPECT_EQ(Heap::alloc_list.smaller(raw), Heap_Ptr { });
-		EXPECT_EQ(Tree::size(raw), Int { heap_overhead + 10 });
+		EXPECT_EQ(Balanced_Tree::size(raw), Int { heap_overhead + 10 });
 		EXPECT_EQ(vm::testing::get_mark(raw), 1);
 		vm::testing::set_mark(raw, -1);
 		EXPECT_EQ(vm::testing::get_mark(raw), -1);
-		EXPECT_EQ(Tree::size(raw), Int { heap_overhead + 10 });
+		EXPECT_EQ(Balanced_Tree::size(raw), Int { heap_overhead + 10 });
 		Heap::free_block(got);
 		EXPECT_EQ(Heap_Ptr::end, Ram_Ptr::begin);
 	}
@@ -46,12 +46,12 @@ using namespace vm;
 		init(ram, ram + sizeof(ram), code, code + sizeof(code));
 		std::ignore = Heap::alloc_block(20, false);
 		auto raw { Heap::alloc_list.smallest() };
-		EXPECT_EQ(Tree::size(raw), Int { heap_overhead + 20 });
+		EXPECT_EQ(Balanced_Tree::size(raw), Int { heap_overhead + 20 });
 		vm::testing::set_mark(raw, -1);
 		EXPECT_EQ(vm::testing::get_mark(raw), -1);
-		EXPECT_EQ(Tree::size(raw), Int { heap_overhead + 20 });
-		Tree::set_size(raw, Int { heap_overhead + 10 }, true);
+		EXPECT_EQ(Balanced_Tree::size(raw), Int { heap_overhead + 20 });
+		Balanced_Tree::set_size(raw, Int { heap_overhead + 10 }, true);
 		EXPECT_EQ(vm::testing::get_mark(raw), -1);
-		EXPECT_EQ(Tree::size(raw), Int { heap_overhead + 10 });
+		EXPECT_EQ(Balanced_Tree::size(raw), Int { heap_overhead + 10 });
 	}
 #endif

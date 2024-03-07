@@ -1,30 +1,23 @@
 #pragma once
 
-#include "ptr.h"
-#include "vm.h"
+#include "ordered_tree.h"
 
 #if CONFIG_WITH_HEAP
 	namespace vm {
-		class Tree;
+		class Balanced_Tree;
 
 		namespace testing {
 			int get_mark(const Heap_Ptr&);
 			void set_mark(Heap_Ptr, int);
 		}
 
-		class Tree {
+		class Balanced_Tree: public Ordered_Tree {
 			public:
 				// TODO: use red-black tree
 
-				void insert(Heap_Ptr node);
+				void insert(Heap_Ptr node) override;
 				static Heap_Ptr insert(Heap_Ptr node, Heap_Ptr parent);
-				void remove(Heap_Ptr node);
-				[[nodiscard]] bool contains(Heap_Ptr node) const;
-				[[nodiscard]] bool empty() const { return !root; }
-				[[nodiscard]] Heap_Ptr smaller(Heap_Ptr node) const;
-				[[nodiscard]] Heap_Ptr greater(Heap_Ptr node) const;
-				[[nodiscard]] Heap_Ptr smallest() const;
-				[[nodiscard]] Heap_Ptr greatest() const;
+				void remove(Heap_Ptr node) override;
 
 				[[nodiscard]] static Int size(const Heap_Ptr& node);
 				static void set_size(
@@ -43,9 +36,6 @@
 				static constexpr int black_mark { 1 };
 				static constexpr int red_mark { -1 };
 
-				Heap_Ptr root { };
-
-				void insert_all(Heap_Ptr node);
 				static void set_size_with_mark(
 					Heap_Ptr node, const Int& size, int mark
 				);
@@ -53,5 +43,4 @@
 				static void set_mark(Heap_Ptr& node, int mark);
 		};
 	}
-
 #endif

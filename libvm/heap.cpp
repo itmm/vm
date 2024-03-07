@@ -15,12 +15,12 @@ using namespace vm;
 
 	void Heap::insert_into_free_list(Heap_Ptr block) {
 		free_list.insert(block);
-		auto size { Tree::size(block).value };
+		auto size { Balanced_Tree::size(block).value };
 
 		if (auto smaller = free_list.smaller(block)) {
-			auto smaller_size { Tree::size(smaller).value };
+			auto smaller_size { Balanced_Tree::size(smaller).value };
 			if (smaller + smaller_size == block) {
-				Tree::set_size(smaller, Int { smaller_size + size });
+				Balanced_Tree::set_size(smaller, Int { smaller_size + size });
 				free_list.remove(block);
 				block = smaller; size += smaller_size;
 			}
@@ -28,7 +28,7 @@ using namespace vm;
 
 		if (auto greater = free_list.greater(block)) {
 			if (block + size == greater) {
-				Tree::set_size(block, Int { size + Tree::size(greater).value });
+				Balanced_Tree::set_size(block, Int { size + Balanced_Tree::size(greater).value });
 				free_list.remove(greater);
 			}
 		}
@@ -44,7 +44,7 @@ using namespace vm;
 			auto current = free_list.greatest();
 			current; current = free_list.smaller(current)
 		) {
-			int cur_size { Tree::size(current).value };
+			int cur_size { Balanced_Tree::size(current).value };
 			bool found {
 				tight_fit ?
 					cur_size == size || cur_size > 3 * size :
@@ -54,8 +54,8 @@ using namespace vm;
 				int rest_size { cur_size - size };
 				if (rest_size > heap_overhead) {
 					Heap_Ptr rest_block { current + size };
-					Tree::set_size(rest_block, Int { rest_size });
-					Tree::set_size(current, Int { size });
+					Balanced_Tree::set_size(rest_block, Int { rest_size });
+					Balanced_Tree::set_size(current, Int { size });
 					free_list.insert(rest_block);
 				}
 				free_list.remove(current);
@@ -87,8 +87,8 @@ using namespace vm;
 			found = Heap_Ptr { Heap_Ptr::end };
 			Heap_Ptr::end += size;
 			Ordered_Tree::init(found);
-			Tree::set_size(found, Int { size });
-		} else { size = Tree::size(found).value; }
+			Balanced_Tree::set_size(found, Int { size });
+		} else { size = Balanced_Tree::size(found).value; }
 
 		alloc_list.insert(found);
 
@@ -100,7 +100,7 @@ using namespace vm;
 	void Heap::free_block(Heap_Ptr block) {
 		block = block - heap_overhead;
 		alloc_list.remove(block);
-		auto size { Tree::size(block).value };
+		auto size { Balanced_Tree::size(block).value };
 		if (size < std::max(node_size, heap_overhead)) {
 			err(Err::free_invalid_block);
 		}
@@ -119,7 +119,7 @@ using namespace vm;
 		if (Heap_Ptr::end - Ram_Ptr::begin) {
 			std::cout << "\n";
 			while (current < end) {
-				auto size { Tree::size(current).value };
+				auto size { Balanced_Tree::size(current).value };
 				if (current == next_allocated) {
 					std::cout << "  " << current.offset() <<
 						": block[" << size << "] {";
@@ -196,7 +196,7 @@ using namespace vm;
 			Heap_Ptr current { used_blocks.smallest() };
 			used_blocks.remove(current);
 			processed_blocks.insert(current);
-			Heap_Ptr end { current + Tree::size(current) };
+			Heap_Ptr end { current + Balanced_Tree::size(current) };
 			add_pointers(current + heap_overhead, end, used_blocks);
 		}
 

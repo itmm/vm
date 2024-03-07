@@ -15,7 +15,7 @@ using namespace vm;
 			const Heap_Ptr& node, Int::internal_type offset
 		) {
 			bool result {
-				node && offset > 0 && offset + Int::raw_size <= node_size
+				node && offset >= 0 && offset + Int::raw_size <= node_size
 			};
 			assert(result);
 			return result;

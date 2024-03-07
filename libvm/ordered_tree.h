@@ -14,9 +14,10 @@
 
 		class Ordered_Tree {
 			public:
+				virtual ~Ordered_Tree() = default;
 				static void init(Heap_Ptr node);
-				void insert(Heap_Ptr node);
-				void remove(Heap_Ptr node);
+				virtual void insert(Heap_Ptr node);
+				virtual void remove(Heap_Ptr node);
 				[[nodiscard]] bool contains(Heap_Ptr node) const;
 				[[nodiscard]] explicit operator bool() const { return static_cast<bool>(root); }
 				[[nodiscard]] Heap_Ptr smaller(Heap_Ptr node) const;
@@ -24,7 +25,7 @@
 				[[nodiscard]] Heap_Ptr smallest() const;
 				[[nodiscard]] Heap_Ptr greatest() const;
 
-			private:
+			protected:
 				Heap_Ptr root { };
 
 				void insert_all(Heap_Ptr node);
