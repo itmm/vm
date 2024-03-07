@@ -1,13 +1,12 @@
 add_library(libvm
     accessor.cpp
+	balanaced_tree.cpp
     err.cpp
 	heap.cpp
-        tree.cpp
+	ordered_tree.cpp
     ptr.cpp
     value.cpp
     vm.cpp
-	heap.cpp
-	heap.h
 )
 
 add_subdirectory(ops)

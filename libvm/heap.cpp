@@ -5,12 +5,13 @@
 #include "accessor.h"
 #include "heap.h"
 #include "value.h"
+#include "balanced_tree.h"
 
 using namespace vm;
 
 #if CONFIG_WITH_HEAP
-	Tree Heap::free_list;
-	Tree Heap::alloc_list;
+	Ordered_Tree Heap::free_list;
+	Ordered_Tree Heap::alloc_list;
 
 	void Heap::insert_into_free_list(Heap_Ptr block) {
 		free_list.insert(block);
@@ -85,6 +86,7 @@ using namespace vm;
 			}
 			found = Heap_Ptr { Heap_Ptr::end };
 			Heap_Ptr::end += size;
+			Ordered_Tree::init(found);
 			Tree::set_size(found, Int { size });
 		} else { size = Tree::size(found).value; }
 
@@ -148,7 +150,7 @@ using namespace vm;
 	}
 
 	template<typename P>
-	static void add_pointers(P begin, P end, Tree& used_blocks) {
+	static void add_pointers(P begin, P end, Ordered_Tree& used_blocks) {
 		P current { begin };
 		while (current < end) {
 			auto value { Acc::get_value(current) };
@@ -179,8 +181,8 @@ using namespace vm;
 	};
 
 	void Heap::collect_garbage() {
-		Tree used_blocks;
-		Tree processed_blocks;
+		Ordered_Tree used_blocks;
+		Ordered_Tree processed_blocks;
 
 		{
 			Full_Stack full_stack;
@@ -190,7 +192,7 @@ using namespace vm;
 			);
 		}
 
-		while (!used_blocks.empty()) {
+		while (used_blocks) {
 			Heap_Ptr current { used_blocks.smallest() };
 			used_blocks.remove(current);
 			processed_blocks.insert(current);
@@ -198,7 +200,7 @@ using namespace vm;
 			add_pointers(current + heap_overhead, end, used_blocks);
 		}
 
-		while (!alloc_list.empty()) {
+		while (alloc_list) {
 			free_block(alloc_list.smallest() + heap_overhead);
 		}
 

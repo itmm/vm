@@ -1,7 +1,7 @@
 #include <cassert>
 
 #include "accessor.h"
-#include "tree.h"
+#include "balanced_tree.h"
 
 using namespace vm;
 

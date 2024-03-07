@@ -1,8 +1,9 @@
 #include "gtest/gtest.h"
 
 #include "heap.h"
-#include "tree.h"
+#include "ordered_tree.h"
 #include "vm-tests.h"
+#include "balanced_tree.h"
 
 using namespace vm;
 
@@ -11,7 +12,7 @@ using namespace vm;
 		signed char ram[0];
 		const signed char code[] { };
 		init(ram, ram + sizeof(ram), code, code + sizeof(code));
-		Tree tree;
+		Ordered_Tree tree;
 		EXPECT_EQ(tree.smallest(), Heap_Ptr { });
 		EXPECT_EQ(tree.greatest(), Heap_Ptr { });
 	}
