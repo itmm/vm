@@ -14,22 +14,33 @@ using namespace vm;
 		[[nodiscard]] bool assert_node_offset(
 			const Heap_Ptr& node, Int::internal_type offset
 		) {
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "ConstantConditionsOC"
 			bool result {
 				node && offset >= 0 && offset + Int::raw_size <= node_size
 			};
+#pragma clang diagnostic pop
 			assert(result);
 			return result;
 		}
 
 		Heap_Ptr get_offset(const Heap_Ptr& node, Int::internal_type offset) {
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "ConstantConditionsOC"
+#pragma ide diagnostic ignored "UnreachableCode"
 			if (!assert_node_offset(node, offset)) { return Heap_Ptr { }; }
+#pragma clang diagnostic pop
 			return Acc::get_ptr(node + offset);
 		}
 
 		void set_offset(
 			Heap_Ptr node, Int::internal_type offset, const Heap_Ptr& child
 		) {
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "ConstantConditionsOC"
+#pragma ide diagnostic ignored "UnreachableCode"
 			if (!assert_node_offset(node, offset)) { return; }
+#pragma clang diagnostic pop
 			Acc::set_ptr(node + offset, child);
 		}
 
@@ -82,6 +93,8 @@ using namespace vm;
 		}
 	}
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "misc-no-recursion"
 	void Ordered_Tree::insert_all(vm::Heap_Ptr node) {
 		if (! node) { return; }
 		insert_all(get_smaller(node));
@@ -89,6 +102,7 @@ using namespace vm;
 		set_smaller(node, Heap_Ptr { }); set_greater(node, Heap_Ptr { });
 		insert(node);
 	}
+#pragma clang diagnostic pop
 
 	void Ordered_Tree::remove(Heap_Ptr node) {
 		assert(node); if (!node) { return; }

@@ -223,9 +223,11 @@ using namespace vm;
 
 		std::cout << "processed_blocks "; print_tree(used_blocks);
 		std::cout << "alloc_list "; print_tree(alloc_list);
+		std::cout << "free_list "; print_tree(free_list);
 		while (alloc_list) {
 			free_block(alloc_list.smallest() + heap_overhead);
 			std::cout << "alloc_list "; print_tree(alloc_list);
+			std::cout << "free_list "; print_tree(free_list);
 		}
 
 		alloc_list = processed_blocks;
