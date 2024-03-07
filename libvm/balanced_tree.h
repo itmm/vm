@@ -27,6 +27,8 @@
 				static bool is_red(Heap_Ptr node);
 				static Heap_Ptr rotate_left(Heap_Ptr node);
 				static Heap_Ptr rotate_right(Heap_Ptr node);
+				static Heap_Ptr move_red_left(Heap_Ptr node);
+				static Heap_Ptr move_red_right(Heap_Ptr node);
 				static void flip_colors(Heap_Ptr node);
 
 			private:
@@ -41,6 +43,16 @@
 				);
 				static int mark(const Heap_Ptr& node);
 				static void set_mark(Heap_Ptr& node, int mark);
+				static void toggle_mark(Heap_Ptr node);
+
+				Heap_Ptr remove(const Heap_Ptr& node, Heap_Ptr parent);
+
+				static Heap_Ptr remove_min(Heap_Ptr parent);
+
+				static Heap_Ptr balance(Heap_Ptr parent);
+
+				Heap_Ptr get_parent(const Heap_Ptr& a);
+				void swap_nodes(const Heap_Ptr& a, const Heap_Ptr& b);
 		};
 	}
 #endif

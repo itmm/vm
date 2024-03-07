@@ -22,7 +22,8 @@
 				[[nodiscard]] explicit operator bool() const { return static_cast<bool>(root); }
 				[[nodiscard]] Heap_Ptr smaller(Heap_Ptr node) const;
 				[[nodiscard]] Heap_Ptr greater(Heap_Ptr node) const;
-				[[nodiscard]] Heap_Ptr smallest() const;
+				[[nodiscard]] static Heap_Ptr smallest(Heap_Ptr node);
+				[[nodiscard]] Heap_Ptr smallest() const { return smallest(root); }
 				[[nodiscard]] Heap_Ptr greatest() const;
 
 			protected:

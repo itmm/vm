@@ -20,16 +20,18 @@ using namespace vm;
 		if (auto smaller = free_list.smaller(block)) {
 			auto smaller_size { Balanced_Tree::size(smaller).value };
 			if (smaller + smaller_size == block) {
-				Balanced_Tree::set_size(smaller, Int { smaller_size + size });
 				free_list.remove(block);
-				block = smaller; size += smaller_size;
+				block = smaller;
+				size += smaller_size;
+				Balanced_Tree::set_size(smaller, Int { size });
 			}
 		}
 
 		if (auto greater = free_list.greater(block)) {
 			if (block + size == greater) {
-				Balanced_Tree::set_size(block, Int { size + Balanced_Tree::size(greater).value });
+				size += Balanced_Tree::size(greater).value;
 				free_list.remove(greater);
+				Balanced_Tree::set_size(block, Int { size });
 			}
 		}
 

@@ -144,12 +144,11 @@ using namespace vm;
 		return candidate;
 	}
 
-	Heap_Ptr Ordered_Tree::smallest() const {
+	Heap_Ptr Ordered_Tree::smallest(Heap_Ptr current) {
 		Heap_Ptr candidate { };
-		auto current { root };
 		while (current) {
 			candidate = current;
-			current = Acc::get_ptr(current + node_smaller_offset);
+			current = get_smaller(current);
 		}
 		return candidate;
 	}

@@ -8,9 +8,20 @@ using namespace vm;
 #if CONFIG_WITH_HEAP
 	namespace {
 		constexpr int node_size_offset { 0 };
+
+	}
+
+	void Balanced_Tree::toggle_mark(Heap_Ptr node) {
+		if (!node) { return; }
+		set_mark(node, mark(node) == red_mark ? black_mark : red_mark);
 	}
 
 	void vm::Balanced_Tree::insert(Heap_Ptr node) {
+		assert(node); if (!node) { return; }
+		auto smaller { get_smaller(node) };
+		auto greater { get_greater(node) };
+		assert(!smaller && !greater);
+		if (smaller || greater) { return; }
 		root = insert(node, root);
 		set_mark(root, black_mark);
 	}
@@ -22,7 +33,7 @@ using namespace vm;
 	Heap_Ptr vm::Balanced_Tree::insert(Heap_Ptr node, Heap_Ptr parent) {
 		if (!node) { return parent; }
 		if (!parent) { set_mark(node, red_mark); return node; }
-		if (node.offset() < parent.offset()) {
+		if (node < parent) {
 			set_smaller(parent, insert(node, get_smaller(parent)));
 		} else {
 			set_greater(parent, insert(node, get_greater(parent)));
@@ -40,8 +51,126 @@ using namespace vm;
 		return parent;
 	}
 
-	void Balanced_Tree::remove(Heap_Ptr node) {
-		Ordered_Tree::remove(node); return;
+	Heap_Ptr Balanced_Tree::move_red_left(Heap_Ptr node) {
+		flip_colors(node);
+		if (is_red(get_smaller(get_greater(node)))) {
+			set_greater(node, rotate_right(get_greater(node)));
+			node = rotate_left(node);
+		}
+		return node;
+	}
+
+	Heap_Ptr Balanced_Tree::move_red_right(Heap_Ptr node) {
+		flip_colors(node);
+		if (is_red(get_smaller(get_smaller(node)))) {
+			node = rotate_right(node);
+		}
+		return node;
+	}
+
+	Heap_Ptr Balanced_Tree::balance(Heap_Ptr parent) {
+		if (is_red(get_greater(parent))) { parent = rotate_left(parent); }
+		auto smaller { get_smaller(parent) };
+		if (is_red(smaller) && is_red(get_smaller(smaller))) { parent = rotate_right(parent); }
+		if (is_red(get_smaller(parent)) && is_red(get_greater(parent))) { flip_colors(parent); }
+		return parent;
+	}
+
+	Heap_Ptr Balanced_Tree::remove_min(Heap_Ptr parent) {
+		auto smaller = get_smaller(parent);
+		if (!smaller) { return Heap_Ptr { }; }
+		if (!is_red(smaller) && !is_red(get_smaller(smaller))) {
+			parent = move_red_left(parent);
+		}
+		set_smaller(parent, remove_min(get_smaller(parent)));
+		return balance(parent);
+	}
+
+	Heap_Ptr Balanced_Tree::get_parent(const Heap_Ptr& node) {
+		Heap_Ptr parent { };
+		for (auto current { root }; !(current == node);) {
+			parent = current;
+			if (node < current) {
+				current = get_smaller(current);
+			} else {
+				current = get_greater(current);
+			}
+			assert(current); if (!current) { return Heap_Ptr { }; }
+		}
+		return parent;
+	}
+
+	void Balanced_Tree::swap_nodes(const Heap_Ptr& a, const Heap_Ptr& b) {
+		assert(a); assert(b);
+		if (!a || !b) { return; }
+		auto a_parent { get_parent(a) };
+		auto b_parent { get_parent(b) };
+		if (a_parent) {
+			if (a < a_parent) {
+				set_smaller(a_parent, b);
+			} else {
+				set_greater(a_parent, b);
+			}
+		} else if (root == a) { root = b; }
+
+		if (b_parent) {
+			if (b < b_parent) {
+				set_smaller(b_parent, a);
+			} else {
+				set_greater(b_parent, b);
+			}
+		} else if (root == b) { root = a; }
+	}
+
+	Heap_Ptr Balanced_Tree::remove(const Heap_Ptr& node, Heap_Ptr parent) {
+		assert(node); if (!node) { return Heap_Ptr { }; }
+		if (node < parent) {
+			auto smaller { get_smaller(parent) };
+			if (!is_red(smaller) && !is_red(get_smaller(smaller))) {
+				parent = move_red_left(parent);
+			}
+			set_smaller(parent, remove(node, get_smaller(parent)));
+		} else {
+			if (is_red(get_smaller(parent))) { parent = rotate_right(parent); }
+			if (parent == node && !get_greater(parent)) {
+				return Heap_Ptr { };
+			}
+			{
+				auto greater { get_greater(parent) };
+				if (!is_red(greater) && !is_red(get_smaller(greater))) {
+					parent = move_red_right(parent);
+				}
+			}
+			if (parent == node) {
+				auto x { smallest(greater(parent)) };
+				swap_nodes(parent, x);
+				set_greater(x, remove_min(get_greater(x)));
+				parent = x;
+			} else {
+				set_greater(parent, remove(node, get_greater(parent)));
+			}
+
+			return balance(parent);
+		}
+
+		auto smaller { get_smaller(node) };
+		auto greater { get_greater(node) };
+		if (smaller && greater) { return this->greater(greater); }
+		if (!smaller && !greater) { return Heap_Ptr { }; }
+		if (smaller) { return smaller; }
+		return greater;
+	}
+
+	void Balanced_Tree::remove(const Heap_Ptr node) {
+		assert(node); if (!node) { return; }
+		if (!root) { return; }
+		if (!is_red(get_smaller(root)) && !is_red(get_greater(root))) {
+			set_mark(root, red_mark);
+		}
+		root = remove(node, root);
+		if (root) { set_mark(root, black_mark); }
+		set_smaller(node, Heap_Ptr { });
+		set_greater(node, Heap_Ptr { });
 	}
 
 	Int Balanced_Tree::size(const Heap_Ptr& node) {
@@ -105,9 +234,10 @@ using namespace vm;
 		assert(node); if (! node) { return; }
 		Heap_Ptr smaller { get_smaller(node) };
 		Heap_Ptr greater { get_greater(node) };
-		assert(smaller); assert(greater); if (! smaller || ! greater) { return; }
-		set_mark(node, red_mark);
-		set_mark(smaller, black_mark);
-		set_mark(greater, black_mark);
+		assert(smaller); assert(greater);
+		if (! smaller || ! greater) { return; }
+		toggle_mark(node);
+		toggle_mark(smaller);
+		toggle_mark(greater);
 	}
 #endif
