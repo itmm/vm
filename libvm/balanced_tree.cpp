@@ -142,9 +142,16 @@ using namespace vm;
 				}
 			}
 			if (parent == node) {
-				auto x { smallest(greater(parent)) };
-				swap_nodes(parent, x);
-				set_greater(x, remove_min(get_greater(x)));
+				auto x { smallest(get_greater(parent)) };
+				set_greater(parent, remove_min(get_greater(parent)));
+				set_mark(x, mark(parent));
+				auto p { get_parent(parent) };
+				if (parent < p) {
+					set_smaller(p, x);
+				} else {
+					set_greater(p, x);
+				}
+				set_smaller(x, get_smaller(parent));
 				parent = x;
 			} else {
 				set_greater(parent, remove(node, get_greater(parent)));
