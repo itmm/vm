@@ -8,8 +8,6 @@ using namespace vm;
 #if CONFIG_WITH_HEAP
 	namespace {
 		constexpr int node_size_offset { 0 };
-		constexpr int node_smaller_offset { Int::raw_size };
-		constexpr int node_greater_offset { 2 * Int::raw_size };
 	}
 
 	void vm::Balanced_Tree::insert(Heap_Ptr node) {
@@ -44,19 +42,6 @@ using namespace vm;
 
 	void Balanced_Tree::remove(Heap_Ptr node) {
 		Ordered_Tree::remove(node); return;
-		if (!node) { return; }
-		Heap_Ptr upper; auto current = root;
-		while (current && !(current == node)) {
-			upper = current;
-			current = Acc::get_ptr(current + ((node < current) ? node_smaller_offset : node_greater_offset));
-		}
-		if (!(current == node)) { return; }
-		if (upper) {
-			Acc::set_ptr(upper + ((node < upper) ? node_smaller_offset : node_greater_offset), Heap_Ptr { });
-		} else { root = Heap_Ptr(); }
-		insert_all(Acc::get_ptr(node + node_smaller_offset));
-		insert_all(Acc::get_ptr(node + node_greater_offset));
-		if (mark(node) == red_mark) { set_mark(node, black_mark); }
 	}
 
 	Int Balanced_Tree::size(const Heap_Ptr& node) {
@@ -95,34 +80,32 @@ using namespace vm;
 	}
 
 	Heap_Ptr Balanced_Tree::rotate_left(Heap_Ptr node) {
-		assert(node);
-		Heap_Ptr x { Acc::get_ptr(node + node_greater_offset) };
-		assert(x);
-		Acc::set_ptr(
-			node + node_greater_offset, Acc::get_ptr(x + node_smaller_offset)
-		);
-		Acc::set_ptr(x + node_smaller_offset, node);
+		assert(node); if (!node) { return Heap_Ptr { }; }
+		Heap_Ptr x { get_greater(node) };
+		assert(x); if (!x) { return Heap_Ptr { }; }
+		set_greater(node, get_smaller(x));
+		set_smaller(x, node);
 		set_mark(x, mark(node));
 		set_mark(node, red_mark);
 		return x;
 	}
 
 	Heap_Ptr Balanced_Tree::rotate_right(Heap_Ptr node) {
-		assert(node);
-		Heap_Ptr x { Acc::get_ptr(node + node_smaller_offset) };
-		assert(x);
-		Acc::set_ptr(node + node_smaller_offset, Acc::get_ptr(x + node_greater_offset));
-		Acc::set_ptr(x + node_greater_offset, node);
+		assert(node); if (!node) { return Heap_Ptr { }; }
+		Heap_Ptr x { get_smaller(node) };
+		assert(x); if (!x) { return Heap_Ptr { }; }
+		set_smaller(node, get_greater(x));
+		set_greater(x, node);
 		set_mark(x, mark(node));
 		set_mark(node, red_mark);
 		return x;
 	}
 
 	void Balanced_Tree::flip_colors(Heap_Ptr node) {
-		assert(node);
-		Heap_Ptr smaller { Acc::get_ptr(node + node_smaller_offset) };
-		Heap_Ptr greater { Acc::get_ptr(node + node_greater_offset) };
-		assert(smaller); assert(greater);
+		assert(node); if (! node) { return; }
+		Heap_Ptr smaller { get_smaller(node) };
+		Heap_Ptr greater { get_greater(node) };
+		assert(smaller); assert(greater); if (! smaller || ! greater) { return; }
 		set_mark(node, red_mark);
 		set_mark(smaller, black_mark);
 		set_mark(greater, black_mark);
