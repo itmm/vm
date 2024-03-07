@@ -121,10 +121,10 @@ using namespace vm;
 		auto current { root };
 		while (current) {
 			if (current < node) {
-				if (candidate < current) { candidate = current; }
-				current = Acc::get_ptr(current + node_greater_offset);
+				if (!candidate || candidate < current) { candidate = current; }
+				current = get_greater(current);
 			} else {
-				current = Acc::get_ptr(current + node_smaller_offset);
+				current = get_smaller(current);
 			}
 		}
 		return candidate;
@@ -134,11 +134,11 @@ using namespace vm;
 		Heap_Ptr candidate;
 		auto current { root };
 		while (current) {
-			if (current < node) {
-				current = Acc::get_ptr(current + node_greater_offset);
+			if (node < current) {
+				if (!candidate || current < candidate) { candidate = current; }
+				current = get_smaller(current);
 			} else {
-				if (current < candidate) { candidate = current; }
-				current = Acc::get_ptr(current + node_smaller_offset);
+				current = get_greater(current);
 			}
 		}
 		return candidate;
@@ -158,7 +158,7 @@ using namespace vm;
 		auto current { root };
 		while (current) {
 			candidate = current;
-			current = Acc::get_ptr(current + node_greater_offset);
+			current = get_greater(current);
 		}
 		return candidate;
 	}

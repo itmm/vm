@@ -74,4 +74,15 @@ using namespace vm;
 		Heap::free_block(second);
 		EXPECT_EQ(Heap_Ptr::end, Ram_Ptr::begin);
 	}
+
+	TEST(tree_tests, remove_and_collect) {
+		signed char ram[2 * (heap_overhead + 10)];
+		const signed char code[] { };
+		init(ram, ram + sizeof(ram), code, code + sizeof(code));
+		auto first = Heap::alloc_block(10, false);
+		std::ignore = Heap::alloc_block(10, false);
+		//Heap::free_block(first);
+		Heap::collect_garbage();
+		EXPECT_EQ(Heap_Ptr::end, Ram_Ptr::begin);
+	}
 #endif

@@ -182,6 +182,23 @@ using namespace vm;
 			int prev_stack_end;
 	};
 
+	void print_tree(const Balanced_Tree& tree) {
+		std::cout << "{ ";
+		if (tree) {
+			auto begin { tree.smallest() };
+			auto cur { begin };
+			auto end { tree.greatest() };
+			std::cout << "[" << begin.offset() << ", " << end.offset() << "] ";
+			for (;;) {
+				if (!(cur == begin)) { std::cout << ", "; }
+				std::cout << cur.offset();
+				if (cur == end) { break; }
+				if (!cur) { break; }
+				cur = tree.greater(cur);
+			}
+		}
+		std::cout << " }\n";
+	}
 	void Heap::collect_garbage() {
 		Balanced_Tree used_blocks;
 		Balanced_Tree processed_blocks;
@@ -194,6 +211,8 @@ using namespace vm;
 			);
 		}
 
+		std::cout << "used_blocks "; print_tree(used_blocks);
+
 		while (used_blocks) {
 			Heap_Ptr current { used_blocks.smallest() };
 			used_blocks.remove(current);
@@ -202,8 +221,11 @@ using namespace vm;
 			add_pointers(current + heap_overhead, end, used_blocks);
 		}
 
+		std::cout << "processed_blocks "; print_tree(used_blocks);
+		std::cout << "alloc_list "; print_tree(alloc_list);
 		while (alloc_list) {
 			free_block(alloc_list.smallest() + heap_overhead);
+			std::cout << "alloc_list "; print_tree(alloc_list);
 		}
 
 		alloc_list = processed_blocks;
