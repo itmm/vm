@@ -28,6 +28,11 @@
 			protected:
 				Heap_Ptr root { };
 
+				static Heap_Ptr get_smaller(const Heap_Ptr& node);
+				static void set_smaller(Heap_Ptr node, const Heap_Ptr& smaller);
+				static Heap_Ptr get_greater(const Heap_Ptr& node);
+				static void set_greater(Heap_Ptr node, const Heap_Ptr& greater);
+
 				void insert_all(Heap_Ptr node);
 		};
 	}

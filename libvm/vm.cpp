@@ -127,8 +127,8 @@ void vm::init(
 	#endif
 
 	#if CONFIG_WITH_HEAP
-		Heap::free_list = Ordered_Tree { };
-		Heap::alloc_list = Ordered_Tree { };
+		Heap::free_list = Balanced_Tree { };
+		Heap::alloc_list = Balanced_Tree { };
 	#endif
 
 	pc = Code_Ptr { Code_Ptr::begin };

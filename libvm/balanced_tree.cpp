@@ -13,8 +13,6 @@ using namespace vm;
 	}
 
 	void vm::Balanced_Tree::insert(Heap_Ptr node) {
-		Ordered_Tree::insert(node); return;
-
 		root = insert(node, root);
 		set_mark(root, black_mark);
 	}
@@ -27,28 +25,20 @@ using namespace vm;
 		if (!node) { return parent; }
 		if (!parent) { set_mark(node, red_mark); return node; }
 		if (node.offset() < parent.offset()) {
-			Acc::set_ptr(
-				parent + node_smaller_offset,
-				insert(node, Acc::get_ptr(parent + node_smaller_offset))
-			);
+			set_smaller(parent, insert(node, get_smaller(parent)));
 		} else {
-			Acc::set_ptr(
-				parent + node_greater_offset,
-				insert(node, Acc::get_ptr(parent + node_greater_offset))
-			);
+			set_greater(parent, insert(node, get_greater(parent)));
 		}
-		if (
-			is_red(Acc::get_ptr(parent + node_greater_offset)) &&
-			!is_red(Acc::get_ptr(parent + node_smaller_offset))
-		) { parent = rotate_left(parent); }
-		if (
-			is_red(Acc::get_ptr(parent + node_smaller_offset)) &&
-			is_red(Acc::get_ptr(Acc::get_ptr(parent + node_smaller_offset)) + node_smaller_offset)
-		) { parent = rotate_right(parent); }
-		if (
-			is_red(Acc::get_ptr(parent + node_greater_offset)) &&
-			is_red(Acc::get_ptr(parent + node_smaller_offset))
-		) { flip_colors(parent); }
+		if (is_red(get_greater(parent)) && !is_red(get_smaller(parent))) {
+			parent = rotate_left(parent);
+		}
+		auto smaller { get_smaller(parent) };
+		if (is_red(smaller) && is_red(get_smaller(smaller))) {
+			parent = rotate_right(parent);
+		}
+		if (is_red(get_smaller(parent)) && is_red(get_greater(parent))) {
+			flip_colors(parent);
+		}
 		return parent;
 	}
 

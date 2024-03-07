@@ -1,6 +1,6 @@
 add_library(libvm
     accessor.cpp
-	balanaced_tree.cpp
+	balanced_tree.cpp
     err.cpp
 	heap.cpp
 	ordered_tree.cpp

@@ -26,10 +26,6 @@ using namespace vm;
 			return Acc::get_ptr(node + offset);
 		}
 
-		Heap_Ptr get_smaller(const Heap_Ptr& node) {
-			return get_offset(node, node_smaller_offset);
-		}
-
 		void set_offset(
 			Heap_Ptr node, Int::internal_type offset, const Heap_Ptr& child
 		) {
@@ -37,17 +33,22 @@ using namespace vm;
 			Acc::set_ptr(node + offset, child);
 		}
 
-		void set_smaller(Heap_Ptr node, const Heap_Ptr& smaller) {
-			set_offset(node, node_smaller_offset, smaller);
-		}
+	}
 
-		Heap_Ptr get_greater(const Heap_Ptr& node) {
-			return get_offset(node, node_greater_offset);
-		}
+	Heap_Ptr Ordered_Tree::get_smaller(const Heap_Ptr& node) {
+		return get_offset(node, node_smaller_offset);
+	}
 
-		void set_greater(Heap_Ptr node, const Heap_Ptr& greater) {
-			set_offset(node, node_greater_offset, greater);
-		}
+	void Ordered_Tree::set_smaller(Heap_Ptr node, const Heap_Ptr& smaller) {
+		set_offset(node, node_smaller_offset, smaller);
+	}
+
+	Heap_Ptr Ordered_Tree::get_greater(const Heap_Ptr& node) {
+		return get_offset(node, node_greater_offset);
+	}
+
+	void Ordered_Tree::set_greater(Heap_Ptr node, const Heap_Ptr& greater) {
+		set_offset(node, node_greater_offset, greater);
 	}
 
 	void vm::Ordered_Tree::init(Heap_Ptr node) {

@@ -1,14 +1,14 @@
 #pragma once
 
-#include "ordered_tree.h"
+#include "balanced_tree.h"
 #include "ptr.h"
 
 #if CONFIG_WITH_HEAP
 	namespace vm {
 		class Heap {
 			public:
-				static Ordered_Tree free_list;
-				static Ordered_Tree alloc_list;
+				static Balanced_Tree free_list;
+				static Balanced_Tree alloc_list;
 
 				static void insert_into_free_list(Heap_Ptr block);
 				static Heap_Ptr find_on_free_list(int size);
