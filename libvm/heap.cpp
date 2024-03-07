@@ -206,6 +206,6 @@ using namespace vm;
 			free_block(alloc_list.smallest() + heap_overhead);
 		}
 
-		alloc_list =  processed_blocks;
+		alloc_list = processed_blocks;
 	}
 #endif

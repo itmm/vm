@@ -4,17 +4,8 @@
 
 #if CONFIG_WITH_HEAP
 	namespace vm {
-		class Balanced_Tree;
-
-		namespace testing {
-			int get_mark(const Heap_Ptr&);
-			void set_mark(Heap_Ptr, int);
-		}
-
 		class Balanced_Tree: public Ordered_Tree {
 			public:
-				// TODO: use red-black tree
-
 				void insert(Heap_Ptr node) override;
 				static Heap_Ptr insert(Heap_Ptr node, Heap_Ptr parent);
 				void remove(Heap_Ptr node) override;
@@ -35,8 +26,11 @@
 				friend int testing::get_mark(const Heap_Ptr&);
 				friend void testing::set_mark(Heap_Ptr, int);
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 				static constexpr int black_mark { 1 };
 				static constexpr int red_mark { -1 };
+#pragma clang diagnostic pop
 
 				static void set_size_with_mark(
 					Heap_Ptr node, const Int& size, int mark
@@ -52,7 +46,6 @@
 				static Heap_Ptr balance(Heap_Ptr parent);
 
 				Heap_Ptr get_parent(const Heap_Ptr& a);
-				void swap_nodes(const Heap_Ptr& a, const Heap_Ptr& b);
 		};
 	}
 #endif

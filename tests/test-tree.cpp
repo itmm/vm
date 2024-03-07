@@ -54,4 +54,24 @@ using namespace vm;
 		EXPECT_EQ(vm::testing::get_mark(raw), -1);
 		EXPECT_EQ(Balanced_Tree::size(raw), Int { heap_overhead + 10 });
 	}
+
+	TEST(tree_tests, remove) {
+		signed char ram[heap_overhead + 20];
+		const signed char code[] { };
+		init(ram, ram + sizeof(ram), code, code + sizeof(code));
+		auto block = Heap::alloc_block(20, false);
+		Heap::free_block(block);
+		EXPECT_EQ(Heap_Ptr::end, Ram_Ptr::begin);
+	}
+
+	TEST(tree_tests, remove_2) {
+		signed char ram[2 * (heap_overhead + 10)];
+		const signed char code[] { };
+		init(ram, ram + sizeof(ram), code, code + sizeof(code));
+		auto first = Heap::alloc_block(10, false);
+		auto second = Heap::alloc_block(10, false);
+		Heap::free_block(first);
+		Heap::free_block(second);
+		EXPECT_EQ(Heap_Ptr::end, Ram_Ptr::begin);
+	}
 #endif

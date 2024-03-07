@@ -13,7 +13,11 @@ using namespace vm;
 
 	void Balanced_Tree::toggle_mark(Heap_Ptr node) {
 		if (!node) { return; }
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "ConstantConditionsOC"
+#pragma ide diagnostic ignored "UnreachableCode"
 		set_mark(node, mark(node) == red_mark ? black_mark : red_mark);
+#pragma clang diagnostic pop
 	}
 
 	void vm::Balanced_Tree::insert(Heap_Ptr node) {
@@ -27,9 +31,14 @@ using namespace vm;
 	}
 
 	bool vm::Balanced_Tree::is_red(Heap_Ptr node) {
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "ConstantConditionsOC"
 		return node && mark(node) == red_mark;
+#pragma clang diagnostic pop
 	}
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "misc-no-recursion"
 	Heap_Ptr vm::Balanced_Tree::insert(Heap_Ptr node, Heap_Ptr parent) {
 		if (!node) { return parent; }
 		if (!parent) { set_mark(node, red_mark); return node; }
@@ -50,6 +59,7 @@ using namespace vm;
 		}
 		return parent;
 	}
+#pragma clang diagnostic pop
 
 	Heap_Ptr Balanced_Tree::move_red_left(Heap_Ptr node) {
 		flip_colors(node);
@@ -76,6 +86,8 @@ using namespace vm;
 		return parent;
 	}
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "misc-no-recursion"
 	Heap_Ptr Balanced_Tree::remove_min(Heap_Ptr parent) {
 		auto smaller = get_smaller(parent);
 		if (!smaller) { return Heap_Ptr { }; }
@@ -85,6 +97,7 @@ using namespace vm;
 		set_smaller(parent, remove_min(get_smaller(parent)));
 		return balance(parent);
 	}
+#pragma clang diagnostic pop
 
 	Heap_Ptr Balanced_Tree::get_parent(const Heap_Ptr& node) {
 		Heap_Ptr parent { };
@@ -100,28 +113,8 @@ using namespace vm;
 		return parent;
 	}
 
-	void Balanced_Tree::swap_nodes(const Heap_Ptr& a, const Heap_Ptr& b) {
-		assert(a); assert(b);
-		if (!a || !b) { return; }
-		auto a_parent { get_parent(a) };
-		auto b_parent { get_parent(b) };
-		if (a_parent) {
-			if (a < a_parent) {
-				set_smaller(a_parent, b);
-			} else {
-				set_greater(a_parent, b);
-			}
-		} else if (root == a) { root = b; }
-
-		if (b_parent) {
-			if (b < b_parent) {
-				set_smaller(b_parent, a);
-			} else {
-				set_greater(b_parent, b);
-			}
-		} else if (root == b) { root = a; }
-	}
-
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "misc-no-recursion"
 	Heap_Ptr Balanced_Tree::remove(const Heap_Ptr& node, Heap_Ptr parent) {
 		assert(node); if (!node) { return Heap_Ptr { }; }
 		if (node < parent) {
@@ -167,6 +160,7 @@ using namespace vm;
 		if (smaller) { return smaller; }
 		return greater;
 	}
+#pragma clang diagnostic pop
 
 	void Balanced_Tree::remove(const Heap_Ptr node) {
 		assert(node); if (!node) { return; }
@@ -199,11 +193,16 @@ using namespace vm;
 		Acc::set_int(node + node_size_offset, Int { size.value * mark });
 	}
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "ConstantFunctionResult"
 	int Balanced_Tree::mark(const Heap_Ptr& node) {
 		assert(node); if (!node) { return black_mark; }
 		auto res { Acc::get_int(node + node_size_offset) };
+#pragma ide diagnostic ignored "ConstantConditionsOC"
+#pragma ide diagnostic ignored "UnreachableCode"
 		return res.value >= 0 ? black_mark : red_mark;
 	}
+#pragma clang diagnostic pop
 
 	void Balanced_Tree::set_size(Heap_Ptr node, const Int& size, bool keep_mark) {
 		int m = black_mark;
