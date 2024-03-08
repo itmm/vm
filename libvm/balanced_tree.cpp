@@ -136,17 +136,13 @@ using namespace vm;
 				}
 			}
 			if (parent == node) {
-				auto x { smallest(get_greater(parent)) };
-				set_greater(parent, remove_min(get_greater(parent)));
-				set_mark(x, mark(parent));
-				auto p { get_parent(parent) };
-				if (parent < p) {
-					set_smaller(p, x);
-				} else {
-					set_greater(p, x);
-				}
+				auto replacement { get_greater(parent) };
+				auto x { smallest(replacement) };
 				set_smaller(x, get_smaller(parent));
-				parent = x;
+				set_smaller(parent, Heap_Ptr { });
+				set_greater(parent, Heap_Ptr { });
+				set_mark(replacement, mark(parent));
+				parent = replacement;
 			} else {
 				set_greater(parent, remove(node, get_greater(parent)));
 			}
