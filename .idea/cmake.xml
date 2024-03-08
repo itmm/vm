@@ -3,6 +3,7 @@
   <component name="CMakeSharedSettings">
     <configurations>
       <configuration PROFILE_NAME="Minimal" ENABLED="true" CONFIG_NAME="Debug" GENERATION_OPTIONS="-DMinimal=YES" />
+      <configuration PROFILE_NAME="Debug" ENABLED="true" CONFIG_NAME="Debug" />
     </configurations>
   </component>
 </project>
