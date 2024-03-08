@@ -93,17 +93,6 @@ using namespace vm;
 		}
 	}
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "misc-no-recursion"
-	void Ordered_Tree::insert_all(vm::Heap_Ptr node) {
-		if (! node) { return; }
-		insert_all(get_smaller(node));
-		insert_all(get_greater(node));
-		set_smaller(node, Heap_Ptr { }); set_greater(node, Heap_Ptr { });
-		insert(node);
-	}
-#pragma clang diagnostic pop
-
 	void Ordered_Tree::remove(Heap_Ptr node) {
 		assert(node); if (!node) { return; }
 		Heap_Ptr upper; auto current = root;
@@ -112,11 +101,23 @@ using namespace vm;
 			current = Acc::get_ptr(current + ((node < current) ? node_smaller_offset : node_greater_offset));
 		}
 		if (!(current == node)) { return; }
-		if (upper) {
-			Acc::set_ptr(upper + ((node < upper) ? node_smaller_offset : node_greater_offset), Heap_Ptr { });
-		} else { root = Heap_Ptr(); }
-		insert_all(get_smaller(node));
-		insert_all(get_greater(node));
+
+		Heap_Ptr replacement;
+		if (!get_smaller(node)) {
+			replacement = get_greater(node); set_greater(node, Heap_Ptr { });
+		}
+		else if (!get_greater(node)) {
+			replacement = get_smaller(node); set_smaller(node, Heap_Ptr { });
+		} else {
+			replacement = get_greater(node);
+			auto x { smallest(replacement) };
+			set_smaller(x, get_smaller(node));
+			set_greater(node, Heap_Ptr { });
+			set_smaller(node, Heap_Ptr { });
+		}
+		if (!upper) { root = replacement; }
+		else if (node < upper) { set_smaller(upper, replacement); }
+		else { set_greater(upper, replacement); }
 		set_smaller(node, Heap_Ptr { });
 		set_greater(node, Heap_Ptr { });
 	}

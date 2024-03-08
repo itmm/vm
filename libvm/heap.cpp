@@ -10,8 +10,8 @@
 using namespace vm;
 
 #if CONFIG_WITH_HEAP
-	Balanced_Tree Heap::free_list;
-	Balanced_Tree Heap::alloc_list;
+	Ordered_Tree Heap::free_list;
+	Ordered_Tree Heap::alloc_list;
 
 	void Heap::insert_into_free_list(Heap_Ptr block) {
 		free_list.insert(block);
@@ -88,7 +88,7 @@ using namespace vm;
 			}
 			found = Heap_Ptr { Heap_Ptr::end };
 			Heap_Ptr::end += size;
-			Balanced_Tree::init(found);
+			Ordered_Tree::init(found);
 			Balanced_Tree::set_size(found, Int { size });
 		} else { size = Balanced_Tree::size(found).value; }
 
@@ -152,7 +152,7 @@ using namespace vm;
 	}
 
 	template<typename P>
-	static void add_pointers(P begin, P end, Balanced_Tree& used_blocks) {
+	static void add_pointers(P begin, P end, Ordered_Tree& used_blocks) {
 		P current { begin };
 		while (current < end) {
 			auto value { Acc::get_value(current) };
@@ -182,7 +182,7 @@ using namespace vm;
 			int prev_stack_end;
 	};
 
-	void print_tree(const Balanced_Tree& tree) {
+	void print_tree(const Ordered_Tree& tree) {
 		std::cout << "{ ";
 		if (tree) {
 			auto begin { tree.smallest() };
@@ -200,8 +200,8 @@ using namespace vm;
 		std::cout << " }\n";
 	}
 	void Heap::collect_garbage() {
-		Balanced_Tree used_blocks;
-		Balanced_Tree processed_blocks;
+		Ordered_Tree used_blocks;
+		Ordered_Tree processed_blocks;
 
 		{
 			Full_Stack full_stack;
