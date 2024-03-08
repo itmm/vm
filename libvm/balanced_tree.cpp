@@ -1,4 +1,5 @@
 #include <cassert>
+#include <limits>
 
 #include "accessor.h"
 #include "balanced_tree.h"
@@ -177,8 +178,12 @@ using namespace vm;
 	Int Balanced_Tree::size(const Heap_Ptr& node) {
 		assert(node); if (!node) { return Int { -1 }; }
 		auto res { Acc::get_int(node + node_size_offset) };
-		// TODO: check for max min
-		if (res.value < 0) { res.value *= -1; }
+		if (res.value < 0) {
+			if (res.value == std::numeric_limits<Int::value_type>::min()) {
+				err(Err::max_negative_size);
+			}
+			res.value *= -1;
+		}
 		return res;
 	}
 
@@ -186,9 +191,12 @@ using namespace vm;
 		vm::Heap_Ptr node, const vm::Int& size, int mark
 	) {
 		assert(node && size.value >= node_size && (mark == red_mark || mark == black_mark));
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "ConstantConditionsOC"
 		if (!node || size.value < node_size || (mark != 1 && mark != -1)) {
 			return;
 		}
+#pragma clang diagnostic pop
 
 		Acc::set_int(node + node_size_offset, Int { size.value * mark });
 	}
